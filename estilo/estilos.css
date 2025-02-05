@@ -1,92 +1,76 @@
+/* Fuente moderna con estilo tecnológico */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
 /* **************************************************************
     Estilos globales
     **************************************************************/
-
-/* Se establece un color de fondo claro para la página */
 body {
-     background-color: #eeeeee;
+  background-color: #EEEEEE;  /* Último color de la paleta */
+  font-family: 'Orbitron', sans-serif;
+  color: #1D1616;            /* Primer color de la paleta */
+  margin: 0;
+  padding: 0;
+  cursor: default;
 }
 
 /* **************************************************************
-    Estilos para la barra de navegación (Navbar)
+    Barra de navegación (Navbar)
     **************************************************************/
-
-/* Padding vertical para la navbar */
 .navbar {
-     padding: 1rem 0;
+  padding: 1rem 0;
+  cursor: default;
 }
-
-/* Estilización de los enlaces dentro de la navbar */
-.navbar-nav .nav-link {
-     font-size: 1.2rem;     /* Tamaño de fuente más grande para mayor legibilidad */
-     margin: 0 15px;        /* Espaciado horizontal entre enlaces */
-     color: #eeeeee;        /* Texto en tono claro */
-}
-
-/* Cambio de color al pasar el cursor */
-.navbar-nav .nav-link:hover {
-     color: #d84040;       /* Resalta con el tono de acento */
-}
-
-/* Centrado del contenido de la navbar utilizando flexbox */
 .navbar .container {
-     display: flex;
-     flex-direction: column;  /* Organiza los elementos uno debajo del otro */
-     align-items: center;     /* Centra horizontalmente los elementos dentro del contenedor */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-
-/* Espaciado inferior para el logo de la marca */
 .navbar-brand {
-     margin-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+  cursor: crosshair;
 }
-
-/* **************************************************************
-    Estilos para el logo en la navbar
-    **************************************************************/
-
-/* Ajuste de dimensiones para la imagen del logo */
 .navbar-brand img {
-     width: 100px;         /* Ancho de la imagen */
-     height: 100px;        /* Alto de la imagen */
+  width: 100px;
+  height: 100px;
+}
+.navbar-nav .nav-link {
+  font-size: 1.2rem;
+  margin: 0 15px;
+  color: #EEEEEE;
+  cursor: pointer;
+}
+.navbar-nav .nav-link:hover {
+  color: #D84040;
 }
 
 /* **************************************************************
-    Estilos para las tarjetas de productos (Product Cards)
+    Tarjetas de productos
     **************************************************************/
-
-/* Configuración básica de las tarjetas sin bordes y con esquinas redondeadas */
 .card {
-     border: none;
-     border-radius: 15px;   /* Bordes redondeados para un diseño moderno */
-     overflow: hidden;      /* Oculta el contenido que sobresalga del contenedor */
-     transition: transform 0.3s, box-shadow 0.3s;  /* Transiciones suaves para la animación */
+  border: none;
+  border-radius: 15px;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+  cursor: pointer;
 }
-
-/* Efecto al pasar el cursor sobre la tarjeta */
 .card:hover {
-     transform: translateY(-5px);     /* Desplaza ligeramente la tarjeta hacia arriba */
-     box-shadow: 0 8px 16px rgba(29,22,22,0.2);  /* Sombra sutil utilizando un tono cercano a #1d1616 */
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(29,22,22,0.2);
 }
-
-/* Establece la altura y el comportamiento de la imagen dentro de la tarjeta */
 .card-img-top {
-     height: 200px;         /* Altura fija para mantener consistencia */
-     object-fit: cover;     /* La imagen se recorta y mantiene el aspecto sin deformarse */
+  height: 200px;
+  object-fit: cover;
 }
-
-/* Estilos para el pie de la tarjeta */
 .card-footer {
-     background-color: #eeeeee;   /* Fondo claro para contraste */
-     border: none;             /* Sin borde para un look limpio */
+  background-color: #EEEEEE;
+  border: none;
 }
 
 /* **************************************************************
-    Estilo de fondo degradado para la navbar
-    (Migrado desde un atributo inline, ahora en CSS para mantener 
-     la separación de contenido y estilo)
+    Fondo degradado en la navbar
     **************************************************************/
-
-/* Fondo degradado para dar un efecto visual atractivo usando la paleta */
 .gradient-bg {
-     background: linear-gradient(90deg, #1d1616, #8e1616, #d84040);
+  background: linear-gradient(90deg, #1D1616, #8E1616, #D84040);
+  width: 100%;
+  box-sizing: border-box;
 }
