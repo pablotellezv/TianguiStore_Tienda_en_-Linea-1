@@ -1,56 +1,92 @@
-/* ...existing styles... */
+/* **************************************************************
+    Estilos globales
+    **************************************************************/
 
-/* Global styles */
+/* Se establece un color de fondo claro para la página */
 body {
-    background-color: #f8f9fa;
+     background-color: #eeeeee;
 }
 
-/* Navbar styles */
+/* **************************************************************
+    Estilos para la barra de navegación (Navbar)
+    **************************************************************/
+
+/* Padding vertical para la navbar */
 .navbar {
-    padding: 1rem 0;
+     padding: 1rem 0;
 }
+
+/* Estilización de los enlaces dentro de la navbar */
 .navbar-nav .nav-link {
-    font-size: 1.2rem;
-    margin: 0 15px;
+     font-size: 1.2rem;     /* Tamaño de fuente más grande para mayor legibilidad */
+     margin: 0 15px;        /* Espaciado horizontal entre enlaces */
+     color: #eeeeee;        /* Texto en tono claro */
 }
 
-/* Centering the menu */
+/* Cambio de color al pasar el cursor */
+.navbar-nav .nav-link:hover {
+     color: #d84040;       /* Resalta con el tono de acento */
+}
+
+/* Centrado del contenido de la navbar utilizando flexbox */
 .navbar .container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+     display: flex;
+     flex-direction: column;  /* Organiza los elementos uno debajo del otro */
+     align-items: center;     /* Centra horizontalmente los elementos dentro del contenedor */
 }
+
+/* Espaciado inferior para el logo de la marca */
 .navbar-brand {
-    margin-bottom: 0.5rem;
+     margin-bottom: 0.5rem;
 }
 
-/* Logo enlargement */
+/* **************************************************************
+    Estilos para el logo en la navbar
+    **************************************************************/
+
+/* Ajuste de dimensiones para la imagen del logo */
 .navbar-brand img {
-    width: 100px;
-    height: 100px;
+     width: 100px;         /* Ancho de la imagen */
+     height: 100px;        /* Alto de la imagen */
 }
 
-/* Product cards styling */
+/* **************************************************************
+    Estilos para las tarjetas de productos (Product Cards)
+    **************************************************************/
+
+/* Configuración básica de las tarjetas sin bordes y con esquinas redondeadas */
 .card {
-    border: none;
-    border-radius: 15px;
-    overflow: hidden;
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-}
-.card-img-top {
-    height: 200px;
-    object-fit: cover;
-}
-.card-footer {
-    background-color: #fff;
-    border: none;
+     border: none;
+     border-radius: 15px;   /* Bordes redondeados para un diseño moderno */
+     overflow: hidden;      /* Oculta el contenido que sobresalga del contenedor */
+     transition: transform 0.3s, box-shadow 0.3s;  /* Transiciones suaves para la animación */
 }
 
-/* Navbar gradient background (migrado desde el atributo inline) */
+/* Efecto al pasar el cursor sobre la tarjeta */
+.card:hover {
+     transform: translateY(-5px);     /* Desplaza ligeramente la tarjeta hacia arriba */
+     box-shadow: 0 8px 16px rgba(29,22,22,0.2);  /* Sombra sutil utilizando un tono cercano a #1d1616 */
+}
+
+/* Establece la altura y el comportamiento de la imagen dentro de la tarjeta */
+.card-img-top {
+     height: 200px;         /* Altura fija para mantener consistencia */
+     object-fit: cover;     /* La imagen se recorta y mantiene el aspecto sin deformarse */
+}
+
+/* Estilos para el pie de la tarjeta */
+.card-footer {
+     background-color: #eeeeee;   /* Fondo claro para contraste */
+     border: none;             /* Sin borde para un look limpio */
+}
+
+/* **************************************************************
+    Estilo de fondo degradado para la navbar
+    (Migrado desde un atributo inline, ahora en CSS para mantener 
+     la separación de contenido y estilo)
+    **************************************************************/
+
+/* Fondo degradado para dar un efecto visual atractivo usando la paleta */
 .gradient-bg {
-    background: linear-gradient(90deg, #007bff, #6610f2);
+     background: linear-gradient(90deg, #1d1616, #8e1616, #d84040);
 }
