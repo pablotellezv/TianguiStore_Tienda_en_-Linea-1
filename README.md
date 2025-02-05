@@ -2,18 +2,6 @@
 
 Este repositorio contiene las prácticas y proyectos realizados durante el curso de **Sistemas Visuales** de la carrera de Ingeniería en Sistemas del **Centro Universitario Hidalguense**.
 
-## Contenidos
-
-- [Introducción](#introducción)
-- [Requisitos](#requisitos)
-- [Instalación](#instalación)
-- [Uso](#uso)
-- [Contribución](#contribución)
-- [Licencia](#licencia)
-- [Contacto](#contacto)
-
-## Introducción
-
 En este curso exploramos diferentes tecnologías y metodologías para el desarrollo de interfaces visuales. A lo largo del curso, trabajaremos con HTML5, CSS y JavaScript puro para crear aplicaciones web interactivas y responsivas.
 
 ## Instalación
