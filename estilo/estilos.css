@@ -74,3 +74,21 @@ body {
   width: 100%;
   box-sizing: border-box;
 }
+
+.remove{
+  background-color: red;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.toast{
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: black;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  
+}
