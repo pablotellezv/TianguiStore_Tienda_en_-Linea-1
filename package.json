@@ -1,0 +1,30 @@
+{
+  "name": "proyecto",
+  "version": "1.0.0",
+  "description": "Este repositorio contiene las prácticas y proyectos realizados durante el curso de **Sistemas Visuales** de la carrera de Ingeniería en Sistemas del **Centro Universitario Hidalguense**.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@npmcli/fs": "^4.0.0",
+    "are-we-there-yet": "^4.0.2",
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "gauge": "^5.0.2",
+    "glob": "^11.0.1",
+    "helmet": "^8.0.0",
+    "lru-cache": "^11.0.2",
+    "mysql2": "^3.12.0",
+    "npmlog": "^7.0.1",
+    "rimraf": "^6.0.1",
+    "sqlite3": "^5.1.7"
+  }
+}
