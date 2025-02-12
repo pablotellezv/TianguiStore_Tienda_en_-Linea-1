@@ -1,28 +1,30 @@
 require("dotenv").config();
 const express = require("express");
-const helmet = require("helmet");
 const session = require("express-session");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const { registrarUsuario, verificarUsuario } = require("./auth");
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 const PORT = 3000;
 
 // Middleware de seguridad
-app.use(helmet()); // Protege contra XSS y otras amenazas
-app.use(cors()); // Permite solicitudes desde el frontend
 app.use(bodyParser.json()); // Procesar JSON en las peticiones
-
-// Configurar sesiones
+// Middleware de sesión seguro
 app.use(
     session({
-        secret: process.env.SECRET_KEY,
-        resave: false,
-        saveUninitialized: true,
-        cookie: { secure: false },
+        secret: process.env.SECRET_KEY, // 🔹 Usa el SECRET_KEY del archivo .env
+        resave: false, // No volver a guardar la sesión si no hay cambios
+        saveUninitialized: true, // Guardar sesiones no inicializadas (usuarios nuevos)
+        cookie: {
+            secure: false, // 🔹 Cambia a true si usas HTTPS en producción
+            httpOnly: true, // 🔹 Evita acceso a la cookie desde JavaScript
+            maxAge: 1000 * 60 * 60 * 24 // 🔹 Duración de la sesión: 1 día
+        }
     })
 );
+
 
 // Servir archivos estáticos desde la carpeta `public/`
 app.use(express.static("public", { dotfiles: "ignore" })); // Evita mostrar archivos ocultos
