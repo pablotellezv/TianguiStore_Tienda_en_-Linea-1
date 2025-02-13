@@ -10,6 +10,20 @@ exports.obtenerProductos = (req, res) => {
     });
 };
 
+// **📌 Obtener un producto por su ID**
+exports.obtenerProductoPorId = (req, res) => {
+    const { id } = req.params;
+    db.query("SELECT * FROM productos WHERE id = ?", [id], (error, resultados) => {
+        if (error) {
+            return res.status(500).json({ mensaje: "Error al obtener el producto" });
+        }
+        if (resultados.length === 0) {
+            return res.status(404).json({ mensaje: "Producto no encontrado" });
+        }
+        res.json(resultados[0]);
+    });
+};
+
 // **📌 Agregar un nuevo producto**
 exports.agregarProducto = (req, res) => {
     const { nombre, precio } = req.body;
