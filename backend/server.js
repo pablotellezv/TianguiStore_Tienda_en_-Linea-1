@@ -3,51 +3,47 @@ const express = require("express");
 const session = require("express-session");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const { registrarUsuario, verificarUsuario } = require("./auth");
-const authRoutes = require('./routes/authRoutes');
+
+// Importar rutas
+const authRoutes = require("./routes/authRoutes");
+const productosRoutes = require("./routes/productosRoutes");
+const carritoRoutes = require("./routes/carritoRoutes");
 
 const app = express();
 const PORT = 3000;
 
-// Middleware de seguridad
+// ** Middleware de seguridad**
+app.use(cors()); // Permitir solicitudes desde otros dominios
 app.use(bodyParser.json()); // Procesar JSON en las peticiones
-// Middleware de sesión seguro
+
+// ** Middleware de sesión seguro**
 app.use(
     session({
-        secret: process.env.SECRET_KEY, // 🔹 Usa el SECRET_KEY del archivo .env
-        resave: false, // No volver a guardar la sesión si no hay cambios
-        saveUninitialized: true, // Guardar sesiones no inicializadas (usuarios nuevos)
+        secret: process.env.SECRET_KEY || "clave_por_defecto", // Usa clave de .env o una por defecto
+        resave: false,
+        saveUninitialized: true,
         cookie: {
-            secure: false, // 🔹 Cambia a true si usas HTTPS en producción
-            httpOnly: true, // 🔹 Evita acceso a la cookie desde JavaScript
-            maxAge: 1000 * 60 * 60 * 24 // 🔹 Duración de la sesión: 1 día
+            secure: false, // Cambia a true si usas HTTPS en producción
+            httpOnly: true, // Evita acceso a la cookie desde JavaScript
+            maxAge: 1000 * 60 * 60 * 24 // Duración de la sesión: 1 día
         }
     })
 );
 
-
-// Servir archivos estáticos desde la carpeta `public/`
+// ** Servir archivos estáticos desde la carpeta `public/`**
 app.use(express.static("public", { dotfiles: "ignore" })); // Evita mostrar archivos ocultos
 
-// **📌 Ruta para registrar usuario**
-app.post("/registro", async (req, res) => {
-    const { email, contraseña } = req.body;
-    registrarUsuario(email, contraseña, res);
+// ** Rutas del servidor**
+app.use("/auth", authRoutes); // Autenticación (registro, login, logout)
+app.use("/productos", productosRoutes); // Gestión de productos
+app.use("/carrito", carritoRoutes); // Gestión del carrito de compras
+
+// ** Ruta de prueba**
+app.get("/", (req, res) => {
+    res.send("✅ Servidor Express en funcionamiento.");
 });
 
-// **📌 Ruta para iniciar sesión**
-app.post("/login", (req, res) => {
-    const { email, contraseña } = req.body;
-    verificarUsuario(email, contraseña, req, res);
-});
-
-// **📌 Ruta para cerrar sesión**
-app.post("/logout", (req, res) => {
-    req.session.destroy();
-    res.json({ mensaje: "Sesión cerrada" });
-});
-
-// **📌 Iniciar el servidor**
+// ** Iniciar el servidor**
 app.listen(PORT, () => {
     console.log(`✅ Servidor corriendo en http://localhost:${PORT}`);
 });
