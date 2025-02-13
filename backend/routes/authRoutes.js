@@ -3,7 +3,7 @@ const router = express.Router();
 const { registrarUsuario, verificarUsuario } = require("../controllers/authController");
 
 // Ruta para registrar un nuevo usuario
-router.post("/register", registrarUsuario);
+router.post("/registro", registrarUsuario);
 
 // Ruta para iniciar sesión
 router.post("/login", verificarUsuario);
