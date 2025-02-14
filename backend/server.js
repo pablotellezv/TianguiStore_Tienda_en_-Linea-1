@@ -31,10 +31,21 @@ app.use(
 
 // SERVIR ARCHIVOS ESTÁTICOS: La carpeta public está en el directorio padre de backend
 app.use(express.static(path.join(__dirname, "..", "public"), { dotfiles: "ignore" }));
+// Ajustar la carpeta `public/` 
+app.use(express.static(path.join(__dirname, "../public")));
 
 // RUTA PARA ENVIAR index.html
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "..", "public", "index.html"));
+});
+app.get("/login", (req, res) => {
+    res.sendFile(path.join(__dirname, "..", "public", "login.html"));
+});
+app.get("/carrito", (req, res) => {
+    res.sendFile(path.join(__dirname, "..", "public", "carrito.html"));
+});
+app.get("/registro", (req, res) => {
+    res.sendFile(path.join(__dirname, "..", "public", "registro.html"));
 });
 
 // Otras rutas del servidor

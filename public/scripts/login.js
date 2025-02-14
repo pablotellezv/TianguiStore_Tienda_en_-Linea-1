@@ -6,41 +6,49 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Expresiones regulares para validación
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,10}$/;
-
-    // Limpiar errores cuando el usuario empiece a escribir
-    email.addEventListener("input", () => email.classList.remove("is-invalid"));
-    password.addEventListener("input", () => password.classList.remove("is-invalid"));
-    mensajeError.classList.add("d-none");
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
 
     form.addEventListener("submit", async (event) => {
         event.preventDefault(); // Evitar recarga de página
-        mensajeError.classList.add("d-none"); // Ocultar mensaje de error
 
         let esValido = true;
+        mensajeError.classList.add("d-none"); // Ocultar mensaje previo
 
-        // Validación del correo
-        if (!emailRegex.test(email.value)) {
+        // **Validar email**
+        if (!emailRegex.test(email.value.trim())) {
             email.classList.add("is-invalid");
+            mensajeError.textContent = "⚠️ Ingrese un correo electrónico válido.";
+            mensajeError.classList.remove("d-none");
             esValido = false;
+        } else {
+            email.classList.remove("is-invalid");
         }
 
-        // Validación de la contraseña
-        if (!passwordRegex.test(password.value)) {
+        // **Validar contraseña**
+        if (!passwordRegex.test(password.value.trim())) {
             password.classList.add("is-invalid");
+            mensajeError.textContent = "⚠️ La contraseña debe contener al menos 8 caracteres, una mayúscula y un número.";
+            mensajeError.classList.remove("d-none");
             esValido = false;
+        } else {
+            password.classList.remove("is-invalid");
         }
 
-        if (!esValido) return;
+        if (!esValido) {
+            console.warn("⛔ Validación fallida en el frontend");
+            return;
+        }
 
+        console.log("📡 Enviando credenciales al servidor...");
+
+        // **Enviar credenciales al servidor**
         try {
-            console.log("🔄 Enviando credenciales al servidor...");
-            const response = await fetch("http://localhost:3000/login", {
+            const response = await fetch("http://localhost:3000/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    email: email.value,
-                    contraseña: password.value,
+                    email: email.value.trim(),
+                    contraseña: password.value.trim(),
                 }),
             });
 
@@ -48,18 +56,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!response.ok) {
                 console.error("❌ Error en la autenticación:", data.error);
-                mensajeError.textContent = data.error;
+                mensajeError.textContent = `❌ ${data.error}`;
                 mensajeError.classList.remove("d-none");
             } else {
                 console.log("✅ Inicio de sesión exitoso. Redirigiendo...");
-                mensajeError.classList.add("d-none"); // Ocultar mensaje de error
-                setTimeout(() => {
-                    window.location.href = "index.html";
-                }, 1000);
+                mensajeError.classList.add("d-none"); // Ocultar mensajes de error previos
+                window.location.href = "index.html";
             }
         } catch (error) {
-            console.error("⚠️ Error en la conexión con el servidor:", error);
-            mensajeError.textContent = "Error de conexión con el servidor.";
+            console.error("⚠️ Error en la conexión con el servidor", error);
+            mensajeError.textContent = "⚠️ Error al conectar con el servidor. Intente de nuevo más tarde.";
             mensajeError.classList.remove("d-none");
         }
     });
