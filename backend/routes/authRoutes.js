@@ -1,17 +1,17 @@
 const express = require("express");
 const router = express.Router();
-const { registrarUsuario, verificarUsuario } = require("../controllers/authController");
+const { registrarUsuario, verificarUsuario, obtenerSesion, cerrarSesion } = require("../controllers/authController");
 
-// Ruta para registrar un nuevo usuario
+// 📌 Ruta para registrar un nuevo usuario
 router.post("/registro", registrarUsuario);
 
-// Ruta para iniciar sesión
+// 📌 Ruta para iniciar sesión
 router.post("/login", verificarUsuario);
 
-// Ruta para cerrar sesión
-router.post("/logout", (req, res) => {
-    req.session.destroy();
-    res.json({ mensaje: "Sesión cerrada correctamente" });
-});
+// 📌 Ruta para obtener el estado de la sesión
+router.get("/sesion", obtenerSesion);
+
+// 📌 Ruta para cerrar sesión
+router.post("/logout", cerrarSesion);
 
 module.exports = router;

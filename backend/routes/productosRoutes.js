@@ -1,14 +1,26 @@
 const express = require("express");
 const router = express.Router();
-const { obtenerProductos, obtenerProductoPorId, agregarProducto } = require("../controllers/productosController");
+const {
+    obtenerProductos,
+    obtenerProductoPorId,
+    agregarProducto,
+    actualizarProducto,
+    eliminarProducto
+} = require("../controllers/productosController");
 
-// Obtener todos los productos
+// 📌 Obtener todos los productos
 router.get("/", obtenerProductos);
 
-// Obtener un producto por su ID
+// 📌 Obtener un producto por su ID
 router.get("/:id", obtenerProductoPorId);
 
-// Agregar un nuevo producto
+// 📌 Agregar un nuevo producto
 router.post("/", agregarProducto);
+
+// 📌 Actualizar un producto existente
+router.put("/:id", actualizarProducto);
+
+// 📌 Eliminar un producto
+router.delete("/:id", eliminarProducto);
 
 module.exports = router;

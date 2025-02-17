@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Registro de Usuario</title>
+    <title>Registro</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -13,33 +13,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <link rel="stylesheet" href="estilo/estilos.css">
-    <script defer src="scripts/registro.js"></script> <!-- Archivo JS para validaciones y registro -->
+    <script defer src="scripts/registro.js"></script> <!-- Archivo de validaciones y autenticación -->
 </head>
 
 <body>
 
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(90deg, #007bff, #6610f2);">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="#">
-                <img src="./imagenes/logo.jpeg" alt="Logo" class="rounded-circle shadow" style="border: 2px solid #fff;">
-                <span class="fs-4 fw-bold ms-2"><i class="fas fa-user-plus"></i> Registro de Usuario</span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#barraSoportada"
-                aria-controls="barraSoportada" aria-expanded="false" aria-label="Alternar navegación">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse justify-content-center" id="barraSoportada">
-                <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link active" href="index.html"><i class="fas fa-home"></i> Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-users"></i> ¿Quiénes somos?</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-address-book"></i> Contacto</a></li>
-                    <li class="nav-item"><a class="nav-link" href="carrito.html"><i class="fas fa-shopping-cart"></i> Carrito</a></li>
-                    <li class="nav-item"><a class="nav-link" href="login.html"><i class="fas fa-sign-in-alt"></i> Iniciar sesión</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <div id="navbar-container"></div>
 
     <!-- Contenido Principal -->
     <main class="container d-flex justify-content-center align-items-center vh-100">
@@ -57,39 +37,26 @@
                     <!-- Campo de contraseña -->
                     <div class="mb-3">
                         <label for="password" class="form-label">Contraseña</label>
-                        <input type="password" class="form-control" id="password" placeholder="Crea una contraseña" required>
+                        <input type="password" class="form-control" id="password" placeholder="Ingresa tu contraseña" required>
                         <div class="invalid-feedback">Debe contener al menos 8 caracteres, una mayúscula y un número.</div>
                     </div>
 
-                    <!-- Confirmar contraseña -->
-                    <div class="mb-3">
-                        <label for="confirmPassword" class="form-label">Confirmar Contraseña</label>
-                        <input type="password" class="form-control" id="confirmPassword" placeholder="Repite la contraseña" required>
-                        <div class="invalid-feedback">Las contraseñas no coinciden.</div>
-                    </div>
-
                     <!-- Botón de enviar -->
-                    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-user-check"></i> Registrarse</button>
+                    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-user-plus"></i> Registrarse</button>
                 </form>
 
-                <!-- Mensaje de error -->
+                <!-- Mensajes de error -->
                 <div id="mensajeError" class="alert alert-danger mt-3 d-none"></div>
-                <div id="mensajeExito" class="alert alert-success mt-3 d-none">Registro exitoso. Redirigiendo...</div>
-
-                <!-- Enlace a iniciar sesión -->
-                <p class="mt-3 text-center">¿Ya tienes cuenta? <a href="login.html">Inicia sesión aquí</a></p>
+                <div id="mensajeExito" class="alert alert-success mt-3 d-none"></div>
             </div>
         </div>
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white text-center p-3 mt-5">
-        <p class="mb-0">&copy; 2024 Tienda en Línea. Todos los derechos reservados.</p>
-    </footer>
+    <div id="footer-container"></div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
-
 </html>

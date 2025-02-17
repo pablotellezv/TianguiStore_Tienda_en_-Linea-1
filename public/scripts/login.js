@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
         mensajeError.classList.add("d-none"); // Ocultar mensaje previo
 
         // **Validar email**
-        if (!emailRegex.test(email.value.trim())) {
+        if (!emailRegex.test(email.value)) {
             email.classList.add("is-invalid");
             mensajeError.textContent = "⚠️ Ingrese un correo electrónico válido.";
             mensajeError.classList.remove("d-none");
@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         // **Validar contraseña**
-        if (!passwordRegex.test(password.value.trim())) {
+        if (!passwordRegex.test(password.value)) {
             password.classList.add("is-invalid");
             mensajeError.textContent = "⚠️ La contraseña debe contener al menos 8 caracteres, una mayúscula y un número.";
             mensajeError.classList.remove("d-none");
@@ -46,9 +46,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const response = await fetch("http://localhost:3000/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                credentials: "include", // 🔹 Permite el almacenamiento de cookies de sesión
                 body: JSON.stringify({
-                    email: email.value.trim(),
-                    contraseña: password.value.trim(),
+                    email: email.value,
+                    contraseña: password.value, // No usar `trim()` en contraseñas encriptadas
                 }),
             });
 
@@ -61,7 +62,10 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 console.log("✅ Inicio de sesión exitoso. Redirigiendo...");
                 mensajeError.classList.add("d-none"); // Ocultar mensajes de error previos
-                window.location.href = "index.html";
+                mostrarToast("Inicio de sesión exitoso.", "success");
+                setTimeout(() => {
+                    window.location.href = "index.html";
+                }, 2000);
             }
         } catch (error) {
             console.error("⚠️ Error en la conexión con el servidor", error);
@@ -70,3 +74,19 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+// **📌 Función para mostrar Toasts**
+function mostrarToast(mensaje, tipo) {
+    const toastContainer = document.getElementById("toast-container");
+    const toast = document.createElement("div");
+    toast.className = `toast align-items-center text-white bg-${tipo} border-0 show`;
+    toast.setAttribute("role", "alert");
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${mensaje}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    toastContainer.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
