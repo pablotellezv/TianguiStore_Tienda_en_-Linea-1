@@ -8,10 +8,10 @@ const {
     eliminarProducto
 } = require("../controllers/productosController");
 
-// 📌 Obtener todos los productos
+// 📌 Obtener todos los productos publicados
 router.get("/", obtenerProductos);
 
-// 📌 Obtener un producto por su ID
+// 📌 Obtener un producto por ID
 router.get("/:id", obtenerProductoPorId);
 
 // 📌 Agregar un nuevo producto

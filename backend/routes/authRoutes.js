@@ -1,6 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const { registrarUsuario, verificarUsuario, obtenerSesion, cerrarSesion } = require("../controllers/authController");
+const {
+    registrarUsuario,
+    verificarUsuario,
+    obtenerSesion,
+    cerrarSesion
+} = require("../controllers/authController");
 
 // 📌 Ruta para registrar un nuevo usuario
 router.post("/registro", registrarUsuario);
