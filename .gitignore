@@ -1,1 +1,29 @@
-node_modules
+# 🛑 Archivos de entorno sensibles
+.env
+
+# 📦 Dependencias instaladas
+node_modules/
+
+# 🗂 Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 📂 Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# 💾 Base de datos local temporal
+*.sqlite
+*.db
+
+# 📦 Builds o temporales
+dist/
+build/
+tmp/
+temp/
+
+# 💻 Archivos de tu IDE/editor (puedes ampliar según uses VSCode, JetBrains, etc.)
+.vscode/
+.idea/

@@ -1,20 +1,27 @@
 const db = require("../db");
 
-// 📌 Obtener todos los productos
+// 📌 Obtener todos los productos publicados
 exports.obtenerProductos = (req, res) => {
-    db.query("SELECT * FROM productos", (error, resultados) => {
-        if (error) {
-            console.error("❌ Error al obtener productos:", error);
-            return res.status(500).json({ mensaje: "Error al obtener productos" });
+    db.query(
+        `SELECT p.*, m.nombre_marca, c.nombre_categoria
+         FROM productos p
+         LEFT JOIN marcas m ON p.marca_id = m.marca_id
+         LEFT JOIN categorias c ON p.categoria_id = c.categoria_id
+         WHERE p.publicado = TRUE`,
+        (error, resultados) => {
+            if (error) {
+                console.error("❌ Error al obtener productos:", error);
+                return res.status(500).json({ mensaje: "Error al obtener productos" });
+            }
+            res.json(resultados);
         }
-        res.json(resultados);
-    });
+    );
 };
 
 // 📌 Obtener un producto por su ID
 exports.obtenerProductoPorId = (req, res) => {
     const { id } = req.params;
-    db.query("SELECT * FROM productos WHERE id = ?", [id], (error, resultados) => {
+    db.query("SELECT * FROM productos WHERE producto_id = ?", [id], (error, resultados) => {
         if (error) {
             console.error(`❌ Error al obtener el producto con ID ${id}:`, error);
             return res.status(500).json({ mensaje: "Error al obtener el producto" });
@@ -29,23 +36,28 @@ exports.obtenerProductoPorId = (req, res) => {
 
 // 📌 Agregar un nuevo producto
 exports.agregarProducto = (req, res) => {
-    const { producto_nombre, producto_precio, producto_existencias } = req.body;
+    const {
+        nombre, descripcion, marca_id, precio, descuento,
+        stock, categoria_id, imagen_url, proveedor_id
+    } = req.body;
 
-    if (!producto_nombre || !producto_precio || !producto_existencias) {
+    if (!nombre || !precio || !categoria_id || !proveedor_id) {
         console.warn("⚠️ Faltan campos obligatorios al agregar producto.");
-        return res.status(400).json({ mensaje: "Todos los campos son obligatorios" });
+        return res.status(400).json({ mensaje: "Todos los campos obligatorios deben completarse" });
     }
 
     db.query(
-        "INSERT INTO productos (producto_nombre, producto_precio, producto_existencias) VALUES (?, ?, ?)",
-        [producto_nombre, producto_precio, producto_existencias],
+        `INSERT INTO productos 
+        (nombre, descripcion, marca_id, precio, descuento, stock, categoria_id, imagen_url, publicado, proveedor_id) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, FALSE, ?)`,
+        [nombre, descripcion, marca_id || null, precio, descuento || 0, stock || 0, categoria_id, imagen_url || null, proveedor_id],
         (error, resultado) => {
             if (error) {
                 console.error("❌ Error al agregar producto:", error);
                 return res.status(500).json({ mensaje: "Error al agregar producto" });
             }
-            console.log(`✅ Producto "${producto_nombre}" agregado correctamente.`);
-            res.status(201).json({ mensaje: "Producto agregado correctamente", id: resultado.insertId });
+            console.log(`✅ Producto "${nombre}" agregado correctamente.`);
+            res.status(201).json({ mensaje: "Producto registrado, pendiente de publicación", id: resultado.insertId });
         }
     );
 };
@@ -53,16 +65,22 @@ exports.agregarProducto = (req, res) => {
 // 📌 Actualizar un producto existente
 exports.actualizarProducto = (req, res) => {
     const { id } = req.params;
-    const { producto_nombre, producto_precio, producto_existencias } = req.body;
+    const {
+        nombre, descripcion, marca_id, precio, descuento,
+        stock, categoria_id, imagen_url
+    } = req.body;
 
-    if (!producto_nombre || !producto_precio || !producto_existencias) {
+    if (!nombre || !precio || !categoria_id) {
         console.warn(`⚠️ Falta información para actualizar el producto con ID ${id}.`);
-        return res.status(400).json({ mensaje: "Todos los campos son obligatorios" });
+        return res.status(400).json({ mensaje: "Todos los campos obligatorios deben completarse" });
     }
 
     db.query(
-        "UPDATE productos SET producto_nombre = ?, producto_precio = ?, producto_existencias = ? WHERE id = ?",
-        [producto_nombre, producto_precio, producto_existencias, id],
+        `UPDATE productos SET 
+            nombre = ?, descripcion = ?, marca_id = ?, precio = ?, 
+            descuento = ?, stock = ?, categoria_id = ?, imagen_url = ? 
+         WHERE producto_id = ?`,
+        [nombre, descripcion, marca_id, precio, descuento, stock, categoria_id, imagen_url, id],
         (error, resultado) => {
             if (error) {
                 console.error(`❌ Error al actualizar el producto con ID ${id}:`, error);
@@ -82,7 +100,7 @@ exports.actualizarProducto = (req, res) => {
 exports.eliminarProducto = (req, res) => {
     const { id } = req.params;
 
-    db.query("DELETE FROM productos WHERE id = ?", [id], (error, resultado) => {
+    db.query("DELETE FROM productos WHERE producto_id = ?", [id], (error, resultado) => {
         if (error) {
             console.error(`❌ Error al eliminar el producto con ID ${id}:`, error);
             return res.status(500).json({ mensaje: "Error al eliminar producto" });

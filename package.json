@@ -1,10 +1,11 @@
 {
-  "name": "proyecto",
-  "version": "1.0.0",
+  "name": "TianguiStore",
+  "version": "0.1.0",
   "description": "Este repositorio contiene las prácticas y proyectos realizados durante el curso de **Sistemas Visuales** de la carrera de Ingeniería en Sistemas del **Centro Universitario Hidalguense**.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node backend/server.js",
+    "dev":   "nodemon backend/server.js"
   },
   "keywords": [],
   "author": "",
