@@ -14,7 +14,7 @@ exports.obtenerProductos = (req, res) => {
 // 📌 Obtener un producto por su ID
 exports.obtenerProductoPorId = (req, res) => {
     const { id } = req.params;
-    db.query("SELECT * FROM productos WHERE id = ?", [id], (error, resultados) => {
+    db.query("SELECT * FROM productos WHERE identificador = ?", [id], (error, resultados) => {
         if (error) {
             console.error(`❌ Error al obtener el producto con ID ${id}:`, error);
             return res.status(500).json({ mensaje: "Error al obtener el producto" });
