@@ -8,19 +8,24 @@ const {
     crearPedidoDesdeCarrito
 } = require("../controllers/pedidoController");
 
+const {
+    verificarAutenticacion,
+    permitirRoles
+} = require("../middlewares/authMiddleware");
+
 // 📌 Obtener todos los pedidos (solo admin o gerente)
-router.get("/", obtenerPedidos);
+router.get("/", verificarAutenticacion, permitirRoles(1, 2), obtenerPedidos);
 
 // 📌 Obtener los pedidos del cliente autenticado
-router.get("/mis", obtenerMisPedidos);
+router.get("/mis", verificarAutenticacion, obtenerMisPedidos);
 
 // 📌 Crear un nuevo pedido con datos específicos
-router.post("/", crearPedido);
+router.post("/", verificarAutenticacion, crearPedido);
 
 // 📌 Crear un pedido directamente desde el carrito
-router.post("/desde-carrito", crearPedidoDesdeCarrito);
+router.post("/desde-carrito", verificarAutenticacion, crearPedidoDesdeCarrito);
 
 // 📌 Cancelar un pedido (si aún está pendiente)
-router.put("/:id/cancelar", cancelarPedido);
+router.put("/:id/cancelar", verificarAutenticacion, cancelarPedido);
 
 module.exports = router;

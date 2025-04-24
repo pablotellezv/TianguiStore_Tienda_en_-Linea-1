@@ -1,6 +1,10 @@
 const db = require("../db");
 
-// 📌 Obtener todos los productos publicados
+/**
+ * 📦 Obtener todos los productos publicados
+ * Consulta todos los productos cuyo campo `publicado = TRUE`
+ * e incluye nombre de marca y nombre de categoría mediante LEFT JOIN
+ */
 exports.obtenerProductos = (req, res) => {
     db.query(
         `SELECT p.*, m.nombre_marca, c.nombre_categoria
@@ -18,51 +22,80 @@ exports.obtenerProductos = (req, res) => {
     );
 };
 
-// 📌 Obtener un producto por su ID
+/**
+ * 🔍 Obtener un producto por su ID
+ * Busca un solo producto mediante `producto_id`
+ */
 exports.obtenerProductoPorId = (req, res) => {
     const { id } = req.params;
-    db.query("SELECT * FROM productos WHERE producto_id = ?", [id], (error, resultados) => {
-        if (error) {
-            console.error(`❌ Error al obtener el producto con ID ${id}:`, error);
-            return res.status(500).json({ mensaje: "Error al obtener el producto" });
+
+    db.query(
+        "SELECT * FROM productos WHERE producto_id = ?",
+        [id],
+        (error, resultados) => {
+            if (error) {
+                console.error(`❌ Error al obtener el producto con ID ${id}:`, error);
+                return res.status(500).json({ mensaje: "Error al obtener el producto" });
+            }
+            if (resultados.length === 0) {
+                return res.status(404).json({ mensaje: "Producto no encontrado" });
+            }
+            res.json(resultados[0]);
         }
-        if (resultados.length === 0) {
-            console.warn(`⚠️ Producto con ID ${id} no encontrado.`);
-            return res.status(404).json({ mensaje: "Producto no encontrado" });
-        }
-        res.json(resultados[0]);
-    });
+    );
 };
 
-// 📌 Agregar un nuevo producto
+/**
+ * ➕ Agregar un nuevo producto
+ * Los productos nuevos se insertan como no publicados (`publicado = FALSE`)
+ * Algunos campos son opcionales (descuento, stock, marca, imagen)
+ */
 exports.agregarProducto = (req, res) => {
     const {
         nombre, descripcion, marca_id, precio, descuento,
         stock, categoria_id, imagen_url, proveedor_id
     } = req.body;
 
+    // Validación de campos requeridos
     if (!nombre || !precio || !categoria_id || !proveedor_id) {
-        console.warn("⚠️ Faltan campos obligatorios al agregar producto.");
         return res.status(400).json({ mensaje: "Todos los campos obligatorios deben completarse" });
     }
 
+    // Inserción del producto
     db.query(
         `INSERT INTO productos 
-        (nombre, descripcion, marca_id, precio, descuento, stock, categoria_id, imagen_url, publicado, proveedor_id) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, FALSE, ?)`,
-        [nombre, descripcion, marca_id || null, precio, descuento || 0, stock || 0, categoria_id, imagen_url || null, proveedor_id],
+         (nombre, descripcion, marca_id, precio, descuento, stock, categoria_id, imagen_url, publicado, proveedor_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, FALSE, ?)`,
+        [
+            nombre.trim(),
+            descripcion?.trim() || null,
+            marca_id || null,
+            precio,
+            descuento || 0,
+            stock || 0,
+            categoria_id,
+            imagen_url?.trim() || null,
+            proveedor_id
+        ],
         (error, resultado) => {
             if (error) {
                 console.error("❌ Error al agregar producto:", error);
                 return res.status(500).json({ mensaje: "Error al agregar producto" });
             }
-            console.log(`✅ Producto "${nombre}" agregado correctamente.`);
-            res.status(201).json({ mensaje: "Producto registrado, pendiente de publicación", id: resultado.insertId });
+
+            res.status(201).json({
+                mensaje: "Producto registrado correctamente. Aún no está publicado.",
+                id: resultado.insertId
+            });
         }
     );
 };
 
-// 📌 Actualizar un producto existente
+/**
+ * ✏️ Actualizar producto existente
+ * Todos los campos del formulario deben reenviarse incluso si no cambiaron
+ * Se realiza una validación básica y se actualiza por ID
+ */
 exports.actualizarProducto = (req, res) => {
     const { id } = req.params;
     const {
@@ -71,32 +104,46 @@ exports.actualizarProducto = (req, res) => {
     } = req.body;
 
     if (!nombre || !precio || !categoria_id) {
-        console.warn(`⚠️ Falta información para actualizar el producto con ID ${id}.`);
-        return res.status(400).json({ mensaje: "Todos los campos obligatorios deben completarse" });
+        return res.status(400).json({ mensaje: "Campos obligatorios incompletos" });
     }
 
+    // Actualización por ID
     db.query(
         `UPDATE productos SET 
             nombre = ?, descripcion = ?, marca_id = ?, precio = ?, 
-            descuento = ?, stock = ?, categoria_id = ?, imagen_url = ? 
+            descuento = ?, stock = ?, categoria_id = ?, imagen_url = ?
          WHERE producto_id = ?`,
-        [nombre, descripcion, marca_id, precio, descuento, stock, categoria_id, imagen_url, id],
+        [
+            nombre.trim(),
+            descripcion?.trim() || null,
+            marca_id || null,
+            precio,
+            descuento || 0,
+            stock || 0,
+            categoria_id,
+            imagen_url?.trim() || null,
+            id
+        ],
         (error, resultado) => {
             if (error) {
                 console.error(`❌ Error al actualizar el producto con ID ${id}:`, error);
-                return res.status(500).json({ mensaje: "Error al actualizar producto" });
+                return res.status(500).json({ mensaje: "Error al actualizar el producto" });
             }
+
             if (resultado.affectedRows === 0) {
-                console.warn(`⚠️ Producto con ID ${id} no encontrado.`);
                 return res.status(404).json({ mensaje: "Producto no encontrado" });
             }
-            console.log(`✅ Producto con ID ${id} actualizado correctamente.`);
+
             res.json({ mensaje: "Producto actualizado correctamente" });
         }
     );
 };
 
-// 📌 Eliminar un producto
+/**
+ * 🗑️ Eliminar producto por ID
+ * Elimina completamente el producto si existe en la tabla
+ * Es recomendable añadir confirmación desde el frontend
+ */
 exports.eliminarProducto = (req, res) => {
     const { id } = req.params;
 
@@ -105,11 +152,11 @@ exports.eliminarProducto = (req, res) => {
             console.error(`❌ Error al eliminar el producto con ID ${id}:`, error);
             return res.status(500).json({ mensaje: "Error al eliminar producto" });
         }
+
         if (resultado.affectedRows === 0) {
-            console.warn(`⚠️ Producto con ID ${id} no encontrado.`);
             return res.status(404).json({ mensaje: "Producto no encontrado" });
         }
-        console.log(`✅ Producto con ID ${id} eliminado correctamente.`);
+
         res.json({ mensaje: "Producto eliminado correctamente" });
     });
 };

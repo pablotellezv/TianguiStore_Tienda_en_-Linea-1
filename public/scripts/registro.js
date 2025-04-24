@@ -5,9 +5,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const mensajeError = document.getElementById("mensajeError");
     const mensajeExito = document.getElementById("mensajeExito");
 
-    // Expresiones regulares para validación
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\\d).{8,}$/;
 
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -16,8 +15,8 @@ document.addEventListener("DOMContentLoaded", () => {
         mensajeError.classList.add("d-none");
         mensajeExito.classList.add("d-none");
 
-        // **Validar email**
-        if (!emailRegex.test(email.value)) {
+        // Validar correo
+        if (!emailRegex.test(email.value.trim())) {
             email.classList.add("is-invalid");
             mensajeError.textContent = "⚠️ Ingrese un correo electrónico válido.";
             mensajeError.classList.remove("d-none");
@@ -26,10 +25,10 @@ document.addEventListener("DOMContentLoaded", () => {
             email.classList.remove("is-invalid");
         }
 
-        // **Validar contraseña**
-        if (!passwordRegex.test(password.value)) {
+        // Validar contraseña
+        if (!passwordRegex.test(password.value.trim())) {
             password.classList.add("is-invalid");
-            mensajeError.textContent = "⚠️ La contraseña debe contener al menos 8 caracteres, una mayúscula y un número.";
+            mensajeError.textContent = "⚠️ La contraseña debe tener mínimo 8 caracteres, una mayúscula y un número.";
             mensajeError.classList.remove("d-none");
             esValido = false;
         } else {
@@ -38,30 +37,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!esValido) return;
 
-        // **Enviar datos al servidor**
+        // Enviar datos al backend
         try {
-            const response = await fetch("http://localhost:3000/auth/registro", {
+            const response = await fetch("/auth/registro", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
                 body: JSON.stringify({
-                    email: email.value,
-                    contraseña: password.value,
+                    email: email.value.trim(),
+                    contraseña: password.value.trim(),
                 }),
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-                mensajeError.textContent = `❌ ${data.error}`;
+                mensajeError.textContent = `❌ ${data.error || "Error en el registro."}`;
                 mensajeError.classList.remove("d-none");
             } else {
                 mensajeExito.textContent = "✅ Registro exitoso. Redirigiendo...";
                 mensajeExito.classList.remove("d-none");
-                setTimeout(() => (window.location.href = "login.html"), 2000);
+                form.reset();
+                setTimeout(() => window.location.href = "login.html", 2000);
             }
+
         } catch (error) {
-            mensajeError.textContent = "⚠️ Error al conectar con el servidor.";
+            console.error("❌ Error en el registro:", error);
+            mensajeError.textContent = "⚠️ No se pudo conectar con el servidor.";
             mensajeError.classList.remove("d-none");
         }
     });

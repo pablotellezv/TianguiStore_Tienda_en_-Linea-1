@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+
+// Controladores de autenticación
 const {
     registrarUsuario,
     verificarUsuario,
@@ -7,16 +9,22 @@ const {
     cerrarSesion
 } = require("../controllers/authController");
 
-// 📌 Ruta para registrar un nuevo usuario
+/**
+ * 📌 Rutas de autenticación
+ * Estas rutas manejan el registro, login, sesión y logout
+ * Se basan en sesiones (express-session) y trabajan con JSON
+ */
+
+// Registrar nuevo usuario (cliente)
 router.post("/registro", registrarUsuario);
 
-// 📌 Ruta para iniciar sesión
+// Iniciar sesión
 router.post("/login", verificarUsuario);
 
-// 📌 Ruta para obtener el estado de la sesión
+// Obtener información de sesión actual
 router.get("/sesion", obtenerSesion);
 
-// 📌 Ruta para cerrar sesión
+// Cerrar sesión
 router.post("/logout", cerrarSesion);
 
 module.exports = router;

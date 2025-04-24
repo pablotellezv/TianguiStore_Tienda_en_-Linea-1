@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+
 const {
     obtenerCarrito,
     agregarAlCarrito,
@@ -7,18 +8,25 @@ const {
     vaciarCarrito
 } = require("../controllers/carritoController");
 
+const {
+    verificarAutenticacion
+} = require("../middlewares/authMiddleware");
+
+/**
+ * 📦 Rutas para el carrito de compras (requiere autenticación)
+ * Todas las acciones están asociadas a un usuario autenticado con sesión activa vía JWT.
+ */
 
 // 📌 Obtener el contenido del carrito del usuario autenticado
-router.get("/", obtenerCarrito);
+router.get("/", verificarAutenticacion, obtenerCarrito);
 
 // 📌 Agregar un producto al carrito
-router.post("/", agregarAlCarrito);
+router.post("/", verificarAutenticacion, agregarAlCarrito);
 
-// 📌 Eliminar un producto del carrito por ID
-router.delete("/:id", eliminarDelCarrito);
+// 📌 Eliminar un producto específico del carrito
+router.delete("/:id", verificarAutenticacion, eliminarDelCarrito);
 
 // 📌 Vaciar todo el carrito del usuario
-router.delete("/", vaciarCarrito);
-
+router.delete("/", verificarAutenticacion, vaciarCarrito);
 
 module.exports = router;

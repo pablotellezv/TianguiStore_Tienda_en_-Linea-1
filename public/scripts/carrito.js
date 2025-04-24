@@ -1,9 +1,14 @@
 document.addEventListener("DOMContentLoaded", () => {
     mostrarCarrito();
     actualizarContadorCarrito();
+
+    const btnPagar = document.getElementById("btnRealizarPedido");
+    if (btnPagar) {
+        btnPagar.addEventListener("click", realizarPedidoDesdeLocalStorage);
+    }
 });
 
-// **📌 Mostrar productos en el carrito**
+// 📌 Mostrar productos en el carrito
 function mostrarCarrito() {
     const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
     const listaCarrito = document.getElementById("lista-carrito");
@@ -51,56 +56,41 @@ function mostrarCarrito() {
 
     totalEtiqueta.textContent = `Total: $${total.toFixed(2)}`;
 
-    // **Asignar eventos a los botones**
-    document.querySelectorAll(".aumentar-cantidad").forEach(boton => {
-        boton.addEventListener("click", (event) => {
-            const id = event.currentTarget.getAttribute("data-id");
-            modificarCantidad(id, 1);
-        });
-    });
+    // Eventos dinámicos
+    document.querySelectorAll(".aumentar-cantidad").forEach(btn =>
+        btn.addEventListener("click", e => modificarCantidad(e.currentTarget.dataset.id, 1)));
 
-    document.querySelectorAll(".disminuir-cantidad").forEach(boton => {
-        boton.addEventListener("click", (event) => {
-            const id = event.currentTarget.getAttribute("data-id");
-            modificarCantidad(id, -1);
-        });
-    });
+    document.querySelectorAll(".disminuir-cantidad").forEach(btn =>
+        btn.addEventListener("click", e => modificarCantidad(e.currentTarget.dataset.id, -1)));
 
-    document.querySelectorAll(".eliminar-producto").forEach(boton => {
-        boton.addEventListener("click", (event) => {
-            const id = event.currentTarget.getAttribute("data-id");
-            eliminarProducto(id);
-        });
-    });
+    document.querySelectorAll(".eliminar-producto").forEach(btn =>
+        btn.addEventListener("click", e => eliminarProducto(e.currentTarget.dataset.id)));
 }
 
-// **📌 Modificar cantidad de un producto**
+// 📌 Modificar cantidad
 function modificarCantidad(id, cambio) {
     let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-    const index = carrito.findIndex(producto => producto.id === id);
-
+    const index = carrito.findIndex(p => p.id === id);
     if (index !== -1) {
         carrito[index].cantidad += cambio;
-        if (carrito[index].cantidad <= 0) {
-            carrito.splice(index, 1); // Eliminar producto si la cantidad llega a 0
-        }
+        if (carrito[index].cantidad <= 0) carrito.splice(index, 1);
         localStorage.setItem("carrito", JSON.stringify(carrito));
         mostrarCarrito();
         actualizarContadorCarrito();
     }
 }
 
-// **📌 Eliminar producto del carrito**
+// 📌 Eliminar producto
 function eliminarProducto(id) {
     let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-    carrito = carrito.filter(producto => producto.id !== id);
+    carrito = carrito.filter(p => p.id !== id);
     localStorage.setItem("carrito", JSON.stringify(carrito));
     mostrarCarrito();
     actualizarContadorCarrito();
     mostrarToast("Producto eliminado del carrito.", "danger");
 }
 
-// **📌 Vaciar todo el carrito**
+// 📌 Vaciar todo el carrito
 document.getElementById("vaciar-carrito").addEventListener("click", () => {
     localStorage.removeItem("carrito");
     mostrarCarrito();
@@ -108,18 +98,18 @@ document.getElementById("vaciar-carrito").addEventListener("click", () => {
     mostrarToast("Carrito vaciado.", "warning");
 });
 
-// **📌 Actualizar contador del carrito**
+// 📌 Actualizar contador visual del carrito
 function actualizarContadorCarrito() {
     const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-    const totalItems = carrito.reduce((total, item) => total + item.cantidad, 0);
+    const totalItems = carrito.reduce((acc, item) => acc + item.cantidad, 0);
     document.querySelectorAll("#contador-carrito").forEach(el => el.textContent = totalItems);
 }
 
-// **📌 Mostrar toast de confirmación**
-function mostrarToast(mensaje, tipo) {
-    const toastContainer = document.getElementById("toast-container");
+// 📌 Toast visual
+function mostrarToast(mensaje, tipo = "success") {
+    const toastContainer = document.getElementById("toast-container") || crearContenedorToasts();
     const toast = document.createElement("div");
-    toast.className = `toast align-items-center text-white bg-${tipo} border-0 show shadow-lg rounded`;
+    toast.className = `toast align-items-center text-white bg-${tipo} border-0 show shadow`;
     toast.setAttribute("role", "alert");
     toast.innerHTML = `
         <div class="d-flex">
@@ -128,5 +118,72 @@ function mostrarToast(mensaje, tipo) {
         </div>
     `;
     toastContainer.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+    setTimeout(() => toast.remove(), 3500);
+}
+
+function crearContenedorToasts() {
+    const div = document.createElement("div");
+    div.id = "toast-container";
+    div.className = "position-fixed bottom-0 end-0 p-3";
+    div.style.zIndex = 1056;
+    document.body.appendChild(div);
+    return div;
+}
+
+// 📌 Verificar stock antes de pagar
+async function realizarPedidoDesdeLocalStorage() {
+    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+
+    const errores = [];
+
+    for (const item of carrito) {
+        try {
+            const res = await fetch(`/productos/${item.id}`);
+            if (!res.ok) throw new Error("No se pudo obtener producto");
+
+            const producto = await res.json();
+            if (item.cantidad > producto.stock) {
+                errores.push(`"${producto.nombre}" tiene solo ${producto.stock} unidades disponibles.`);
+            }
+        } catch (error) {
+            errores.push(`Error al verificar producto ID ${item.id}`);
+        }
+    }
+
+    if (errores.length > 0) {
+        alert("❌ No se puede procesar el pedido:\n" + errores.join("\n"));
+        return;
+    }
+
+    const payload = {
+        productos: carrito.map(p => ({
+            producto_id: p.id,
+            cantidad: p.cantidad,
+            precio_unitario: parseFloat(p.precio)
+        }))
+    };
+
+    try {
+        const res = await fetch("/pedidos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            localStorage.removeItem("carrito");
+            mostrarCarrito();
+            actualizarContadorCarrito();
+            alert("✅ Pedido generado correctamente.");
+        } else {
+            alert("❌ Error al procesar pedido: " + data.mensaje);
+        }
+
+    } catch (error) {
+        alert("❌ Error inesperado al generar pedido.");
+        console.error(error);
+    }
 }
