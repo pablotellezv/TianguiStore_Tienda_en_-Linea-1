@@ -2,7 +2,7 @@
 
 ¡Gracias por tu interés en contribuir a **TianguiStore**! Este proyecto está diseñado con fines educativos y de aprendizaje colaborativo, por lo que cualquier tipo de contribución, desde la corrección de errores hasta nuevas funcionalidades, es bienvenida.
 
---- 
+---
 
 ## 🧭 Principios generales
 
