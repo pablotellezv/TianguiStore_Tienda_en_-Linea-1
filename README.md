@@ -7,14 +7,14 @@
 
 ## 🔍 Descripción del proyecto
 
-**TianguiStore** es una plataforma web educativa y modular, desarrollada con JavaScript, Node.js y MySQL. Está diseñada para enseñar y practicar el desarrollo de sistemas web con base de datos relacional, y permite adaptaciones rápidas a distintos contextos comerciales como:
+**TianguiStore** es una plataforma educativa modular desarrollada con JavaScript, Node.js y MySQL/MariaDB. Está pensada para el aprendizaje práctico en arquitectura web, autenticación y modelado de datos, y se puede adaptar a verticales como:
 
 - 📚 Librerías
 - 🧰 Ferreterías
 - 🏥 Clínicas médicas
 - 🐾 Veterinarias
 - 🥬 Verdulerías
-- 🛒 Tiendas de abarrotes
+- 🛒 Abarrotes
 - 🏪 Minisúper
 - ✏️ Papelerías
 - 🍽️ Restaurantes
@@ -23,129 +23,92 @@
 
 ---
 
-## ⚙️ Tecnologías y herramientas
+## ⚙️ Tecnologías principales
 
-- **Lenguaje principal:** JavaScript (ES6+)
-- **Backend:** Node.js + Express.js
-- **Frontend:** HTML, CSS personalizado, Bootstrap 5
+- **Lenguaje:** JavaScript (ES6+)
+- **Backend:** Node.js + Express
 - **Base de datos:** MySQL/MariaDB 10.4.32
+- **Frontend:** HTML + CSS + Bootstrap 5
 - **Autenticación:** JWT + bcryptjs
-- **Entorno de desarrollo:** Visual Studio Code + ESLint + Prettier + Live Server
-- **Gestor de dependencias:** npm
-- **Estilo de desarrollo:** Modular, basado en principios SOLID
-- **API:** RESTful organizada por módulos
+- **Entorno:** Visual Studio Code
+- **API:** RESTful organizada por dominios
 
 ---
 
-## 🧠 Estructura del proyecto
+## 📥 Cómo clonar, actualizar o crear tu propia versión de TianguiStore
 
-```plaintext
-TianguiStore_Tienda_en_-Linea/
-├── backend/
-│   ├── controllers/      # Lógica por módulo
-│   ├── routes/           # Endpoints agrupados
-│   ├── middlewares/      # Seguridad y validaciones
-│   ├── utils/            # Funciones auxiliares
-│   ├── db.js             # Conexión a la BD
-│   ├── server.js         # Entrada principal del backend
-│   └── tienda_db_completa.sql
-├── public/
-│   ├── index.html        # Página principal
-│   ├── componentes/      # Navbar, footer, etc.
-│   ├── estilo/           # Hojas de estilo
-│   ├── imagenes/         # Gráficos
-│   └── scripts/          # JS para frontend
-├── database/             # Scripts por vertical
-├── scripts/              # Automatización (opcional)
-├── .env                  # Variables de entorno
-├── README.md
-└── Manual Usuario TianguiStore
+### 🔁 Clonar el repositorio original
 
-# 🤝 Guía para Contribuir a TianguiStore
-
-¡Gracias por tu interés en contribuir a **TianguiStore**! Este proyecto está diseñado con fines educativos y de aprendizaje colaborativo, por lo que cualquier tipo de contribución, desde la corrección de errores hasta nuevas funcionalidades, es bienvenida.
+```bash
+git clone https://github.com/Dtcsrni/TianguiStore_Tienda_en_-Linea.git
+cd TianguiStore_Tienda_en_-Linea
+npm install
+```
 
 ---
 
-## 🧭 Principios generales
+### 🔄 Obtener los últimos cambios del repositorio original
 
-- 📚 El proyecto sigue buenas prácticas de desarrollo: modularidad, separación de responsabilidades (SRP), principios SOLID.
-- 🛠️ Está enfocado en enseñar sobre arquitectura backend/frontend, autenticación, y diseño de base de datos.
-- 🌱 Cualquier sugerencia que mejore la claridad, el código o la documentación será considerada.
+```bash
+git remote add upstream https://github.com/Dtcsrni/TianguiStore_Tienda_en_-Linea.git
+git fetch upstream
+git checkout main
+git merge upstream/main
+```
 
 ---
 
-## 📝 ¿Cómo contribuir?
+### 🍴 Crear tu propia versión (fork)
 
-### 1. Haz un fork del repositorio
-
-Puedes hacer clic en el botón **Fork** en la parte superior del repositorio.
+1. Haz clic en **Fork** en GitHub.
+2. Clona tu fork:
 
 ```bash
 git clone https://github.com/tuusuario/TianguiStore_Tienda_en_-Linea.git
 cd TianguiStore_Tienda_en_-Linea
+npm install
 ```
 
-### 2. Crea una rama nueva
+3. Crea una nueva rama:
 
 ```bash
-git checkout -b feature/tu-cambio
+git checkout -b feature/mi-mejora
 ```
 
-### 3. Realiza tus cambios con buena documentación y comentarios
-
-- Usa comentarios claros si introduces nueva lógica.
-- Añade pruebas o datos de ejemplo si es posible.
-- Asegúrate de que el proyecto funcione antes de hacer push.
-
-### 4. Haz commit siguiendo este formato
-
-```bash
-git commit -m "feat: agrega funcionalidad X"  # otros: fix, docs, style, refactor
-```
-
-### 5. Sube tu rama y crea un Pull Request
-
-```bash
-git push origin feature/tu-cambio
-```
-
-Luego, ve al repositorio en GitHub y crea un **Pull Request** desde tu rama.
+4. Sube tus cambios y crea un Pull Request si deseas contribuir.
 
 ---
 
-## 🔍 Estructura del proyecto
+### ⭐ Apoya el proyecto
 
-Antes de contribuir, te recomendamos revisar:
-
-- `backend/` – lógica de negocio, rutas, middlewares
-- `public/` – frontend en HTML + JS
-- `tienda_db_completa.sql` – estructura de la base de datos
+- Dale una **estrella ⭐** al repositorio.
+- Haz clic en **Watch 👀** para recibir notificaciones.
+- ¡Comparte con otros estudiantes o colegas!
 
 ---
 
-## ✅ Criterios de aceptación
+## 🚀 Estado actual: versión 0.1 Beta
 
-- Código limpio, modular y funcional
-- No rompe funcionalidades existentes
-- Sigue el estilo y arquitectura del proyecto
-- Incluye comentarios/documentación si aplica
+### ✅ Incluye
+
+- Login y registro con JWT
+- Listado de productos
+- Carrito por usuario autenticado
+- Pedidos con historial
+- Script SQL estructurado y comentado
+
+### 🔜 Próxima versión (0.2)
+
+- Filtros y búsqueda
+- Panel de administrador
+- CRUD desde backend
+- Gestión de roles y perfiles
+- Verticales activables
 
 ---
 
-## 🗓️ Ideas para contribuir
+## 📄 Licencia
 
-- Mejoras en la validación de formularios
-- Nuevos filtros en productos
-- Versión mobile del frontend
-- Verticales personalizadas (verdulería, papelería…)
-- Test unitarios o casos de prueba
-- Diagramas de arquitectura o ERD actualizados
+Este proyecto se distribuye con fines educativos bajo la Licencia MIT.
 
 ---
-
-## 🙌 Gracias
-
-Gracias por tomarte el tiempo de ayudar a mejorar este proyecto. Tu contribución ayuda a que otros estudiantes aprendan con una base de código real, bien estructurada y en evolución constante.
-
-¡Feliz codificación! 🚀
