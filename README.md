@@ -112,3 +112,51 @@ git checkout -b feature/mi-mejora
 Este proyecto se distribuye con fines educativos bajo la Licencia MIT.
 
 ---
+---
+
+## ▶️ Cómo ejecutar TianguiStore localmente
+
+### Requisitos previos
+
+- Node.js (recomendado: v18 o superior)
+- MySQL/MariaDB (preferentemente desde XAMPP)
+- Visual Studio Code (u otro editor)
+- Git
+
+### Pasos para ejecución local
+
+1. Clona el proyecto:
+
+```bash
+git clone https://github.com/Dtcsrni/TianguiStore_Tienda_en_-Linea.git
+cd TianguiStore_Tienda_en_-Linea
+```
+
+2. Instala las dependencias del backend:
+
+```bash
+npm install
+```
+
+3. Crea un archivo `.env` dentro del directorio `backend/` con este contenido:
+
+```
+PORT=3000
+DB_HOST=localhost
+DB_USER=root
+DB_PASS=
+DB_NAME=tianguistore
+JWT_SECRET=miclaveultrasecreta
+```
+
+4. Importa el archivo `tienda_db_completa.sql` en tu gestor MySQL (ej. phpMyAdmin) y crea una base de datos llamada `tianguistore`.
+
+5. Inicia el servidor:
+
+```bash
+node backend/server.js
+```
+
+6. Abre `public/index.html` con Live Server o desde tu navegador.
+
+¡Listo! Ahora puedes probar todas las funcionalidades de TianguiStore desde tu máquina local.
