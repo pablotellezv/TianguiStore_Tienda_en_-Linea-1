@@ -1,3 +1,4 @@
+// backend/routes/pedidoRoutes.js
 const express = require("express");
 const router = express.Router();
 const {
@@ -13,19 +14,19 @@ const {
     permitirRoles
 } = require("../middlewares/authMiddleware");
 
-// 📌 Obtener todos los pedidos (solo admin o gerente)
+// Obtener todos los pedidos del admin o gerente
 router.get("/", verificarAutenticacion, permitirRoles(1, 2), obtenerPedidos);
 
-// 📌 Obtener los pedidos del cliente autenticado
+// Obtener pedidos del cliente autenticado
 router.get("/mis", verificarAutenticacion, obtenerMisPedidos);
 
-// 📌 Crear un nuevo pedido con datos específicos
+// Crear un nuevo pedido
 router.post("/", verificarAutenticacion, crearPedido);
 
-// 📌 Crear un pedido directamente desde el carrito
+// Crear un pedido directamente desde el carrito
 router.post("/desde-carrito", verificarAutenticacion, crearPedidoDesdeCarrito);
 
-// 📌 Cancelar un pedido (si aún está pendiente)
+// Cancelar un pedido
 router.put("/:id/cancelar", verificarAutenticacion, cancelarPedido);
 
 module.exports = router;

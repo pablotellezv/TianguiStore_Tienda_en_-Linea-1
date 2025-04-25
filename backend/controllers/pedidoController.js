@@ -1,15 +1,8 @@
+// backend/controllers/pedidoController.js
 const db = require("../db");
 
-/**
- * 📋 Obtener todos los pedidos (solo roles autorizados: admin o gerente)
- * Incluye datos del cliente (correo) y estado del pedido.
- */
+// Obtener todos los pedidos del admin o gerente
 exports.obtenerPedidos = (req, res) => {
-    const usuario = req.session?.usuario;
-    if (!usuario || ![1, 2].includes(usuario.rol_id)) {
-        return res.status(403).json({ mensaje: "Acceso denegado" });
-    }
-
     db.query(`
         SELECT p.*, u.usuario_correo AS cliente_correo, e.estado_nombre
         FROM pedidos p
@@ -24,13 +17,12 @@ exports.obtenerPedidos = (req, res) => {
     });
 };
 
-/**
- * 📦 Obtener todos los pedidos del cliente autenticado
- * Ordenados por fecha más reciente primero.
- */
+// Obtener los pedidos del cliente autenticado
 exports.obtenerMisPedidos = (req, res) => {
     const usuario = req.session?.usuario;
-    if (!usuario) return res.status(403).json({ mensaje: "No autenticado" });
+    if (!usuario) {
+        return res.status(403).json({ mensaje: "No autenticado" });
+    }
 
     db.query(`
         SELECT p.*, e.estado_nombre
@@ -47,12 +39,7 @@ exports.obtenerMisPedidos = (req, res) => {
     });
 };
 
-/**
- * 🛒 Crear un nuevo pedido con productos proporcionados directamente
- * - Verifica existencia de stock
- * - Inserta pedido y detalles
- * - Actualiza el stock en la tabla de productos
- */
+// Crear un pedido desde productos proporcionados directamente
 exports.crearPedido = async (req, res) => {
     const usuario = req.session?.usuario;
     if (!usuario) return res.status(403).json({ mensaje: "No autenticado" });
@@ -64,9 +51,9 @@ exports.crearPedido = async (req, res) => {
     }
 
     try {
+        // Validar stock disponible
         const erroresStock = [];
 
-        // 1️⃣ Validar existencia y stock disponible
         for (const item of productos) {
             const [producto] = await db.promise().query(
                 "SELECT nombre, stock FROM productos WHERE producto_id = ?",
@@ -81,18 +68,21 @@ exports.crearPedido = async (req, res) => {
         }
 
         if (erroresStock.length > 0) {
-            return res.status(400).json({ mensaje: "Stock insuficiente", errores: erroresStock });
+            return res.status(400).json({
+                mensaje: "Stock insuficiente en algunos productos",
+                errores: erroresStock
+            });
         }
 
-        // 2️⃣ Insertar pedido
+        // Crear pedido
         const [insertPedido] = await db.promise().query(`
             INSERT INTO pedidos (cliente_id, estado_id, notas)
-            VALUES (?, 1, ?)`,
-            [usuario.id, notas || null]
-        );
+            VALUES (?, 1, ?)
+        `, [usuario.id, notas || null]);
+
         const pedido_id = insertPedido.insertId;
 
-        // 3️⃣ Insertar detalles y actualizar stock
+        // Insertar detalle y actualizar stock
         for (const item of productos) {
             const [producto] = await db.promise().query(
                 "SELECT precio, stock FROM productos WHERE producto_id = ?",
@@ -101,9 +91,8 @@ exports.crearPedido = async (req, res) => {
 
             await db.promise().query(`
                 INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario)
-                VALUES (?, ?, ?, ?)`,
-                [pedido_id, item.producto_id, item.cantidad, producto[0].precio]
-            );
+                VALUES (?, ?, ?, ?)
+            `, [pedido_id, item.producto_id, item.cantidad, producto[0].precio]);
 
             const nuevoStock = producto[0].stock - item.cantidad;
             await db.promise().query(
@@ -120,17 +109,13 @@ exports.crearPedido = async (req, res) => {
     }
 };
 
-/**
- * 🛒 Crear pedido automáticamente desde el carrito
- * - Verifica stock
- * - Inserta pedido y detalles
- * - Actualiza stock y vacía carrito
- */
+// Crear un pedido directamente desde el carrito
 exports.crearPedidoDesdeCarrito = async (req, res) => {
     const usuario = req.session?.usuario;
     if (!usuario) return res.status(403).json({ mensaje: "No autenticado" });
 
     try {
+        // Obtener productos del carrito
         const [carrito] = await db.promise().query(
             "SELECT * FROM carrito WHERE usuario_id = ?", [usuario.id]
         );
@@ -139,9 +124,9 @@ exports.crearPedidoDesdeCarrito = async (req, res) => {
             return res.status(400).json({ mensaje: "El carrito está vacío" });
         }
 
+        // Verificar stock disponible
         const erroresStock = [];
 
-        // 1️⃣ Validar stock
         for (const item of carrito) {
             const [producto] = await db.promise().query(
                 "SELECT nombre, stock FROM productos WHERE producto_id = ?",
@@ -156,17 +141,20 @@ exports.crearPedidoDesdeCarrito = async (req, res) => {
         }
 
         if (erroresStock.length > 0) {
-            return res.status(400).json({ mensaje: "Stock insuficiente", errores: erroresStock });
+            return res.status(400).json({
+                mensaje: "Stock insuficiente en algunos productos",
+                errores: erroresStock
+            });
         }
 
-        // 2️⃣ Insertar pedido
+        // Crear pedido
         const [insert] = await db.promise().query(
             "INSERT INTO pedidos (cliente_id, estado_id) VALUES (?, 1)",
             [usuario.id]
         );
         const pedido_id = insert.insertId;
 
-        // 3️⃣ Insertar detalles y actualizar stock
+        // Insertar detalle y actualizar stock
         for (const item of carrito) {
             const [producto] = await db.promise().query(
                 "SELECT precio, stock FROM productos WHERE producto_id = ?",
@@ -175,10 +163,10 @@ exports.crearPedidoDesdeCarrito = async (req, res) => {
 
             await db.promise().query(`
                 INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario)
-                VALUES (?, ?, ?, ?)`,
-                [pedido_id, item.producto_id, item.cantidad, producto[0].precio]
-            );
+                VALUES (?, ?, ?, ?)
+            `, [pedido_id, item.producto_id, item.cantidad, producto[0].precio]);
 
+            // Actualizar stock
             const nuevoStock = producto[0].stock - item.cantidad;
             await db.promise().query(
                 "UPDATE productos SET stock = ? WHERE producto_id = ?",
@@ -186,7 +174,7 @@ exports.crearPedidoDesdeCarrito = async (req, res) => {
             );
         }
 
-        // 4️⃣ Vaciar carrito del usuario
+        // Vaciar carrito
         await db.promise().query("DELETE FROM carrito WHERE usuario_id = ?", [usuario.id]);
 
         res.status(201).json({ mensaje: "Pedido generado correctamente", pedido_id });
@@ -197,11 +185,7 @@ exports.crearPedidoDesdeCarrito = async (req, res) => {
     }
 };
 
-/**
- * ❌ Cancelar pedido (cliente)
- * - Solo puede cancelar si el estado es "pendiente" (1) o "confirmado" (2)
- * - Cambia estado a "cancelado" (6)
- */
+// Cancelar un pedido si está pendiente
 exports.cancelarPedido = (req, res) => {
     const usuario = req.session?.usuario;
     const pedido_id = req.params.id;

@@ -9,12 +9,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
 
     form.addEventListener("submit", async (event) => {
-        event.preventDefault(); // Evitar recarga de página
+        event.preventDefault();
+        mensajeError.classList.add("d-none");
 
         let esValido = true;
-        mensajeError.classList.add("d-none"); // Ocultar mensaje previo
 
-        // **Validar email**
+        // Validación de email
         if (!emailRegex.test(email.value)) {
             email.classList.add("is-invalid");
             mensajeError.textContent = "⚠️ Ingrese un correo electrónico válido.";
@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
             email.classList.remove("is-invalid");
         }
 
-        // **Validar contraseña**
+        // Validación de contraseña
         if (!passwordRegex.test(password.value)) {
             password.classList.add("is-invalid");
             mensajeError.textContent = "⚠️ La contraseña debe contener al menos 8 caracteres, una mayúscula y un número.";
@@ -35,47 +35,47 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (!esValido) {
-            console.warn("⛔ Validación fallida en el frontend");
             return;
         }
 
-        console.log("📡 Enviando credenciales al servidor...");
-
-        // **Enviar credenciales al servidor**
         try {
             const response = await fetch("http://localhost:3000/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                credentials: "include", // 🔹 Permite el almacenamiento de cookies de sesión
                 body: JSON.stringify({
                     email: email.value,
-                    contraseña: password.value, // No usar `trim()` en contraseñas encriptadas
-                }),
+                    contraseña: password.value
+                })
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-                console.error("❌ Error en la autenticación:", data.error);
                 mensajeError.textContent = `❌ ${data.error}`;
                 mensajeError.classList.remove("d-none");
-            } else {
-                console.log("✅ Inicio de sesión exitoso. Redirigiendo...");
-                mensajeError.classList.add("d-none"); // Ocultar mensajes de error previos
-                mostrarToast("Inicio de sesión exitoso.", "success");
-                setTimeout(() => {
-                    window.location.href = "index.html";
-                }, 2000);
+                return;
             }
+
+            // Guardar token en localStorage
+            localStorage.setItem("token", data.token);
+
+            // Guardar información útil del usuario
+            localStorage.setItem("usuario", JSON.stringify(data.usuario));
+
+            mostrarToast("Inicio de sesión exitoso.", "success");
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 1500);
+
         } catch (error) {
-            console.error("⚠️ Error en la conexión con el servidor", error);
+            console.error("❌ Error al conectar con el servidor", error);
             mensajeError.textContent = "⚠️ Error al conectar con el servidor. Intente de nuevo más tarde.";
             mensajeError.classList.remove("d-none");
         }
     });
 });
 
-// **📌 Función para mostrar Toasts**
+// 📌 Función para mostrar toasts
 function mostrarToast(mensaje, tipo) {
     const toastContainer = document.getElementById("toast-container");
     const toast = document.createElement("div");

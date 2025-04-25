@@ -97,3 +97,12 @@ db.connect(err => {
     console.log(`✅ [${new Date().toISOString()}] Server listening on http://localhost:${PORT}\n`);
   });
 });
+
+// 🌍 11. Middleware para manejar errores globales
+app.use((err, req, res, next) => {
+  console.error("❌ Error no manejado:", err);
+  res.status(500).json({
+    mensaje: "Ha ocurrido un error inesperado.",
+    detalles: err.message || err
+  });
+});
