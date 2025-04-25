@@ -1,8 +1,13 @@
 // Carga de variables de entorno desde `.env` en la raíz del backend
+const mysql = require("mysql2");
+const dotenv = require("dotenv");
+const path = require("path");
+
 require("dotenv").config({
     path: path.resolve(__dirname, ".env")
   });
-  
+
+
   // Verifica que todas las variables críticas estén presentes
   const requiredEnvs = ["DB_HOST", "DB_PORT", "DB_USER", "DB_NAME"];
   const missing = requiredEnvs.filter(key => !process.env[key]);
