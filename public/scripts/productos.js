@@ -14,19 +14,26 @@ async function cargarProductos() {
         productosContainer.innerHTML = "";
 
         productos.forEach(producto => {
-            const precioNumerico = parseFloat(producto.producto_precio) || 0;
+            const id = producto.producto_id;
+            const nombre = producto.nombre || "Sin nombre";
+            const precioNumerico = parseFloat(producto.precio) || 0;
+            const existencias = producto.stock || 0;
+
+            // ✅ Normalizar URL de imagen
+            let imagenURL = (producto.imagen_url || "").replace(/\\/g, "/").replace(/^public/, "");
+            if (!imagenURL.startsWith("/")) imagenURL = "/" + imagenURL;
 
             const productoHTML = `
                 <div class="col">
                     <div class="card h-100 shadow-sm animate-fade-in">
-                        <img src="./imagenes/productos/${producto.producto_id || producto.id}.png" class="card-img-top" alt="${producto.producto_nombre}" onerror="this.src='./imagenes/default.png'">
+                        <img src="${imagenURL}" class="card-img-top" alt="${nombre}" onerror="this.src='/imagenes/default.png'">
                         <div class="card-body">
-                            <h5 class="card-title">${producto.producto_nombre}</h5>
+                            <h5 class="card-title">${nombre}</h5>
                             <p class="card-text"><i class="fas fa-tag"></i> Precio: $${precioNumerico.toFixed(2)}</p>
-                            <p class="card-text"><i class="fas fa-warehouse"></i> Existencias: ${producto.producto_existencias}</p>
+                            <p class="card-text"><i class="fas fa-warehouse"></i> Existencias: ${existencias}</p>
                         </div>
                         <div class="card-footer text-center">
-                            <button class="btn btn-primary agregar-carrito" data-id="${producto.producto_id || producto.id}" data-nombre="${producto.producto_nombre}" data-precio="${precioNumerico}">
+                            <button class="btn btn-primary agregar-carrito" data-id="${id}" data-nombre="${nombre}" data-precio="${precioNumerico}">
                                 <i class="fas fa-cart-plus"></i> Agregar
                             </button>
                         </div>
