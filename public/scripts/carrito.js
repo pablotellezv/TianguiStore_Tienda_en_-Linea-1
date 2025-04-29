@@ -1,10 +1,32 @@
+// 📦 carrito.js (modo invitado + protección de compra + carga segura de imágenes)
+
+const BASE_URL = window.location.origin;
+const token = localStorage.getItem("token");
+
 document.addEventListener("DOMContentLoaded", () => {
     mostrarCarrito();
     actualizarContadorCarrito();
 
     const btnPagar = document.getElementById("btnRealizarPedido");
     if (btnPagar) {
-        btnPagar.addEventListener("click", realizarPedidoDesdeLocalStorage);
+        btnPagar.addEventListener("click", () => {
+            if (!token) {
+                alert("Debes iniciar sesión para completar tu compra.");
+                window.location.href = `${BASE_URL}/login.html`;
+                return;
+            }
+            realizarPedidoDesdeLocalStorage();
+        });
+    }
+
+    const btnVaciar = document.getElementById("vaciar-carrito");
+    if (btnVaciar) {
+        btnVaciar.addEventListener("click", () => {
+            localStorage.removeItem("carrito");
+            mostrarCarrito();
+            actualizarContadorCarrito();
+            mostrarToast("Carrito vaciado.", "warning");
+        });
     }
 });
 
@@ -13,6 +35,8 @@ function mostrarCarrito() {
     const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
     const listaCarrito = document.getElementById("lista-carrito");
     const totalEtiqueta = document.getElementById("total_etiqueta");
+
+    if (!listaCarrito || !totalEtiqueta) return;
 
     listaCarrito.innerHTML = "";
 
@@ -29,9 +53,18 @@ function mostrarCarrito() {
         const subtotal = precioNumerico * producto.cantidad;
         total += subtotal;
 
+        const imagenSrc = producto.imagen_url
+            ? (producto.imagen_url.startsWith('http')
+                ? producto.imagen_url
+                : `${BASE_URL}/${producto.imagen_url.replace(/^\/+/, '')}`)
+            : `${BASE_URL}/imagenes/default.png`;
+
         const itemHTML = `
             <li class="list-group-item d-flex align-items-center shadow-sm p-3 rounded">
-                <img src="./imagenes/productos/${producto.id}.png" alt="${producto.nombre}" class="img-thumbnail me-3 rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+                <img src="${imagenSrc}" alt="${producto.nombre}" 
+                     class="img-thumbnail me-3 rounded-circle" 
+                     style="width: 60px; height: 60px; object-fit: cover;"
+                     onerror="this.onerror=null; this.src='${BASE_URL}/imagenes/default.png';">
                 <div class="flex-grow-1">
                     <h6 class="mb-1 text-primary fw-bold">${producto.nombre}</h6>
                     <small class="text-muted">Precio: <span class="text-dark fw-bold">$${precioNumerico.toFixed(2)}</span></small> |
@@ -56,7 +89,6 @@ function mostrarCarrito() {
 
     totalEtiqueta.textContent = `Total: $${total.toFixed(2)}`;
 
-    // Eventos dinámicos
     document.querySelectorAll(".aumentar-cantidad").forEach(btn =>
         btn.addEventListener("click", e => modificarCantidad(e.currentTarget.dataset.id, 1)));
 
@@ -90,15 +122,7 @@ function eliminarProducto(id) {
     mostrarToast("Producto eliminado del carrito.", "danger");
 }
 
-// 📌 Vaciar todo el carrito
-document.getElementById("vaciar-carrito").addEventListener("click", () => {
-    localStorage.removeItem("carrito");
-    mostrarCarrito();
-    actualizarContadorCarrito();
-    mostrarToast("Carrito vaciado.", "warning");
-});
-
-// 📌 Actualizar contador visual del carrito
+// 📌 Actualizar contador del carrito
 function actualizarContadorCarrito() {
     const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
     const totalItems = carrito.reduce((acc, item) => acc + item.cantidad, 0);
@@ -130,20 +154,19 @@ function crearContenedorToasts() {
     return div;
 }
 
-// 📌 Verificar stock antes de pagar
+// 📌 Realizar pedido (verificando stock)
 async function realizarPedidoDesdeLocalStorage() {
     const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-
     const errores = [];
 
     for (const item of carrito) {
         try {
-            const res = await fetch(`/productos/${item.id}`);
-            if (!res.ok) throw new Error("No se pudo obtener producto");
+            const res = await fetch(`${BASE_URL}/productos/${item.id}`);
+            if (!res.ok) throw new Error("No se pudo obtener información del producto.");
 
             const producto = await res.json();
             if (item.cantidad > producto.stock) {
-                errores.push(`"${producto.nombre}" tiene solo ${producto.stock} unidades disponibles.`);
+                errores.push(`"${producto.nombre}" solo tiene ${producto.stock} unidades disponibles.`);
             }
         } catch (error) {
             errores.push(`Error al verificar producto ID ${item.id}`);
@@ -164,9 +187,12 @@ async function realizarPedidoDesdeLocalStorage() {
     };
 
     try {
-        const res = await fetch("/pedidos", {
+        const res = await fetch(`${BASE_URL}/pedidos`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
             credentials: "include",
             body: JSON.stringify(payload)
         });
@@ -179,7 +205,7 @@ async function realizarPedidoDesdeLocalStorage() {
             actualizarContadorCarrito();
             alert("✅ Pedido generado correctamente.");
         } else {
-            alert("❌ Error al procesar pedido: " + data.mensaje);
+            alert("❌ Error al procesar pedido: " + (data.mensaje || "Error desconocido"));
         }
 
     } catch (error) {

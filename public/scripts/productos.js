@@ -33,7 +33,11 @@ async function cargarProductos() {
                             <p class="card-text"><i class="fas fa-warehouse"></i> Existencias: ${existencias}</p>
                         </div>
                         <div class="card-footer text-center">
-                            <button class="btn btn-primary agregar-carrito" data-id="${id}" data-nombre="${nombre}" data-precio="${precioNumerico}">
+                            <button class="btn btn-primary agregar-carrito"
+                                data-id="${id}"
+                                data-nombre="${nombre}"
+                                data-precio="${precioNumerico}"
+                                data-imagen="${imagenURL}">
                                 <i class="fas fa-cart-plus"></i> Agregar
                             </button>
                         </div>
@@ -58,21 +62,22 @@ function asignarEventosAgregar() {
             const id = button.dataset.id;
             const nombre = button.dataset.nombre;
             const precio = parseFloat(button.dataset.precio);
+            const imagen_url = button.dataset.imagen; // ✅ Agregado
 
-            agregarAlCarrito(id, nombre, precio);
+            agregarAlCarrito(id, nombre, precio, imagen_url);
         });
     });
 }
 
 // 📌 Agregar producto al carrito (almacenado en localStorage)
-function agregarAlCarrito(id, nombre, precio) {
+function agregarAlCarrito(id, nombre, precio, imagen_url) {
     let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
 
     const productoExistente = carrito.find(p => p.id === id);
     if (productoExistente) {
         productoExistente.cantidad++;
     } else {
-        carrito.push({ id, nombre, precio, cantidad: 1 });
+        carrito.push({ id, nombre, precio, cantidad: 1, imagen_url }); // ✅ Guardar imagen_url
     }
 
     localStorage.setItem("carrito", JSON.stringify(carrito));

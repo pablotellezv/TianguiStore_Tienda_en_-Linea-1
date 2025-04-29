@@ -19,12 +19,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // 🔐 Verificar sesión desde localStorage/JWT
         verificarSesion();
+
+        // 🛒 Agregar dinámicamente el menú de productos si el usuario tiene permisos
+        insertarMenuProductos();
     } catch (error) {
         console.error("⚠️ Error al cargar componentes:", error);
     }
 });
 
-// 📌 Actualizar el contador del carrito desde localStorage
+// 📌 Actualizar contador de carrito
 function actualizarContadorCarrito() {
     try {
         const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
@@ -35,7 +38,7 @@ function actualizarContadorCarrito() {
     }
 }
 
-// 📌 Verificar sesión leyendo el token desde localStorage
+// 📌 Verificar sesión y ajustar opciones de cuenta
 function verificarSesion() {
     const token = localStorage.getItem("token");
     const usuario = JSON.parse(localStorage.getItem("usuario"));
@@ -65,7 +68,7 @@ function verificarSesion() {
         menuLogout.classList.add("d-none");
     }
 
-    // 🔓 Evento para cerrar sesión
+    // 🔓 Evento cerrar sesión
     btnCerrar.addEventListener("click", () => {
         localStorage.removeItem("token");
         localStorage.removeItem("usuario");
@@ -73,4 +76,38 @@ function verificarSesion() {
         alert("Sesión cerrada exitosamente.");
         window.location.href = "login.html";
     });
+}
+
+// 🛒 Insertar menú de Productos para admin/vendedor
+function insertarMenuProductos() {
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+    if (!usuario || !["admin", "vendedor"].includes(usuario.rol)) {
+        return; // No autorizado
+    }
+
+    const navList = document.querySelector(".navbar-nav");
+    if (!navList) {
+        console.warn("⚠️ No se encontró .navbar-nav para insertar menú de productos.");
+        return;
+    }
+
+    const menuProductos = document.createElement("li");
+    menuProductos.className = "nav-item dropdown";
+    menuProductos.innerHTML = `
+        <a class="nav-link dropdown-toggle" href="#" id="navbarProductos" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-box-open"></i> Productos
+        </a>
+        <ul class="dropdown-menu" aria-labelledby="navbarProductos">
+            <li><a class="dropdown-item" href="productos.html"><i class="fas fa-eye"></i> Ver Productos</a></li>
+            <li><a class="dropdown-item" href="agregarProducto.html"><i class="fas fa-plus-circle"></i> Agregar Producto</a></li>
+        </ul>
+    `;
+
+    // Insertar el menú de Productos antes del menú de usuario ("Cuenta")
+    const menuSesion = document.querySelector("#usuarioMenu")?.parentElement;
+    if (menuSesion) {
+        navList.insertBefore(menuProductos, menuSesion);
+    } else {
+        navList.appendChild(menuProductos); // fallback
+    }
 }

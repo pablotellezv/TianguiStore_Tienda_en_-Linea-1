@@ -2,52 +2,52 @@ const express = require("express");
 const router = express.Router();
 
 const {
-    obtenerProductos,
-    obtenerProductoPorId,
-    agregarProducto,
-    actualizarProducto,
-    eliminarProducto
+  obtenerProductos,
+  obtenerProductoPorId,
+  agregarProducto,
+  actualizarProducto,
+  eliminarProducto
 } = require("../controllers/productosController");
 
 const {
-    verificarAutenticacion,
-    permitirRoles
+  verificarAutenticacion,
+  permitirRoles
 } = require("../middlewares/authMiddleware");
 
 /**
  * 🛍️ Rutas de productos protegidas con JWT
  * - Lectura abierta (GET)
- * - Escritura protegida por token + rol
+ * - Escritura protegida por token + rol textual
  */
 
-// 📌 Obtener todos los productos
+// 📌 Obtener todos los productos (abierto)
 router.get("/", obtenerProductos);
 
-// 📌 Obtener un producto específico
+// 📌 Obtener un producto específico (abierto)
 router.get("/:id", obtenerProductoPorId);
 
-// 📌 Agregar nuevo producto (requiere autenticación y rol adecuado)
+// 📌 Agregar nuevo producto (requiere autenticación y rol admin o vendedor)
 router.post(
-    "/",
-    verificarAutenticacion,
-    permitirRoles(1, 2, 3), // Admin, Gerente, Supervisor
-    agregarProducto
+  "/",
+  verificarAutenticacion,
+  permitirRoles("admin", "vendedor"), // ✅ Correcto ahora
+  agregarProducto
 );
 
-// 📌 Actualizar producto (requiere autenticación y rol adecuado)
+// 📌 Actualizar producto (requiere autenticación y rol admin o vendedor)
 router.put(
-    "/:id",
-    verificarAutenticacion,
-    permitirRoles(1, 2, 3), // Admin, Gerente, Supervisor
-    actualizarProducto
+  "/:id",
+  verificarAutenticacion,
+  permitirRoles("admin", "vendedor"), // ✅
+  actualizarProducto
 );
 
-// 📌 Eliminar producto (requiere autenticación y rol adecuado)
+// 📌 Eliminar producto (requiere autenticación y rol admin)
 router.delete(
-    "/:id",
-    verificarAutenticacion,
-    permitirRoles(1, 3), // Admin, Supervisor
-    eliminarProducto
+  "/:id",
+  verificarAutenticacion,
+  permitirRoles("admin"), // ✅ Solo admin puede eliminar
+  eliminarProducto
 );
 
 module.exports = router;

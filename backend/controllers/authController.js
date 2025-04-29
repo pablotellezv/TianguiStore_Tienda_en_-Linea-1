@@ -1,127 +1,133 @@
-const db = require("../db");
 const bcrypt = require("bcrypt");
-const validator = require("validator");
+const jwt = require("jsonwebtoken");
+const pool = require("../db");
 
-// 📌 Registro de nuevos usuarios con validación completa
-exports.registrarUsuario = async (req, res) => {
-    const {
-        email,
-        contraseña,
-        nombre,
-        apellido_paterno,
-        apellido_materno,
-        telefono,
-        direccion
-    } = req.body;
+const SECRET = process.env.JWT_SECRET || "supersecreto_tianguistore";
 
-    // Validaciones mínimas obligatorias
-    if (!email || !contraseña || !nombre) {
-        return res.status(400).json({ error: "Faltan campos obligatorios: correo, contraseña y nombre son requeridos." });
+// 📌 Registrar nuevo usuario
+async function registrarUsuario(req, res) {
+  const {
+    correo_electronico,
+    contrasena,
+    nombre,
+    apellido_paterno = "",
+    apellido_materno = "",
+    telefono = "",
+    direccion = ""
+  } = req.body;
+
+  if (!correo_electronico || !contrasena || !nombre) {
+    return res.status(400).json({ message: "Faltan campos obligatorios (correo, contraseña, nombre)." });
+  }
+
+  try {
+    const [existe] = await pool.query(
+      "SELECT usuario_id FROM usuarios WHERE correo_electronico = ?",
+      [correo_electronico]
+    );
+
+    if (existe.length > 0) {
+      return res.status(409).json({ message: "El correo ya está registrado." });
     }
 
-    if (!validator.isEmail(email)) {
-        return res.status(400).json({ error: "Correo electrónico no válido." });
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(contrasena, salt);
+
+    await pool.query(
+      `INSERT INTO usuarios 
+      (correo_electronico, contrasena_hash, nombre, apellido_paterno, apellido_materno, telefono, direccion, rol_id) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [correo_electronico, hash, nombre, apellido_paterno, apellido_materno, telefono, direccion, 3] // Rol cliente (3)
+    );
+
+    res.status(201).json({ message: "Usuario registrado exitosamente." });
+
+  } catch (error) {
+    console.error("❌ Error al registrar usuario:", error);
+    res.status(500).json({ message: "Error interno al registrar." });
+  }
+}
+
+// 📌 Verificar usuario (Login)
+async function verificarUsuario(req, res) {
+  const { correo_electronico, contrasena } = req.body;
+
+  if (!correo_electronico || !contrasena) {
+    return res.status(400).json({ message: "Correo y contraseña son obligatorios." });
+  }
+
+  try {
+    const [rows] = await pool.query(
+      "SELECT * FROM usuarios WHERE correo_electronico = ? AND activo = 1",
+      [correo_electronico]
+    );
+
+    if (!rows.length) {
+      return res.status(401).json({ type: "credenciales_invalidas", message: "Credenciales inválidas." });
     }
 
-    if (!/^(?=.*[A-Z])(?=.*\d).{8,}$/.test(contraseña)) {
-        return res.status(400).json({
-            error: "La contraseña debe tener al menos 8 caracteres, una mayúscula y un número."
-        });
+    const usuario = rows[0];
+    const esValida = await bcrypt.compare(contrasena, usuario.contrasena_hash);
+
+    if (!esValida) {
+      return res.status(401).json({ type: "credenciales_invalidas", message: "Credenciales inválidas." });
     }
 
-    try {
-        // Verificar si ya existe
-        const [usuarios] = await db.promise().query(
-            "SELECT usuario_correo FROM usuarios WHERE usuario_correo = ?",
-            [email]
-        );
+    const roles = {
+      1: "admin",
+      3: "cliente",
+      4: "vendedor",
+      5: "repartidor",
+      6: "soporte"
+    };
 
-        if (usuarios.length > 0) {
-            return res.status(400).json({ error: "Este correo ya está registrado." });
-        }
+    const payload = {
+      usuario_id: usuario.usuario_id,
+      correo: usuario.correo_electronico,
+      rol: roles[usuario.rol_id] || "cliente"
+    };
 
-        // Hashear contraseña
-        const hash = await bcrypt.hash(contraseña, 10);
+    const token = jwt.sign(payload, SECRET, { expiresIn: "2h" });
 
-        // Insertar nuevo usuario (rol_id 7 = cliente)
-        await db.promise().query(
-            `INSERT INTO usuarios 
-            (usuario_correo, usuario_contrasena, nombre, apellido_paterno, apellido_materno, telefono, direccion, rol_id) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, 7)`,
-            [
-                email.trim(),
-                hash,
-                nombre.trim(),
-                apellido_paterno?.trim() || null,
-                apellido_materno?.trim() || null,
-                telefono?.trim() || null,
-                direccion?.trim() || null
-            ]
-        );
-
-        res.status(201).json({ mensaje: "Usuario registrado correctamente." });
-    } catch (err) {
-        console.error("❌ Error al registrar:", err);
-        res.status(500).json({ error: "Error interno del servidor." });
-    }
-};
-
-// 📌 Verificación de usuario y autenticación con sesión
-exports.verificarUsuario = async (req, res) => {
-    const { email, contraseña } = req.body;
-
-    if (!email || !contraseña) {
-        return res.status(400).json({ error: "Correo y contraseña son obligatorios." });
-    }
-
-    try {
-        const [usuarios] = await db.promise().query(
-            "SELECT * FROM usuarios WHERE usuario_correo = ?",
-            [email]
-        );
-
-        if (usuarios.length === 0) {
-            return res.status(401).json({ error: "Correo o contraseña incorrectos." });
-        }
-
-        const usuario = usuarios[0];
-        const coincide = await bcrypt.compare(contraseña, usuario.usuario_contrasena);
-
-        if (!coincide) {
-            return res.status(401).json({ error: "Correo o contraseña incorrectos." });
-        }
-
-        // Guardar sesión
-        req.session.usuario = {
-            id: usuario.usuario_id,
-            correo: usuario.usuario_correo,
-            nombre: usuario.nombre,
-            rol_id: usuario.rol_id
-        };
-
-        res.json({ mensaje: "Inicio de sesión exitoso." });
-
-    } catch (err) {
-        console.error("❌ Error al iniciar sesión:", err);
-        res.status(500).json({ error: "Error interno del servidor." });
-    }
-};
-
-// 📌 Obtener sesión activa
-exports.obtenerSesion = (req, res) => {
-    if (req.session.usuario) {
-        res.json({ autenticado: true, usuario: req.session.usuario });
-    } else {
-        res.json({ autenticado: false });
-    }
-};
-
-// 📌 Cerrar sesión
-exports.cerrarSesion = (req, res) => {
-    req.session.destroy((err) => {
-        if (err) {
-            return res.status(500).json({ error: "Error al cerrar sesión." });
-        }
-        res.json({ mensaje: "Sesión cerrada correctamente." });
+    res.status(200).json({
+      token,
+      usuario: payload
     });
+
+  } catch (error) {
+    console.error("❌ Error en login:", error);
+    res.status(500).json({ message: "Error al iniciar sesión." });
+  }
+}
+
+// 📌 Obtener sesión actual
+function obtenerSesion(req, res) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Token no proporcionado." });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, SECRET);
+    res.status(200).json({ usuario: decoded });
+  } catch (error) {
+    console.error("❌ Token inválido:", error);
+    res.status(401).json({ message: "Token inválido o expirado." });
+  }
+}
+
+// 📌 Cerrar sesión (cliente debe eliminar su token local)
+function cerrarSesion(req, res) {
+  res.status(200).json({ message: "Sesión cerrada correctamente (elimine su token local)." });
+}
+
+// ✅ Exportar TODAS las funciones correctamente
+module.exports = {
+  registrarUsuario,
+  verificarUsuario,
+  obtenerSesion,
+  cerrarSesion
 };

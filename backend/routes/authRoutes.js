@@ -1,30 +1,24 @@
 const express = require("express");
 const router = express.Router();
 
-// Controladores de autenticación
 const {
-    registrarUsuario,
-    verificarUsuario,
-    obtenerSesion,
-    cerrarSesion
+  registrarUsuario,
+  verificarUsuario,
+  obtenerSesion,
+  cerrarSesion
 } = require("../controllers/authController");
 
-/**
- * 📌 Rutas de autenticación
- * Estas rutas manejan el registro, login, sesión y logout
- * Se basan en sesiones (express-session) y trabajan con JSON
- */
-
-// Registrar nuevo usuario (cliente)
+// 📌 Registrar nuevo usuario
 router.post("/registro", registrarUsuario);
 
-// Iniciar sesión
+// 📌 Iniciar sesión
 router.post("/login", verificarUsuario);
 
-// Obtener información de sesión actual
+// 📌 Obtener información de sesión
 router.get("/sesion", obtenerSesion);
 
-// Cerrar sesión
+// 📌 Cerrar sesión
 router.post("/logout", cerrarSesion);
 
+// ❗❗❗ Esto es CRÍTICO: debes exportar SOLO el router
 module.exports = router;
