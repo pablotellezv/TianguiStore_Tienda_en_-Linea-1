@@ -87,7 +87,7 @@ git checkout -b feature/mi-mejora
 
 ---
 
-## 🚀 Estado actual: versión 0.1 Beta
+## 🚀 Estado actual: versión 0.1 Alfa
 
 ### ✅ Incluye
 
@@ -103,13 +103,15 @@ git checkout -b feature/mi-mejora
 - Panel de administrador
 - CRUD desde backend
 - Gestión de roles y perfiles
-- Verticales activables
+- Gestión de productos, usuarios, pedidos desde pánel de administración dinámico por roles.
+-Uso de configuraciones para personalización de las funciones de la tienda
+-Retoque de frontend moderno y funcional, con componentes (navbar,footer) adaptables según rol y permisos.
 
 ---
 
 ## 📄 Licencia
 
-Este proyecto se distribuye con fines educativos bajo la Licencia MIT.
+Este proyecto se distribuye con fines educativos bajo Licencia Creative Commons (CC BY-NC-SA) + Licencia Comercial.
 
 ---
 ---
