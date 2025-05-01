@@ -1,81 +1,80 @@
-# 🛍️ TianguiStore – Plataforma Modular para Tiendas en Línea con Enfoque Educativo y Comercial
+# 🛍️ TianguiStore – Plataforma Modular para Tiendas en Línea con Enfoque Educativo y Profesional
 
-**Repositorio oficial:** [github.com/Dtcsrni/TianguiStore_Tienda_en_-Linea](https://github.com/Dtcsrni/TianguiStore_Tienda_en_-Linea)  
+**Repositorio oficial:** [github.com/Dtcsrni/TianguiStore_Tienda_en_-_Linea](https://github.com/Dtcsrni/TianguiStore_Tienda_en_-_Linea)  
 **Autor:** I.S.C. Erick Renato Vega Ceron
 
 ---
 
-## 🔍 Descripción del proyecto
+## 🔍 ¿Qué es TianguiStore?
 
-**TianguiStore** es una tienda en línea modular, escalable y educativa diseñada con tecnologías modernas de backend y frontend. Nació como una herramienta para el aprendizaje de arquitectura web, pero ha evolucionado hasta ser un sistema base adaptable a necesidades reales de negocio.
+**TianguiStore** es una tienda en línea adaptable, diseñada para servir tanto como herramienta educativa como base funcional para proyectos reales de comercio electrónico. Desarrollada con tecnologías modernas, su arquitectura modular facilita el aprendizaje práctico y la personalización para diversos sectores productivos.
 
-### ✅ Casos de uso reales:
-
+### Aplicaciones reales:
 - Comercio local y PyMEs
-- Cooperativas de productores
+- Cooperativas y productores independientes
 - Emprendimientos gastronómicos
-- Servicios técnicos y profesionales
-- Proyectos escolares y tesis
-- Capacitación en desarrollo web full-stack
+- Tesis universitarias y talleres escolares
+- Agencias de desarrollo que requieren una base lista para producción
 
 ---
 
-## ⚙️ Tecnologías implementadas
+## ⚙️ Tecnologías utilizadas
 
-| Área        | Tecnología                 |
-|-------------|-----------------------------|
-| Lenguaje    | JavaScript (ES6+)           |
-| Backend     | Node.js + Express.js        |
-| Base de Datos | MySQL / MariaDB (10.4+)    |
-| Frontend    | HTML + CSS + Bootstrap 5    |
-| Autenticación | JWT + bcryptjs            |
-| API         | RESTful modular             |
-| Seguridad   | Helmet + HPP + CORS         |
-| Validaciones | express-validator + middleware personalizado |
-| DevTools    | Visual Studio Code, Git     |
-
----
-
-## 🚀 Estado actual del proyecto: `v0.1 Alfa`
-
-### Funciones actuales:
-- 🔐 Login y registro seguro por JWT
-- 👤 Roles y control de permisos
-- 🛍️ Catálogo de productos dinámico
-- 🛒 Carrito por usuario autenticado
-- 🧾 Pedidos con historial por cliente
-- 🗃️ Base de datos relacional completa en SQL
-- 🛡️ Middleware de validación por esquemas
+| Categoría       | Herramienta                      |
+|------------------|-----------------------------------|
+| Lenguaje         | JavaScript (ES6+)                 |
+| Backend          | Node.js + Express.js              |
+| Base de Datos    | MySQL / MariaDB (AMPPS recomendado) |
+| Frontend         | HTML + CSS + Bootstrap 5          |
+| Autenticación    | JWT + bcryptjs                    |
+| Validaciones     | express-validator + middlewares   |
+| Seguridad        | Helmet, HPP, CORS                 |
+| Herramientas     | Git + Visual Studio Code          |
+| API              | RESTful organizada por dominios   |
 
 ---
 
-## 📅 Roadmap versión 0.2
+## 🚀 Estado actual: `v0.1 Alfa`
 
-- 🔍 Búsqueda y filtros por producto/categoría
-- 🛠️ Panel administrativo por rol (admin, vendedor, soporte)
-- 🎨 Mejora visual con componentes adaptables (navbar, footer)
-- ⚙️ Configuración dinámica de la tienda
-- 📦 Gestión de stock y promociones
-- 🌐 Versión SaaS administrada + documentación API
+### Funcionalidades implementadas:
+- Registro e inicio de sesión con JWT
+- Roles de usuario con control de permisos
+- Catálogo de productos dinámico
+- Carrito de compras por sesión autenticada
+- Gestión básica de pedidos con historial
+- Base de datos relacional documentada (SQL)
+- Validaciones robustas por esquema
 
 ---
 
-## ▶️ Instalación y ejecución local
+## 🧭 Próxima versión (`v0.2`)
 
-### 🔧 Requisitos
-- Node.js 18+
-- MySQL o MariaDB (XAMPP recomendado)
-- Git + Visual Studio Code
+- Filtros y búsqueda por categoría y texto
+- Panel de administración contextual según rol
+- Gestión completa de usuarios, pedidos y productos
+- Personalización de configuración de tienda
+- Mejora estética general con componentes reutilizables
 
-### 📥 Pasos
+---
+
+## ▶️ ¿Cómo ejecutar TianguiStore localmente?
+
+### Requisitos:
+
+- Node.js 18 o superior
+- AMPPS (Apache + MySQL + PHP + Softaculous)
+- Git
+- Navegador moderno
+
+### Instrucciones:
 
 ```bash
-git clone https://github.com/Dtcsrni/TianguiStore_Tienda_en_-Linea.git
-cd TianguiStore_Tienda_en_-Linea
+git clone https://github.com/Dtcsrni/TianguiStore_Tienda_en_-_Linea.git
+cd TianguiStore_Tienda_en_-_Linea
 npm install
 ```
 
-Crea un archivo `.env` en `backend/` con:
+Luego, crea un archivo `.env` en `backend/` con los siguientes datos:
 
 ```env
 PORT=3000
@@ -86,49 +85,38 @@ DB_NAME=tianguistore
 JWT_SECRET=miclaveultrasecreta
 ```
 
-Importa el script `estructura_completa_tienda_db.sql` en tu gestor SQL.
+Importa el archivo `estructura_completa_tienda_db.sql` desde AMPPS (usando phpMyAdmin o consola MySQL).
 
-Luego, ejecuta:
+Después, ejecuta el servidor:
 
 ```bash
 node backend/server.js
 ```
 
-Abre `public/index.html` en el navegador o con Live Server.
-
----
-
-## 💡 Cómo contribuir
-
-1. Haz un fork
-2. Crea tu rama: `git checkout -b feature/mi-mejora`
-3. Realiza tus cambios
-4. Abre un Pull Request para revisión
+Abre `public/index.html` directamente o utilizando una extensión como Live Server en VSCode.
 
 ---
 
 ## 💬 ¿Deseas personalizar TianguiStore?
 
-- Puedes usarlo en tus clases o como plantilla para clientes reales.
-- Ofrecemos instalación, hosting, marca blanca y licencias bajo acuerdo.
-- Escríbeme a: **armsystechno@gmail.com**
+- Puedes adaptarlo fácilmente para clientes reales o proyectos de tesis.
+- Se ofrece licenciamiento profesional, instalación remota, branding personalizado y soporte extendido.
+
+📩 Contacto directo: **armsystechno@gmail.com**
 
 ---
 
-## 📄 Licenciamiento
+## 📄 Licencia
 
-- Licencia educativa sin fines de lucro (CC BY-NC-SA)
-- Licencia comercial disponible bajo contrato individual
-- Consulta más detalles en el archivo [`licencia.md`](./licencia.md)
-
----
-
-## 🌟 Apoya este proyecto
-
-- ⭐ Dale estrella al repo
-- 👀 Haz Watch para actualizaciones
-- 📤 Compártelo con estudiantes o desarrolladores independientes
-
-> _Hecho en México 🇲🇽 para el presente digital de quienes venden con propósito_
+- Uso educativo gratuito bajo licencia CC BY-NC-SA
+- Uso comercial solo mediante contrato formal con el autor
 
 ---
+
+## 🌟 ¿Te gusta el proyecto?
+
+- Dale ⭐ para apoyarlo
+- Haz Watch 👀 para recibir actualizaciones
+- Comparte con estudiantes, colegas o desarrolladores freelance
+
+> _“Hecho en México 🇲🇽 con visión ética, modularidad técnica y utilidad real para quienes venden con propósito.”_
