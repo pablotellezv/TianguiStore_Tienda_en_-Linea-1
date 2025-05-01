@@ -1,6 +1,6 @@
-// backend/routes/pedidoRoutes.js
 const express = require("express");
 const router = express.Router();
+
 const {
   obtenerPedidos,
   obtenerMisPedidos,
@@ -11,22 +11,53 @@ const {
 
 const {
   verificarAutenticacion,
-  permitirRoles
+  verificarPermiso
 } = require("../middlewares/authMiddleware");
 
-// 📌 Obtener todos los pedidos (solo admin o soporte pueden ver todos los pedidos)
-router.get("/", verificarAutenticacion, permitirRoles("admin", "soporte"), obtenerPedidos);
+const validarResultados = require("../middlewares/validacion/validarResultados");
+const { pedidoSchema } = require("../middlewares/validacion/pedidoSchema");
 
-// 📌 Obtener pedidos propios del cliente autenticado
-router.get("/mis", verificarAutenticacion, obtenerMisPedidos);
+// 📦 Obtener todos los pedidos (solo admin o soporte)
+router.get(
+  "/",
+  verificarAutenticacion,
+  verificarPermiso("pedidos", "leer"),
+  obtenerPedidos
+);
 
-// 📌 Crear un nuevo pedido (cliente autenticado)
-router.post("/", verificarAutenticacion, crearPedido);
+// 📦 Obtener solo los pedidos del usuario autenticado (cliente)
+router.get(
+  "/mis",
+  verificarAutenticacion,
+  obtenerMisPedidos
+);
 
-// 📌 Crear un pedido directamente desde carrito
-router.post("/desde-carrito", verificarAutenticacion, crearPedidoDesdeCarrito);
+// 🛒 Crear pedido desde productos directos
+router.post(
+  "/",
+  verificarAutenticacion,
+  verificarPermiso("pedidos", "crear"),
+  pedidoSchema,
+  validarResultados,
+  crearPedido
+);
 
-// 📌 Cancelar un pedido (cliente puede cancelar su pedido, admin puede cancelar cualquiera)
-router.put("/:id/cancelar", verificarAutenticacion, cancelarPedido);
+// 🛍️ Crear pedido desde carrito del cliente
+router.post(
+  "/desde-carrito",
+  verificarAutenticacion,
+  verificarPermiso("pedidos", "crear"),
+  pedidoSchema,
+  validarResultados,
+  crearPedidoDesdeCarrito
+);
+
+// ❌ Cancelar un pedido (cliente propio o admin)
+router.put(
+  "/:id/cancelar",
+  verificarAutenticacion,
+  verificarPermiso("pedidos", "cancelar"),
+  cancelarPedido
+);
 
 module.exports = router;

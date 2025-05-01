@@ -1,24 +1,41 @@
 const express = require("express");
 const router = express.Router();
 
+// 🧠 Controladores
 const {
   registrarUsuario,
   verificarUsuario,
   obtenerSesion,
-  cerrarSesion
+  cerrarSesion,
+  renovarToken,
+  refrescarToken
 } = require("../controllers/authController");
 
-// 📌 Registrar nuevo usuario
-router.post("/registro", registrarUsuario);
+// 🛡️ Middlewares
+const { verificarAutenticacion } = require("../middlewares/authMiddleware");
+const sanitizarEntradas = require("../middlewares/sanitizeMiddleware");
 
-// 📌 Iniciar sesión
-router.post("/login", verificarUsuario);
+// ─────────────── 🔓 Rutas públicas ───────────────
 
-// 📌 Obtener información de sesión
-router.get("/sesion", obtenerSesion);
+// 📝 Registro de nuevo usuario
+router.post("/registro", sanitizarEntradas, registrarUsuario);
 
-// 📌 Cerrar sesión
-router.post("/logout", cerrarSesion);
+// 🔐 Inicio de sesión y generación de tokens
+router.post("/login", sanitizarEntradas, verificarUsuario);
 
-// ❗❗❗ Esto es CRÍTICO: debes exportar SOLO el router
+// ♻️ Generar nuevo access token a partir del refresh token
+router.post("/refrescar", sanitizarEntradas, refrescarToken);
+
+// ─────────────── 🔐 Rutas protegidas ───────────────
+
+// 📦 Obtener información del usuario autenticado (requiere access token válido)
+router.get("/sesion", verificarAutenticacion, obtenerSesion);
+
+// 🔁 Renovar access token desde un access token válido (opcional si usas refresh tokens)
+router.post("/renovar", verificarAutenticacion, renovarToken);
+
+// 🔓 Cerrar sesión (cliente debe eliminar sus tokens)
+router.post("/logout", verificarAutenticacion, cerrarSesion);
+
+// ──────────────────────────────────────────────────
 module.exports = router;

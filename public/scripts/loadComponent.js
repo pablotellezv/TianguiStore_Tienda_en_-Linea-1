@@ -77,37 +77,75 @@ function verificarSesion() {
         window.location.href = "login.html";
     });
 }
-
-// 🛒 Insertar menú de Productos para admin/vendedor
-function insertarMenuProductos() {
+//Menus dinámicos
+function insertarMenusDinamicos() {
     const usuario = JSON.parse(localStorage.getItem("usuario"));
-    if (!usuario || !["admin", "vendedor"].includes(usuario.rol)) {
-        return; // No autorizado
-    }
+    const permisos = usuario?.permisos || {};
+    if (!usuario || !usuario.rol) return;
 
     const navList = document.querySelector(".navbar-nav");
-    if (!navList) {
-        console.warn("⚠️ No se encontró .navbar-nav para insertar menú de productos.");
+    const menuSesion = document.querySelector("#usuarioMenu")?.parentElement;
+
+    if (!navList || !menuSesion) {
+        console.warn("⚠️ No se pudo encontrar el contenedor de navegación.");
         return;
     }
 
-    const menuProductos = document.createElement("li");
-    menuProductos.className = "nav-item dropdown";
-    menuProductos.innerHTML = `
-        <a class="nav-link dropdown-toggle" href="#" id="navbarProductos" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="fas fa-box-open"></i> Productos
-        </a>
-        <ul class="dropdown-menu" aria-labelledby="navbarProductos">
-            <li><a class="dropdown-item" href="productos.html"><i class="fas fa-eye"></i> Ver Productos</a></li>
-            <li><a class="dropdown-item" href="agregarProducto.html"><i class="fas fa-plus-circle"></i> Agregar Producto</a></li>
-        </ul>
-    `;
+    const crearMenu = (html) => {
+        const item = document.createElement("li");
+        item.className = "nav-item";
+        item.innerHTML = html;
+        navList.insertBefore(item, menuSesion);
+    };
 
-    // Insertar el menú de Productos antes del menú de usuario ("Cuenta")
-    const menuSesion = document.querySelector("#usuarioMenu")?.parentElement;
-    if (menuSesion) {
-        navList.insertBefore(menuProductos, menuSesion);
-    } else {
-        navList.appendChild(menuProductos); // fallback
+    const crearDropdown = (icono, titulo, items) => {
+        const dropdown = document.createElement("li");
+        dropdown.className = "nav-item dropdown";
+        dropdown.innerHTML = `
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                <i class="${icono}"></i> ${titulo}
+            </a>
+            <ul class="dropdown-menu">${items}</ul>
+        `;
+        navList.insertBefore(dropdown, menuSesion);
+    };
+
+    // 🛍️ Menú de productos
+    if (permisos.productos?.leer || permisos.productos?.crear) {
+        crearDropdown("fas fa-box-open", "Productos", `
+            ${permisos.productos?.leer ? '<li><a class="dropdown-item" href="productos.html"><i class="fas fa-eye"></i> Ver productos</a></li>' : ''}
+            ${permisos.productos?.crear ? '<li><a class="dropdown-item" href="agregarProducto.html"><i class="fas fa-plus-circle"></i> Agregar producto</a></li>' : ''}
+        `);
+    }
+
+    // 👥 Menú de usuarios
+    if (permisos.usuarios?.leer) {
+        crearMenu(`<a class="nav-link" href="#" onclick="mostrarSeccion('usuarios')"><i class="fas fa-users-cog"></i> Usuarios</a>`);
+    }
+
+    // 📦 Menú de pedidos
+    if (permisos.pedidos?.leer) {
+        crearMenu(`<a class="nav-link" href="#" onclick="mostrarSeccion('pedidos')"><i class="fas fa-receipt"></i> Pedidos</a>`);
+    }
+
+    // ⚙️ Configuración
+    if (permisos.configuracion?.leer) {
+        crearMenu(`<a class="nav-link" href="#" onclick="mostrarSeccion('configuracion')"><i class="fas fa-cogs"></i> Configuración</a>`);
+    }
+
+    // 📊 Métricas / reportes
+    if (permisos.reportes?.exportar) {
+        crearMenu(`<a class="nav-link" href="#" onclick="mostrarSeccion('metricas')"><i class="fas fa-chart-line"></i> Métricas</a>`);
+    }
+
+    // 🛠️ Acceso al panel general
+    if (
+        permisos.usuarios?.leer ||
+        permisos.productos?.leer ||
+        permisos.configuracion?.leer ||
+        permisos.reportes?.exportar
+    ) {
+        crearMenu(`<a class="nav-link" href="adminPanel.html"><i class="fas fa-tools"></i> Panel Admin</a>`);
     }
 }
+

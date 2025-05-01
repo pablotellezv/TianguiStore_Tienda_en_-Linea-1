@@ -1,10 +1,14 @@
+require("dotenv").config();
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const pool = require("../db");
+const validator = require("validator");
+const authModel = require("../models/authModel");
+const {
+  generarAccessToken,
+  generarRefreshToken,
+  verificarRefreshToken
+} = require("../utils/jwt");
 
-const SECRET = process.env.JWT_SECRET || "supersecreto_tianguistore";
-
-// 📌 Registrar nuevo usuario
+// 📌 Registro de nuevo usuario
 async function registrarUsuario(req, res) {
   const {
     correo_electronico,
@@ -20,35 +24,44 @@ async function registrarUsuario(req, res) {
     return res.status(400).json({ message: "Faltan campos obligatorios (correo, contraseña, nombre)." });
   }
 
-  try {
-    const [existe] = await pool.query(
-      "SELECT usuario_id FROM usuarios WHERE correo_electronico = ?",
-      [correo_electronico]
-    );
+  if (!validator.isEmail(correo_electronico)) {
+    return res.status(400).json({ message: "El correo electrónico no es válido." });
+  }
 
-    if (existe.length > 0) {
+  if (!validator.isStrongPassword(contrasena, { minLength: 8, minSymbols: 0 })) {
+    return res.status(400).json({
+      message: "Contraseña insegura. Usa mínimo 8 caracteres, una mayúscula y un número."
+    });
+  }
+
+  try {
+    const yaExiste = await authModel.existeCorreo(correo_electronico);
+    if (yaExiste) {
       return res.status(409).json({ message: "El correo ya está registrado." });
     }
 
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(contrasena, salt);
 
-    await pool.query(
-      `INSERT INTO usuarios 
-      (correo_electronico, contrasena_hash, nombre, apellido_paterno, apellido_materno, telefono, direccion, rol_id) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [correo_electronico, hash, nombre, apellido_paterno, apellido_materno, telefono, direccion, 3] // Rol cliente (3)
-    );
+    await authModel.crearUsuario({
+      correo_electronico,
+      contrasena_hash: hash,
+      nombre,
+      apellido_paterno,
+      apellido_materno,
+      telefono,
+      direccion
+    });
 
     res.status(201).json({ message: "Usuario registrado exitosamente." });
 
   } catch (error) {
-    console.error("❌ Error al registrar usuario:", error);
-    res.status(500).json({ message: "Error interno al registrar." });
+    console.error("❌ Error en registrarUsuario:", error);
+    res.status(500).json({ message: "Error interno al registrar usuario." });
   }
 }
 
-// 📌 Verificar usuario (Login)
+// 📌 Login de usuario
 async function verificarUsuario(req, res) {
   const { correo_electronico, contrasena } = req.body;
 
@@ -57,77 +70,97 @@ async function verificarUsuario(req, res) {
   }
 
   try {
-    const [rows] = await pool.query(
-      "SELECT * FROM usuarios WHERE correo_electronico = ? AND activo = 1",
-      [correo_electronico]
-    );
-
-    if (!rows.length) {
+    const usuario = await authModel.buscarUsuarioPorCorreo(correo_electronico);
+    if (!usuario) {
       return res.status(401).json({ type: "credenciales_invalidas", message: "Credenciales inválidas." });
     }
 
-    const usuario = rows[0];
     const esValida = await bcrypt.compare(contrasena, usuario.contrasena_hash);
-
     if (!esValida) {
       return res.status(401).json({ type: "credenciales_invalidas", message: "Credenciales inválidas." });
     }
 
-    const roles = {
-      1: "admin",
-      3: "cliente",
-      4: "vendedor",
-      5: "repartidor",
-      6: "soporte"
-    };
-
     const payload = {
       usuario_id: usuario.usuario_id,
       correo: usuario.correo_electronico,
-      rol: roles[usuario.rol_id] || "cliente"
+      nombre: usuario.nombre,
+      rol: usuario.rol,
+      permisos: JSON.parse(usuario.permisos_json)
     };
 
-    const token = jwt.sign(payload, SECRET, { expiresIn: "2h" });
+    const accessToken = generarAccessToken(payload);
+    const refreshToken = generarRefreshToken({ usuario_id: payload.usuario_id });
 
     res.status(200).json({
-      token,
+      accessToken,
+      refreshToken,
       usuario: payload
     });
 
   } catch (error) {
-    console.error("❌ Error en login:", error);
-    res.status(500).json({ message: "Error al iniciar sesión." });
+    console.error("❌ Error en verificarUsuario:", error);
+    res.status(500).json({ message: "Error interno al iniciar sesión." });
   }
 }
 
-// 📌 Obtener sesión actual
+// 📌 Obtener sesión desde el token ya decodificado
 function obtenerSesion(req, res) {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Token no proporcionado." });
+  const usuario = req.usuario;
+  if (!usuario) {
+    return res.status(401).json({ message: "Token inválido o sesión no activa." });
   }
 
-  const token = authHeader.split(" ")[1];
+  res.status(200).json({ usuario });
+}
+
+// ♻️ Generar nuevo Access Token usando Refresh Token
+async function refrescarToken(req, res) {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res.status(400).json({ message: "No se proporcionó refresh token." });
+  }
 
   try {
-    const decoded = jwt.verify(token, SECRET);
-    res.status(200).json({ usuario: decoded });
+    const decoded = verificarRefreshToken(refreshToken);
+    const usuario = await authModel.buscarUsuarioPorId(decoded.usuario_id);
+
+    if (!usuario) {
+      return res.status(401).json({ message: "Usuario no encontrado." });
+    }
+
+    const payload = {
+      usuario_id: usuario.usuario_id,
+      correo: usuario.correo_electronico,
+      nombre: usuario.nombre,
+      rol: usuario.rol,
+      permisos: JSON.parse(usuario.permisos_json)
+    };
+
+    const nuevoAccessToken = generarAccessToken(payload);
+
+    res.status(200).json({
+      accessToken: nuevoAccessToken,
+      usuario: payload
+    });
+
   } catch (error) {
-    console.error("❌ Token inválido:", error);
-    res.status(401).json({ message: "Token inválido o expirado." });
+    console.error("❌ Error en refrescarToken:", error);
+    res.status(401).json({ message: "Refresh token inválido o expirado." });
   }
 }
 
-// 📌 Cerrar sesión (cliente debe eliminar su token local)
+// 📌 Cierre de sesión (eliminación manual de tokens por el cliente)
 function cerrarSesion(req, res) {
-  res.status(200).json({ message: "Sesión cerrada correctamente (elimine su token local)." });
+  res.status(200).json({
+    message: "Sesión cerrada correctamente. (El cliente debe eliminar los tokens localmente.)"
+  });
 }
 
-// ✅ Exportar TODAS las funciones correctamente
 module.exports = {
   registrarUsuario,
   verificarUsuario,
   obtenerSesion,
+  refrescarToken,
   cerrarSesion
 };

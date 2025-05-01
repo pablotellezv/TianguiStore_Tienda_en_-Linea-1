@@ -18,12 +18,19 @@ Thumbs.db
 *.sqlite
 *.db
 
-# 📦 Builds o temporales
+# 📦 Builds o archivos temporales
 dist/
 build/
 tmp/
 temp/
 
-# 💻 Archivos de tu IDE/editor (puedes ampliar según uses VSCode, JetBrains, etc.)
+# 💻 Archivos de IDE/editor (ajusta según tu entorno)
 .vscode/
-.idea/
+
+# 📊 Reportes de cobertura (si usas herramientas de testing)
+coverage/
+
+# 🔄 Caché de npm (opcional)
+.npm/
+``` 
+

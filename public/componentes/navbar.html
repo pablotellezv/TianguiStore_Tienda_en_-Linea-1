@@ -1,67 +1,68 @@
 <!-- componentes/navbar.html -->
 <nav class="navbar navbar-expand-lg navbar-dark gradient-bg shadow-sm">
     <div class="container">
-        <!-- Logo y Nombre de la Tienda -->
-        <a class="navbar-brand d-flex align-items-center" href="index.html">
-            <img src="./imagenes/logo.jpeg" alt="Logo" class="rounded-circle shadow" style="border: 2px solid #fff; width: 50px; height: 50px;">
-            <span class="fs-4 fw-bold ms-2"><i class="fas fa-store"></i> Tienda en Línea</span>
-        </a>
-
-        <!-- Botón Hamburguesa -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#barraSoportada"
-            aria-controls="barraSoportada" aria-expanded="false" aria-label="Alternar navegación">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <!-- Menú Principal -->
-        <div class="collapse navbar-collapse justify-content-end" id="barraSoportada">
-            <ul class="navbar-nav align-items-center">
-                <!-- Menú fijo -->
-                <li class="nav-item">
-                    <a class="nav-link" href="index.html"><i class="fas fa-home"></i> Inicio</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fas fa-users"></i> ¿Quiénes somos?</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fas fa-address-book"></i> Contacto</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="carrito.html">
-                        <i class="fas fa-shopping-cart"></i> Carrito (<span id="contador-carrito">0</span>)
-                    </a>
-                </li>
-
-                <!-- 🔥 Aquí dinámicamente se insertará el menú "Productos" si el usuario tiene permisos -->
-                
-                <!-- Menú de Cuenta -->
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="usuarioMenu" role="button" data-bs-toggle="dropdown"
-                        aria-expanded="false">
-                        <i class="fas fa-user"></i> <span id="usuario-info">Cuenta</span>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="usuarioMenu">
-                        <li id="menu-registro">
-                            <a class="dropdown-item" href="registro.html">
-                                <i class="fas fa-user-plus"></i> Registro
-                            </a>
-                        </li>
-                        <li id="menu-login">
-                            <a class="dropdown-item" href="login.html">
-                                <i class="fas fa-sign-in-alt"></i> Iniciar sesión
-                            </a>
-                        </li>
-                        <li id="menu-logout" class="d-none">
-                            <button class="dropdown-item" id="btnCerrarSesion">
-                                <i class="fas fa-sign-out-alt"></i> Cerrar sesión
-                            </button>
-                        </li>
-                    </ul>
-                </li>
+      <!-- Logo -->
+      <a class="navbar-brand d-flex align-items-center" href="index.html">
+        <img src="./imagenes/logo.jpeg" alt="Logo" class="rounded-circle shadow" style="border: 2px solid #fff; width: 50px; height: 50px;">
+        <span class="fs-4 fw-bold ms-2"><i class="fas fa-store"></i> TianguiStore</span>
+      </a>
+  
+      <!-- Botón móvil -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#barraSoportada">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+  
+      <!-- Menú -->
+      <div class="collapse navbar-collapse justify-content-end" id="barraSoportada">
+        <ul class="navbar-nav align-items-center">
+          <!-- Menú fijo -->
+          <li class="nav-item"><a class="nav-link" href="index.html"><i class="fas fa-home"></i> Inicio</a></li>
+          <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-users"></i> ¿Quiénes somos?</a></li>
+          <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-address-book"></i> Contacto</a></li>
+          <li class="nav-item">
+            <a class="nav-link" href="carrito.html">
+              <i class="fas fa-shopping-cart"></i> Carrito (<span id="contador-carrito">0</span>)
+            </a>
+          </li>
+  
+          <!-- 🔐 Menú dinámico según permisos -->
+          <li class="nav-item d-none" id="nav-panel">
+            <a class="nav-link" href="adminPanel.html"><i class="fas fa-tools"></i> Panel Admin</a>
+          </li>
+          <li class="nav-item d-none" id="nav-productos">
+            <a class="nav-link" href="#" onclick="mostrarSeccion('productos')"><i class="fas fa-boxes"></i> Catálogo</a>
+          </li>
+          <li class="nav-item d-none" id="nav-usuarios">
+            <a class="nav-link" href="#" onclick="mostrarSeccion('usuarios')"><i class="fas fa-users-cog"></i> Usuarios</a>
+          </li>
+          <li class="nav-item d-none" id="nav-pedidos">
+            <a class="nav-link" href="#" onclick="mostrarSeccion('pedidos')"><i class="fas fa-receipt"></i> Pedidos</a>
+          </li>
+          <li class="nav-item d-none" id="nav-configuracion">
+            <a class="nav-link" href="#" onclick="mostrarSeccion('configuracion')"><i class="fas fa-cogs"></i> Configuración</a>
+          </li>
+          <li class="nav-item d-none" id="nav-metricas">
+            <a class="nav-link" href="#" onclick="mostrarSeccion('metricas')"><i class="fas fa-chart-line"></i> Métricas</a>
+          </li>
+  
+          <!-- Cuenta -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="usuarioMenu" role="button" data-bs-toggle="dropdown">
+              <i class="fas fa-user"></i> <span id="usuario-info">Cuenta</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li id="menu-registro"><a class="dropdown-item" href="registro.html"><i class="fas fa-user-plus"></i> Registro</a></li>
+              <li id="menu-login"><a class="dropdown-item" href="login.html"><i class="fas fa-sign-in-alt"></i> Iniciar sesión</a></li>
+              <li id="menu-logout" class="d-none">
+                <button class="dropdown-item" id="btnCerrarSesion"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
+              </li>
             </ul>
-        </div>
+          </li>
+        </ul>
+      </div>
     </div>
-</nav>
-
-<!-- Contenedor para los Toasts -->
-<div id="toast-container" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;"></div>
+  </nav>
+  
+  <!-- Toasts -->
+  <div id="toast-container" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;"></div>
+  
