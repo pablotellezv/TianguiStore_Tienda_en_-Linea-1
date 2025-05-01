@@ -1,43 +1,73 @@
-# 🛍️ TianguiStore – Plataforma Modular para Tiendas en Línea con Enfoque Educativo
+# 🛍️ TianguiStore – Plataforma Modular para Tiendas en Línea con Enfoque Educativo y Comercial
 
 **Repositorio oficial:** [github.com/Dtcsrni/TianguiStore_Tienda_en_-Linea](https://github.com/Dtcsrni/TianguiStore_Tienda_en_-Linea)  
-**Autor:** 🧑‍💻🎮 I.S.C. Erick Renato Vega Ceron
+**Autor:** I.S.C. Erick Renato Vega Ceron
 
 ---
 
 ## 🔍 Descripción del proyecto
 
-**TianguiStore** es una plataforma educativa modular desarrollada con JavaScript, Node.js y MySQL/MariaDB. Está pensada para el aprendizaje práctico en arquitectura web, autenticación y modelado de datos, y se puede adaptar a verticales como:
+**TianguiStore** es una tienda en línea modular, escalable y educativa diseñada con tecnologías modernas de backend y frontend. Nació como una herramienta para el aprendizaje de arquitectura web, pero ha evolucionado hasta ser un sistema base adaptable a necesidades reales de negocio.
 
-- 📚 Librerías
-- 🧰 Ferreterías
-- 🏥 Clínicas médicas
-- 🐾 Veterinarias
-- 🥬 Verdulerías
-- 🛒 Abarrotes
-- 🏪 Minisúper
-- ✏️ Papelerías
-- 🍽️ Restaurantes
-- 🍸 Bares
-- 🌃 Centros nocturnos
+### ✅ Casos de uso reales:
+
+- Comercio local y PyMEs
+- Cooperativas de productores
+- Emprendimientos gastronómicos
+- Servicios técnicos y profesionales
+- Proyectos escolares y tesis
+- Capacitación en desarrollo web full-stack
 
 ---
 
-## ⚙️ Tecnologías principales
+## ⚙️ Tecnologías implementadas
 
-- **Lenguaje:** JavaScript (ES6+)
-- **Backend:** Node.js + Express
-- **Base de datos:** MySQL/MariaDB 10.4.32
-- **Frontend:** HTML + CSS + Bootstrap 5
-- **Autenticación:** JWT + bcryptjs
-- **Entorno:** Visual Studio Code
-- **API:** RESTful organizada por dominios
+| Área        | Tecnología                 |
+|-------------|-----------------------------|
+| Lenguaje    | JavaScript (ES6+)           |
+| Backend     | Node.js + Express.js        |
+| Base de Datos | MySQL / MariaDB (10.4+)    |
+| Frontend    | HTML + CSS + Bootstrap 5    |
+| Autenticación | JWT + bcryptjs            |
+| API         | RESTful modular             |
+| Seguridad   | Helmet + HPP + CORS         |
+| Validaciones | express-validator + middleware personalizado |
+| DevTools    | Visual Studio Code, Git     |
 
 ---
 
-## 📥 Cómo clonar, actualizar o crear tu propia versión de TianguiStore
+## 🚀 Estado actual del proyecto: `v0.1 Alfa`
 
-### 🔁 Clonar el repositorio original
+### Funciones actuales:
+- 🔐 Login y registro seguro por JWT
+- 👤 Roles y control de permisos
+- 🛍️ Catálogo de productos dinámico
+- 🛒 Carrito por usuario autenticado
+- 🧾 Pedidos con historial por cliente
+- 🗃️ Base de datos relacional completa en SQL
+- 🛡️ Middleware de validación por esquemas
+
+---
+
+## 📅 Roadmap versión 0.2
+
+- 🔍 Búsqueda y filtros por producto/categoría
+- 🛠️ Panel administrativo por rol (admin, vendedor, soporte)
+- 🎨 Mejora visual con componentes adaptables (navbar, footer)
+- ⚙️ Configuración dinámica de la tienda
+- 📦 Gestión de stock y promociones
+- 🌐 Versión SaaS administrada + documentación API
+
+---
+
+## ▶️ Instalación y ejecución local
+
+### 🔧 Requisitos
+- Node.js 18+
+- MySQL o MariaDB (XAMPP recomendado)
+- Git + Visual Studio Code
+
+### 📥 Pasos
 
 ```bash
 git clone https://github.com/Dtcsrni/TianguiStore_Tienda_en_-Linea.git
@@ -45,104 +75,9 @@ cd TianguiStore_Tienda_en_-Linea
 npm install
 ```
 
----
+Crea un archivo `.env` en `backend/` con:
 
-### 🔄 Obtener los últimos cambios del repositorio original
-
-```bash
-git remote add upstream https://github.com/Dtcsrni/TianguiStore_Tienda_en_-Linea.git
-git fetch upstream
-git checkout main
-git merge upstream/main
-```
-
----
-
-### 🍴 Crear tu propia versión (fork)
-
-1. Haz clic en **Fork** en GitHub.
-2. Clona tu fork:
-
-```bash
-git clone https://github.com/tuusuario/TianguiStore_Tienda_en_-Linea.git
-cd TianguiStore_Tienda_en_-Linea
-npm install
-```
-
-3. Crea una nueva rama:
-
-```bash
-git checkout -b feature/mi-mejora
-```
-
-4. Sube tus cambios y crea un Pull Request si deseas contribuir.
-
----
-
-### ⭐ Apoya el proyecto
-
-- Dale una **estrella ⭐** al repositorio.
-- Haz clic en **Watch 👀** para recibir notificaciones.
-- ¡Comparte con otros estudiantes o colegas!
-
----
-
-## 🚀 Estado actual: versión 0.1 Alfa
-
-### ✅ Incluye
-
-- Login y registro con JWT
-- Listado de productos
-- Carrito por usuario autenticado
-- Pedidos con historial
-- Script SQL estructurado y comentado
-
-### 🔜 Próxima versión (0.2)
-
-- Filtros y búsqueda
-- Panel de administrador
-- CRUD desde backend
-- Gestión de roles y perfiles
-- Gestión de productos, usuarios, pedidos desde pánel de administración dinámico por roles.
--Uso de configuraciones para personalización de las funciones de la tienda
--Retoque de frontend moderno y funcional, con componentes (navbar,footer) adaptables según rol y permisos.
-
----
-
-## 📄 Licencia
-
-Este proyecto se distribuye con fines educativos bajo Licencia Creative Commons (CC BY-NC-SA) + Licencia Comercial.
-
----
----
-
-## ▶️ Cómo ejecutar TianguiStore localmente
-
-### Requisitos previos
-
-- Node.js (recomendado: v18 o superior)
-- MySQL/MariaDB (preferentemente desde XAMPP)
-- Visual Studio Code (u otro editor)
-- Git
-
-### Pasos para ejecución local
-
-1. Clona el proyecto:
-
-```bash
-git clone https://github.com/Dtcsrni/TianguiStore_Tienda_en_-Linea.git
-cd TianguiStore_Tienda_en_-Linea
-```
-
-2. Instala las dependencias del backend:
-
-```bash
-npm install
-```
-
-3. Crea un archivo `.env` dentro del directorio `backend/` con este contenido:
-
-```
+```env
 PORT=3000
 DB_HOST=localhost
 DB_USER=root
@@ -151,14 +86,49 @@ DB_NAME=tianguistore
 JWT_SECRET=miclaveultrasecreta
 ```
 
-4. Importa el archivo `tienda_db_completa.sql` en tu gestor MySQL (ej. phpMyAdmin) y crea una base de datos llamada `tianguistore`.
+Importa el script `estructura_completa_tienda_db.sql` en tu gestor SQL.
 
-5. Inicia el servidor:
+Luego, ejecuta:
 
 ```bash
 node backend/server.js
 ```
 
-6. Abre `public/index.html` con Live Server o desde tu navegador.
+Abre `public/index.html` en el navegador o con Live Server.
 
-¡Listo! Ahora puedes probar todas las funcionalidades de TianguiStore desde tu máquina local.
+---
+
+## 💡 Cómo contribuir
+
+1. Haz un fork
+2. Crea tu rama: `git checkout -b feature/mi-mejora`
+3. Realiza tus cambios
+4. Abre un Pull Request para revisión
+
+---
+
+## 💬 ¿Deseas personalizar TianguiStore?
+
+- Puedes usarlo en tus clases o como plantilla para clientes reales.
+- Ofrecemos instalación, hosting, marca blanca y licencias bajo acuerdo.
+- Escríbeme a: **armsystechno@gmail.com**
+
+---
+
+## 📄 Licenciamiento
+
+- Licencia educativa sin fines de lucro (CC BY-NC-SA)
+- Licencia comercial disponible bajo contrato individual
+- Consulta más detalles en el archivo [`licencia.md`](./licencia.md)
+
+---
+
+## 🌟 Apoya este proyecto
+
+- ⭐ Dale estrella al repo
+- 👀 Haz Watch para actualizaciones
+- 📤 Compártelo con estudiantes o desarrolladores independientes
+
+> _Hecho en México 🇲🇽 para el presente digital de quienes venden con propósito_
+
+---
