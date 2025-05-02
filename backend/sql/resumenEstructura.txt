@@ -1,0 +1,200 @@
+───────────────────────────── 1. TABLAS (ENTIDADES PRINCIPALES)
+
+• meta_instalacion
+  - id: INT AUTO_INCREMENT (PK)
+  - sistema: VARCHAR(100) (default 'TianguiStore')
+  - version: VARCHAR(20) (default 'v1.0.0')
+  - instalado_por: VARCHAR(100)
+  - fecha_instalacion: TIMESTAMP (default CURRENT_TIMESTAMP)
+  - estado: ENUM('completo', 'parcial', 'fallido') (default 'completo')
+  - observaciones: TEXT
+
+• estados_pedido
+  - estado_id: INT AUTO_INCREMENT (PK)
+  - estado_nombre: VARCHAR(50) NOT NULL UNIQUE
+  - descripcion: TEXT
+  - fecha_creacion: TIMESTAMP (default CURRENT_TIMESTAMP)
+
+• blog_categorias
+  - categoria_id: INT AUTO_INCREMENT (PK)
+  - nombre_categoria: VARCHAR(100) NOT NULL UNIQUE
+  - descripcion: TEXT
+  - slug_categoria: VARCHAR(100) NOT NULL UNIQUE
+  - icono_url: VARCHAR(255)
+  - estado: ENUM('activa', 'inactiva') (default 'activa')
+  - fecha_creacion: TIMESTAMP
+
+• almacenes
+  - almacen_id: INT AUTO_INCREMENT (PK)
+  - nombre_almacen: VARCHAR(100)
+  - tipo: ENUM('físico', 'virtual', 'proveedor') (default 'físico')
+  - ubicacion: TEXT
+  - activo: BOOLEAN (default TRUE)
+  - fecha_creacion: TIMESTAMP
+
+• entradas_blog
+  - id: INT AUTO_INCREMENT (PK)
+    (se pueden incluir más campos en la versión completa)
+
+• categorias
+  - categoria_id: INT AUTO_INCREMENT (PK)
+  - nombre_categoria: VARCHAR(100) NOT NULL UNIQUE
+  - slug_categoria: VARCHAR(100) NOT NULL UNIQUE
+  - descripcion: TEXT
+  - icono_url: VARCHAR(255)
+  - estado: ENUM('activa', 'inactiva', 'borrador') (default 'activa')
+  - orden_visual: INT (default 0)
+  - destacada: BOOLEAN (default FALSE)
+  - fecha_creacion: TIMESTAMP
+
+• productos
+  - producto_id: INT AUTO_INCREMENT (PK)
+  - nombre: VARCHAR(150) NOT NULL
+  - slug_producto: VARCHAR(150) NOT NULL UNIQUE
+  - descripcion: TEXT NOT NULL
+  - otras columnas de precio (DECIMAL), stock (INT), flags (BOOLEAN), etc.
+  - columnas para borrado lógico, auditoría, fechas (DATETIME, TIMESTAMP)
+  - claves foráneas a marcas, categorías, subcategorias, proveedores, tipos_publicacion
+
+• usuarios
+  - usuario_id: INT AUTO_INCREMENT (PK)
+  - rol_id: INT (FK a roles)
+  - sucursal_id: INT (FK a sucursales, puede ser NULL)
+  - correo_electronico: VARCHAR(100) NOT NULL UNIQUE
+  - contrasena_hash: VARCHAR(255)
+  - nombre, apellidos: VARCHAR
+  - género: ENUM('masculino','femenino','otro','no_especificado')
+  - datos de contacto, fechas (DATETIME, TIMESTAMP)
+  - flags: activo, borrado_logico, verificado (BOOLEAN)
+  - otros campos para redes y datos personales
+
+• reglas_negocio
+  - regla_id: INT AUTO_INCREMENT (PK)
+  - nombre: VARCHAR(100)
+  - descripcion: TEXT
+  - tipo_evento: ENUM(... lista de eventos ...)
+  - umbral_valor: DECIMAL(10,2)
+  - criterio: JSON
+  - accion_automatizada: ENUM(... acciones ...)
+  - activa: BOOLEAN, borrado_logico: BOOLEAN
+  - fecha_creacion, fecha_actualizacion: TIMESTAMP
+
+• subcategorias
+  - subcategoria_id: INT AUTO_INCREMENT (PK)
+  - categoria_id: INT (FK a categorias)
+  - nombre_subcategoria: VARCHAR(100)
+  - slug_subcategoria: VARCHAR(100)
+  - diferenciadas por UNIQUE sobre (categoria_id, nombre) y (categoria_id, slug)
+  - otros campos: descripcion, icono_url, estado, orden_visual, destacada, fecha_creacion
+
+• inventario_productos, precios_por_volumen, variantes_producto, galeria_productos
+  - Definen relaciones de productos con stock, variaciones y medios asociados.
+  - Tipos: claves INT, DECIMAL para precios, BOOLEAN para flags, TIMESTAMP para fechas, etc.
+
+• (Además, existen tablas para: auditoria_borrado, cupones, valoraciones, campanas, atributos_dinamicos, producto_atributo_valor, blog_comentarios, puntos_usuario, canjes_puntos, historial_niveles, logros, logros_usuario, misiones, progreso_mision, ranking_usuarios, ranking_promotores, reportes, ejecucion_reportes, seguimiento_pedidos, mensajes_pedido, tickets_soporte, mensajes_ticket, facturas, movimientos_contables, configuracion_fiscal, solicitudes_factura, cuentas_contables, polizas, partidas_poliza, etc.)
+
+────────────────────────────── 2. VISTAS
+Se crean numerosas vistas para informes y validaciones, entre ellas:
+
+• vista_ultimos_reportes
+  - Campos: ejecucion_id (INT), nombre_reporte (VARCHAR), ejecutado_por (VARCHAR), fecha_ejecucion (TIMESTAMP), exito (BOOLEAN), resumen (VARCHAR)
+
+• vista_top_usuarios
+  - Combina datos de ranking_usuarios y usuarios; muestra puntos, nivel, índice gamificado (calculado)
+
+• vista_top_vendedores
+  - Lista vendedores con datos de rendimiento (ventas, conversión, etc.)
+
+• vista_logros_comunes
+  - Agrupa logros por veces obtenidos
+
+• vista_progreso_misiones
+  - Muestra progreso (JSON) y estado de misiones por usuario
+
+• vista_puntos_expirados
+  - Lista puntos expirados (incluye puntos_id, usuario_id, tipo_evento, puntos, fechas y días vencidos)
+
+• vista_historial_canjes
+  - Detalle de redenciones de puntos
+
+• (Además, vistas para: reporte_ventas_por_categoria, reporte_ventas_por_metodo_pago, reporte_estados_tiempo_pedidos, reporte_actividad_usuarios, reporte_usuarios_influyentes, reporte_cupones_uso, reporte_log_acciones, vista_stock_actual, vista_campanas_activas, vista_ventas_por_campana, vista_resumen_referidos, vista_fidelidad_clientes, vista_balance_general, vista_estado_resultados, vista_resumen_metricas, entre otras.)
+
+────────────────────────────── 3. PROCEDIMIENTOS ALMACENADOS (SP)
+
+• sp_crear_pedido_completo
+  - Parámetros de tipos básicos (INT para IDs, DECIMAL para montos, ENUM para método de pago, TEXT para cupon y notas)
+  - Envoltorio transaccional para crear pedidos completos
+
+• sp_canjear_puntos_por_cupon
+  - Parámetros: p_usuario_id (INT), p_cupon_id (INT), p_puntos (INT)
+  - Lógica para validar saldo y actualizar puntos redimidos
+
+• sp_otorgar_logro
+  - Parámetros: p_usuario_id (INT), p_logro_id (INT)
+  - Inserta en logros_usuario y actualiza ranking
+
+• sp_generar_poliza_ingreso_pedido y sp_generar_poliza_egreso_manual
+  - Parámetros relacionados con pedidos, montos y códigos de cuenta (DECIMAL, VARCHAR)
+  - Registro en tablas de contabilidad
+
+• sp_recompensar_por_nivel
+  - Parámetro p_usuario_id (INT)
+  - Calcula nivel basado en SUM(puntos) y registra en historial_niveles
+
+• verificar_integridad_pedido (trigger/procedimiento)
+  - Parámetro pid (INT)
+  - Calcula y compara firma_hash (SHA2 de concatenado de campos)
+
+• verificar_instalacion_tiangui_extendido
+  - Sin parámetros; evalúa integridad de la instalación mediante la tabla temporal resultado_integridad
+
+────────────────────────────── 4. TRIGGERS
+
+Entre los triggers definidos se encuentran:
+
+• Triggers de gamificación y puntos:
+  - trg_actualizar_puntos_usuario (después de insertar en puntos_usuario)
+  - trg_incrementar_ventas_promotor (después de insertar en historial_promociones)
+  - trg_completar_mision (después de actualizar progreso_mision)
+  - trg_logro_obtenido (después de insertar en logros_usuario)
+  - trg_restar_puntos_por_canje (después de insertar en canjes_puntos)
+
+• Triggers de validación y seguridad:
+  - trg_validar_usuario_activo_puntos (antes de insertar en puntos_usuario)
+  - trg_proteger_admin_delete (antes de eliminar en usuarios)
+  - trg_prevenir_eliminacion_rol_en_uso (antes de eliminar un rol asignado)
+  - trg_validar_logro_usuario_existente (antes de insertar en logros_usuario)
+  - trg_prevenir_progreso_usuario_inactivo (antes de insertar en progreso_mision)
+  - trg_proteger_borrado_usuarios / trg_proteger_borrado_productos (evitan eliminaciones físicas)
+
+• Triggers para auditoría y consistencia:
+  - trg_log_borrado_logico_usuario y trg_log_borrado_logico_producto
+  - trg_firma_hash_pedido_insert / trg_firma_hash_pedido_update
+
+• Triggers para la misión y contenido:
+  - trg_logro_primera_compra, trg_logro_comentario_blog, trg_logro_valoracion_producto
+  - Triggers en testimonios, edición de perfil, registro de actividad (login, compra, cupon redimido)
+
+────────────────────────────── 5. EVENTOS PROGRAMADOS
+
+Se definen eventos para mantenimiento y automatización:
+
+• evt_expirar_puntos
+  - Actualiza puntos_usuario marcando como redimidos los puntos expirados
+
+• evt_publicar_programados
+  - Actualiza el estado de productos (publicado) en base a fecha y estado_visible
+
+• evt_limpiar_pedidos_borrador
+  - Elimina pedidos marcados como 'borrador' que llevan más de 30 días
+
+• evt_archivar_usuarios_inactivos y evt_archivar_productos_inactivos
+  - Actualizan registros de usuarios/productos según inactividad o stock
+
+• evt_desactivar_promociones_vencidas
+  - Desactiva promociones cuyo fecha_fin ya pasó
+
+• evt_actualizar_rankings
+  - Recalcula datos en ranking_usuarios
+
+• (Además, eventos de alertas en inventario: alerta_stock_bajo, alerta_vencimiento_lote, alerta_baja_rotacion)

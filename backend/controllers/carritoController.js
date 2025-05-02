@@ -1,38 +1,37 @@
-const db = require("../db");
+const db = require("../db/connection");
 const validator = require("validator");
 
-// 📦 Obtener el contenido del carrito
-exports.obtenerCarrito = (req, res) => {
+/**
+ * 📦 Obtener los productos del carrito del usuario autenticado.
+ */
+async function obtenerCarrito(req, res) {
   const usuario_id = req.usuario?.usuario_id;
 
-  if (!usuario_id) {
-    return res.status(403).json({ mensaje: "No autenticado." });
+  if (!usuario_id) return res.status(403).json({ mensaje: "No autenticado." });
+
+  try {
+    const [carrito] = await db.query(`
+      SELECT c.id, c.cantidad, p.nombre AS producto_nombre, p.precio AS producto_precio
+      FROM carrito c
+      JOIN productos p ON c.producto_id = p.producto_id
+      WHERE c.usuario_id = ?
+    `, [usuario_id]);
+
+    res.json(carrito);
+  } catch (error) {
+    console.error("❌ Error al obtener el carrito:", error);
+    res.status(500).json({ mensaje: "Error interno al obtener el carrito." });
   }
+}
 
-  db.query(
-    `SELECT c.id, c.cantidad, p.producto_nombre, p.producto_precio
-     FROM carrito c
-     JOIN productos p ON c.producto_id = p.producto_id
-     WHERE c.usuario_id = ?`,
-    [usuario_id],
-    (err, resultados) => {
-      if (err) {
-        console.error("❌ Error al obtener el carrito:", err);
-        return res.status(500).json({ mensaje: "Error interno al obtener el carrito." });
-      }
-      res.json(resultados);
-    }
-  );
-};
-
-// ➕ Agregar producto al carrito
-exports.agregarAlCarrito = (req, res) => {
+/**
+ * ➕ Agregar producto al carrito o actualizar cantidad si ya existe.
+ */
+async function agregarAlCarrito(req, res) {
   const usuario_id = req.usuario?.usuario_id;
   const { producto_id, cantidad } = req.body;
 
-  if (!usuario_id) {
-    return res.status(403).json({ mensaje: "No autenticado." });
-  }
+  if (!usuario_id) return res.status(403).json({ mensaje: "No autenticado." });
 
   if (
     !producto_id || !cantidad ||
@@ -42,88 +41,73 @@ exports.agregarAlCarrito = (req, res) => {
     return res.status(400).json({ mensaje: "Producto y cantidad válidos son requeridos." });
   }
 
-  db.query(
-    "SELECT cantidad FROM carrito WHERE usuario_id = ? AND producto_id = ?",
-    [usuario_id, producto_id],
-    (err, resultados) => {
-      if (err) {
-        console.error("❌ Error al consultar producto en carrito:", err);
-        return res.status(500).json({ mensaje: "Error interno al consultar el carrito." });
-      }
+  try {
+    const [resultados] = await db.query(
+      "SELECT cantidad FROM carrito WHERE usuario_id = ? AND producto_id = ?",
+      [usuario_id, producto_id]
+    );
 
-      if (resultados.length > 0) {
-        // Ya existe → actualizar cantidad
-        const nuevaCantidad = resultados[0].cantidad + Number(cantidad);
-        db.query(
-          "UPDATE carrito SET cantidad = ? WHERE usuario_id = ? AND producto_id = ?",
-          [nuevaCantidad, usuario_id, producto_id],
-          (error) => {
-            if (error) {
-              return res.status(500).json({ mensaje: "Error al actualizar el carrito." });
-            }
-            res.json({ mensaje: "Cantidad actualizada en el carrito." });
-          }
-        );
-      } else {
-        // Nuevo producto en el carrito
-        db.query(
-          "INSERT INTO carrito (usuario_id, producto_id, cantidad) VALUES (?, ?, ?)",
-          [usuario_id, producto_id, cantidad],
-          (error) => {
-            if (error) {
-              console.error("❌ Error al insertar en carrito:", error);
-              return res.status(500).json({ mensaje: "Error al agregar producto al carrito." });
-            }
-            res.status(201).json({ mensaje: "Producto agregado al carrito." });
-          }
-        );
-      }
+    if (resultados.length > 0) {
+      const nuevaCantidad = resultados[0].cantidad + Number(cantidad);
+      await db.query(
+        "UPDATE carrito SET cantidad = ? WHERE usuario_id = ? AND producto_id = ?",
+        [nuevaCantidad, usuario_id, producto_id]
+      );
+      return res.json({ mensaje: "Cantidad actualizada en el carrito." });
+    } else {
+      await db.query(
+        "INSERT INTO carrito (usuario_id, producto_id, cantidad) VALUES (?, ?, ?)",
+        [usuario_id, producto_id, cantidad]
+      );
+      return res.status(201).json({ mensaje: "Producto agregado al carrito." });
     }
-  );
-};
+  } catch (error) {
+    console.error("❌ Error al modificar el carrito:", error);
+    res.status(500).json({ mensaje: "Error interno al modificar el carrito." });
+  }
+}
 
-// 🗑️ Eliminar producto del carrito
-exports.eliminarDelCarrito = (req, res) => {
+/**
+ * 🗑️ Eliminar un producto específico del carrito.
+ */
+async function eliminarDelCarrito(req, res) {
   const usuario_id = req.usuario?.usuario_id;
   const { id } = req.params;
 
-  if (!usuario_id) {
-    return res.status(403).json({ mensaje: "No autenticado." });
-  }
-
+  if (!usuario_id) return res.status(403).json({ mensaje: "No autenticado." });
   if (!validator.isInt(id, { min: 1 })) {
-    return res.status(400).json({ mensaje: "ID de producto inválido." });
+    return res.status(400).json({ mensaje: "ID inválido para eliminar del carrito." });
   }
 
-  db.query(
-    "DELETE FROM carrito WHERE id = ? AND usuario_id = ?",
-    [id, usuario_id],
-    (err) => {
-      if (err) {
-        return res.status(500).json({ mensaje: "Error al eliminar el producto del carrito." });
-      }
-      res.json({ mensaje: "Producto eliminado del carrito." });
-    }
-  );
-};
+  try {
+    await db.query("DELETE FROM carrito WHERE id = ? AND usuario_id = ?", [id, usuario_id]);
+    res.json({ mensaje: "Producto eliminado del carrito." });
+  } catch (error) {
+    console.error("❌ Error al eliminar del carrito:", error);
+    res.status(500).json({ mensaje: "Error interno al eliminar del carrito." });
+  }
+}
 
-// 🧺 Vaciar carrito completamente
-exports.vaciarCarrito = (req, res) => {
+/**
+ * 🧺 Vaciar por completo el carrito del usuario autenticado.
+ */
+async function vaciarCarrito(req, res) {
   const usuario_id = req.usuario?.usuario_id;
 
-  if (!usuario_id) {
-    return res.status(403).json({ mensaje: "No autenticado." });
-  }
+  if (!usuario_id) return res.status(403).json({ mensaje: "No autenticado." });
 
-  db.query(
-    "DELETE FROM carrito WHERE usuario_id = ?",
-    [usuario_id],
-    (err) => {
-      if (err) {
-        console.error("❌ Error al vaciar el carrito:", err);
-        return res.status(500).json({ mensaje: "Error al vaciar el carrito." });
-      }
-      res.json({ mensaje: "Carrito vaciado correctamente." });
-    }
-  );
+  try {
+    await db.query("DELETE FROM carrito WHERE usuario_id = ?", [usuario_id]);
+    res.json({ mensaje: "Carrito vaciado correctamente." });
+  } catch (error) {
+    console.error("❌ Error al vaciar el carrito:", error);
+    res.status(500).json({ mensaje: "Error interno al vaciar el carrito." });
+  }
+}
+
+module.exports = {
+  obtenerCarrito,
+  agregarAlCarrito,
+  eliminarDelCarrito,
+  vaciarCarrito,
 };

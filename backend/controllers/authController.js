@@ -1,14 +1,16 @@
 require("dotenv").config();
 const bcrypt = require("bcrypt");
 const validator = require("validator");
-const authModel = require("../models/authModel");
+const usuarioModel = require("../models/usuario.model");
 const {
   generarAccessToken,
   generarRefreshToken,
   verificarRefreshToken
 } = require("../utils/jwt");
 
-// 📌 Registro de nuevo usuario
+/**
+ * 📌 Registro de nuevo usuario
+ */
 async function registrarUsuario(req, res) {
   const {
     correo_electronico,
@@ -20,12 +22,15 @@ async function registrarUsuario(req, res) {
     direccion = ""
   } = req.body;
 
+  // Validación de campos obligatorios
   if (!correo_electronico || !contrasena || !nombre) {
-    return res.status(400).json({ message: "Faltan campos obligatorios (correo, contraseña, nombre)." });
+    return res.status(400).json({
+      message: "Faltan campos obligatorios (correo, contraseña, nombre)."
+    });
   }
 
   if (!validator.isEmail(correo_electronico)) {
-    return res.status(400).json({ message: "El correo electrónico no es válido." });
+    return res.status(400).json({ message: "Correo electrónico inválido." });
   }
 
   if (!validator.isStrongPassword(contrasena, { minLength: 8, minSymbols: 0 })) {
@@ -35,15 +40,14 @@ async function registrarUsuario(req, res) {
   }
 
   try {
-    const yaExiste = await authModel.existeCorreo(correo_electronico);
+    const yaExiste = await usuarioModel.existeCorreo(correo_electronico);
     if (yaExiste) {
       return res.status(409).json({ message: "El correo ya está registrado." });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash(contrasena, salt);
+    const hash = await bcrypt.hash(contrasena, 10);
 
-    await authModel.crearUsuario({
+    await usuarioModel.crearUsuario({
       correo_electronico,
       contrasena_hash: hash,
       nombre,
@@ -53,15 +57,16 @@ async function registrarUsuario(req, res) {
       direccion
     });
 
-    res.status(201).json({ message: "Usuario registrado exitosamente." });
-
+    return res.status(201).json({ message: "Usuario registrado exitosamente." });
   } catch (error) {
     console.error("❌ Error en registrarUsuario:", error);
-    res.status(500).json({ message: "Error interno al registrar usuario." });
+    return res.status(500).json({ message: "Error interno al registrar usuario." });
   }
 }
 
-// 📌 Login de usuario
+/**
+ * 📌 Login de usuario (verificación de credenciales + tokens)
+ */
 async function verificarUsuario(req, res) {
   const { correo_electronico, contrasena } = req.body;
 
@@ -70,7 +75,7 @@ async function verificarUsuario(req, res) {
   }
 
   try {
-    const usuario = await authModel.buscarUsuarioPorCorreo(correo_electronico);
+    const usuario = await usuarioModel.buscarUsuarioPorCorreo(correo_electronico);
     if (!usuario) {
       return res.status(401).json({ type: "credenciales_invalidas", message: "Credenciales inválidas." });
     }
@@ -88,32 +93,31 @@ async function verificarUsuario(req, res) {
       permisos: JSON.parse(usuario.permisos_json)
     };
 
-    const accessToken = generarAccessToken(payload);
-    const refreshToken = generarRefreshToken({ usuario_id: payload.usuario_id });
-
-    res.status(200).json({
-      accessToken,
-      refreshToken,
+    return res.status(200).json({
+      accessToken: generarAccessToken(payload),
+      refreshToken: generarRefreshToken({ usuario_id: usuario.usuario_id }),
       usuario: payload
     });
-
   } catch (error) {
     console.error("❌ Error en verificarUsuario:", error);
-    res.status(500).json({ message: "Error interno al iniciar sesión." });
+    return res.status(500).json({ message: "Error interno al iniciar sesión." });
   }
 }
 
-// 📌 Obtener sesión desde el token ya decodificado
+/**
+ * 📌 Obtener usuario desde token ya validado (JWT middleware)
+ */
 function obtenerSesion(req, res) {
   const usuario = req.usuario;
   if (!usuario) {
     return res.status(401).json({ message: "Token inválido o sesión no activa." });
   }
-
-  res.status(200).json({ usuario });
+  return res.status(200).json({ usuario });
 }
 
-// ♻️ Generar nuevo Access Token usando Refresh Token
+/**
+ * ♻️ Generar nuevo accessToken con refreshToken
+ */
 async function refrescarToken(req, res) {
   const { refreshToken } = req.body;
 
@@ -123,7 +127,7 @@ async function refrescarToken(req, res) {
 
   try {
     const decoded = verificarRefreshToken(refreshToken);
-    const usuario = await authModel.buscarUsuarioPorId(decoded.usuario_id);
+    const usuario = await usuarioModel.buscarUsuarioPorId(decoded.usuario_id);
 
     if (!usuario) {
       return res.status(401).json({ message: "Usuario no encontrado." });
@@ -137,23 +141,22 @@ async function refrescarToken(req, res) {
       permisos: JSON.parse(usuario.permisos_json)
     };
 
-    const nuevoAccessToken = generarAccessToken(payload);
-
-    res.status(200).json({
-      accessToken: nuevoAccessToken,
+    return res.status(200).json({
+      accessToken: generarAccessToken(payload),
       usuario: payload
     });
-
   } catch (error) {
     console.error("❌ Error en refrescarToken:", error);
-    res.status(401).json({ message: "Refresh token inválido o expirado." });
+    return res.status(401).json({ message: "Refresh token inválido o expirado." });
   }
 }
 
-// 📌 Cierre de sesión (eliminación manual de tokens por el cliente)
+/**
+ * 🔒 Cierre de sesión
+ */
 function cerrarSesion(req, res) {
-  res.status(200).json({
-    message: "Sesión cerrada correctamente. (El cliente debe eliminar los tokens localmente.)"
+  return res.status(200).json({
+    message: "Sesión cerrada correctamente. El cliente debe eliminar los tokens localmente."
   });
 }
 

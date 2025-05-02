@@ -1,6 +1,8 @@
-const pool = require("../db");
+const pool = require("../db/connection");
 
-// 📌 Obtener TODAS las configuraciones
+/**
+ * 📦 Obtener todas las configuraciones del sistema.
+ */
 async function obtenerTodasConfiguraciones(req, res) {
   try {
     const [configuraciones] = await pool.query(`
@@ -16,14 +18,17 @@ async function obtenerTodasConfiguraciones(req, res) {
   }
 }
 
-// 📌 Obtener una configuración específica
+/**
+ * 🔍 Obtener una configuración específica por clave.
+ */
 async function obtenerConfiguracionPorClave(req, res) {
   const { clave } = req.params;
 
   try {
     const [result] = await pool.query(
       `SELECT clave, valor_json, descripcion, tipo_dato, modificable
-       FROM configuracion_tienda WHERE clave = ?`,
+       FROM configuracion_tienda
+       WHERE clave = ?`,
       [clave]
     );
 
@@ -34,17 +39,19 @@ async function obtenerConfiguracionPorClave(req, res) {
     res.status(200).json(result[0]);
   } catch (error) {
     console.error("❌ Error al obtener configuración:", error);
-    res.status(500).json({ message: "Error al obtener configuración." });
+    res.status(500).json({ message: "Error interno al obtener configuración." });
   }
 }
 
-// 📌 Actualizar una configuración específica (validando tipo)
+/**
+ * ✏️ Actualizar una configuración existente, validando el tipo de dato.
+ */
 async function actualizarConfiguracion(req, res) {
   const { clave } = req.params;
   const nuevoValor = req.body.valor_json;
 
   if (typeof nuevoValor === "undefined") {
-    return res.status(400).json({ message: "Se requiere el campo valor_json en el cuerpo." });
+    return res.status(400).json({ message: "Se requiere el campo 'valor_json' en el cuerpo." });
   }
 
   try {
@@ -60,17 +67,19 @@ async function actualizarConfiguracion(req, res) {
     const { tipo_dato, modificable } = fila[0];
 
     if (!modificable) {
-      return res.status(403).json({ message: "Esta configuración no puede ser modificada desde el sistema." });
+      return res.status(403).json({ message: "Esta configuración no puede modificarse." });
     }
 
-    // Validación por tipo
-    const esValido = validarTipoDato(nuevoValor, tipo_dato);
-    if (!esValido) {
-      return res.status(400).json({ message: `El valor proporcionado no coincide con el tipo declarado: ${tipo_dato}.` });
+    if (!validarTipoDato(nuevoValor, tipo_dato)) {
+      return res.status(400).json({
+        message: `El valor proporcionado no es válido para el tipo '${tipo_dato}'.`
+      });
     }
 
     await pool.query(
-      "UPDATE configuracion_tienda SET valor_json = ?, ultima_modificacion = NOW() WHERE clave = ?",
+      `UPDATE configuracion_tienda
+       SET valor_json = ?, ultima_modificacion = NOW()
+       WHERE clave = ?`,
       [JSON.stringify(nuevoValor), clave]
     );
 
@@ -81,7 +90,12 @@ async function actualizarConfiguracion(req, res) {
   }
 }
 
-// ✅ Valida el valor según su tipo declarado
+/**
+ * ✅ Validación del tipo de dato proporcionado según la definición.
+ * @param {*} valor
+ * @param {string} tipo
+ * @returns {boolean}
+ */
 function validarTipoDato(valor, tipo) {
   switch (tipo) {
     case "texto":
@@ -94,7 +108,9 @@ function validarTipoDato(valor, tipo) {
       return typeof valor === "boolean";
 
     case "lista":
-      return Array.isArray(valor) && valor.every(v => typeof v === "string" || typeof v === "number");
+      return Array.isArray(valor) && valor.every(
+        v => typeof v === "string" || typeof v === "number"
+      );
 
     case "json":
       return typeof valor === "object" && valor !== null && !Array.isArray(valor);

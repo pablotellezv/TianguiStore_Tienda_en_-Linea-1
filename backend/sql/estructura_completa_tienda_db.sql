@@ -53,6 +53,104 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- sistema TianguiStore. Utilizado para trazabilidad y control lógico.
 -- =====================================================================
 
+CREATE TABLE IF NOT EXISTS pedidos (
+  pedido_id INT AUTO_INCREMENT PRIMARY KEY,
+
+  cliente_id INT NOT NULL COMMENT 'ID del usuario que realizó el pedido',
+  estado_id INT NOT NULL COMMENT 'Estado actual del pedido',
+  metodo_pago ENUM('efectivo', 'tarjeta', 'transferencia', 'paypal', 'qr', 'oxxo') NOT NULL DEFAULT 'efectivo',
+
+  total DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT 'Total del pedido',
+  descuento_total DECIMAL(10,2) DEFAULT 0.00,
+  envio_gratis BOOLEAN DEFAULT FALSE,
+
+  cupon VARCHAR(50) DEFAULT NULL COMMENT 'Código del cupón aplicado al pedido',
+  direccion_entrega TEXT,
+  notas TEXT,
+  coordenadas_entrega POINT,
+
+  fecha_pedido DATETIME DEFAULT CURRENT_TIMESTAMP,
+  fecha_entregado DATETIME DEFAULT NULL,
+  fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  firma_hash CHAR(64) COMMENT 'Hash de integridad del pedido',
+  fecha_firmado TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (cliente_id) REFERENCES usuarios(usuario_id),
+  FOREIGN KEY (estado_id) REFERENCES estados_pedido(estado_id),
+  FOREIGN KEY (cupon) REFERENCES cupones(codigo) ON DELETE SET NULL ON UPDATE CASCADE,
+
+  INDEX idx_cliente (cliente_id),
+  INDEX idx_estado (estado_id),
+  INDEX idx_fecha (fecha_pedido),
+  INDEX idx_cupon (cupon)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+CREATE TABLE IF NOT EXISTS detalle_pedido (
+  detalle_id INT AUTO_INCREMENT PRIMARY KEY,
+
+  pedido_id INT NOT NULL,
+  producto_id INT NOT NULL,
+
+  cantidad INT NOT NULL DEFAULT 1,
+  precio_unitario DECIMAL(10,2) NOT NULL COMMENT 'Precio base del producto en el momento de la compra',
+  descuento_aplicado DECIMAL(10,2) DEFAULT 0.00 COMMENT 'Monto de descuento aplicado a este producto',
+  iva_porcentaje DECIMAL(5,2) DEFAULT 0.00 COMMENT 'Porcentaje de IVA aplicado (ej. 16)',
+  iva_monto DECIMAL(10,2) GENERATED ALWAYS AS (
+    (cantidad * (precio_unitario - descuento_aplicado)) * (iva_porcentaje / 100)
+  ) STORED,
+
+  subtotal DECIMAL(10,2) GENERATED ALWAYS AS (
+    cantidad * (precio_unitario - descuento_aplicado)
+  ) STORED,
+
+  total DECIMAL(10,2) GENERATED ALWAYS AS (
+    (cantidad * (precio_unitario - descuento_aplicado)) + iva_monto
+  ) STORED,
+
+  FOREIGN KEY (pedido_id) REFERENCES pedidos(pedido_id) ON DELETE CASCADE,
+  FOREIGN KEY (producto_id) REFERENCES productos(producto_id) ON DELETE CASCADE,
+
+  INDEX idx_pedido (pedido_id),
+  INDEX idx_producto (producto_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS cupones (
+  cupon_id INT AUTO_INCREMENT PRIMARY KEY,
+
+  codigo VARCHAR(50) NOT NULL UNIQUE COMMENT 'Código único del cupón (ej. BIENVENIDO10)',
+  descripcion TEXT,
+  tipo ENUM('porcentaje', 'cantidad_fija', 'envio_gratis') NOT NULL DEFAULT 'porcentaje',
+  valor DECIMAL(10,2) DEFAULT 0.00 COMMENT 'Valor del cupón (porcentaje o cantidad)',
+
+  minimo_compra DECIMAL(10,2) DEFAULT 0.00 COMMENT 'Monto mínimo para aplicar el cupón',
+  maximo_descuento DECIMAL(10,2) DEFAULT NULL COMMENT 'Límite máximo de descuento (si aplica)',
+
+  valido_desde DATETIME DEFAULT CURRENT_TIMESTAMP,
+  valido_hasta DATETIME DEFAULT NULL,
+
+  limite_uso_total INT DEFAULT NULL COMMENT 'Máximo de veces que se puede usar en total',
+  limite_uso_por_usuario INT DEFAULT NULL COMMENT 'Máximo de usos por usuario',
+
+  aplica_a ENUM('todos', 'producto', 'categoria', 'marca', 'usuario', 'carrito') DEFAULT 'todos',
+  restriccion_json JSON COMMENT 'Restricciones adicionales (categoría, cliente, etc.)',
+
+  activo BOOLEAN DEFAULT TRUE,
+  borrado_logico BOOLEAN DEFAULT FALSE,
+  fecha_borrado TIMESTAMP NULL DEFAULT NULL,
+
+  creado_por INT DEFAULT NULL,
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (creado_por) REFERENCES usuarios(usuario_id) ON DELETE SET NULL,
+
+  INDEX idx_codigo (codigo),
+  INDEX idx_validez (valido_desde, valido_hasta),
+  INDEX idx_estado (activo, borrado_logico)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
 CREATE TABLE IF NOT EXISTS estados_pedido (
   estado_id INT AUTO_INCREMENT PRIMARY KEY,
   estado_nombre VARCHAR(50) NOT NULL UNIQUE COMMENT 'Nombre del estado (ej. Pendiente, Enviado)',
@@ -134,6 +232,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
   portafolio_url VARCHAR(255),
 
   activo BOOLEAN DEFAULT TRUE,
+  borrado_logico BOOLEAN DEFAULT FALSE,  -- 👈 NUEVO CAMPO PARA ELIMINACIÓN LÓGICA
   verificado BOOLEAN DEFAULT FALSE,
 
   origen_reclutamiento ENUM('externo', 'interno', 'campaña', 'referido', 'fidelidad') DEFAULT 'externo',
@@ -176,21 +275,6 @@ CREATE TABLE IF NOT EXISTS postulaciones (
   FOREIGN KEY (sucursal_id) REFERENCES sucursales(sucursal_id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO roles (rol_nombre, descripcion, permisos_json) VALUES
-('admin', 'Administrador general', JSON_OBJECT('usuarios', true, 'productos', true, 'pedidos', true, 'config', true)),
-('cliente', 'Comprador registrado', JSON_OBJECT('comprar', true, 'ver_historial', true)),
-('vendedor', 'Gestión de productos propios', JSON_OBJECT('productos', true, 'pedidos', true)),
-('soporte', 'Atención al cliente', JSON_OBJECT('ver_tickets', true)),
-('logistica', 'Manejo de entregas', JSON_OBJECT('envios', true)),
-('finanzas', 'Control de pagos y retiros', JSON_OBJECT('pagos', true)),
-('editor', 'Publicación de contenido', JSON_OBJECT('posts', true)),
-('marketing', 'Promoción y campañas', JSON_OBJECT('cupones', true)),
-('auditor', 'Solo lectura', JSON_OBJECT('ver_logs', true)),
-('candidato', 'Postulante a vacantes', JSON_OBJECT('postularse', true)),
-('reclutador', 'Gestión de postulaciones', JSON_OBJECT('ver_postulaciones', true)),
-('entrevistador', 'Evaluación de candidatos', JSON_OBJECT('evaluar', true)),
-('root', 'Acceso absoluto al sistema', JSON_OBJECT('todo', true))
-ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion);
 
 INSERT INTO usuarios (
   rol_id, correo_electronico, contrasena_hash, nombre, apellido_paterno,
@@ -215,18 +299,18 @@ SELECT 'OK - postulaciones' AS modulo, COUNT(*) FROM postulaciones;
 
 CREATE TABLE IF NOT EXISTS logs_acciones (
   log_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  usuario_id INT NOT NULL,
-  
+  usuario_id INT NULL,
+
   modulo_afectado VARCHAR(60) COMMENT 'Módulo lógico (ej. pedidos, usuarios)',
   accion ENUM(
     'INSERT', 'UPDATE', 'DELETE',
     'LOGIN', 'LOGOUT', 'LOGIN_FAILED',
     'VIEW', 'EXPORT', 'TOKEN_REFRESH', 'VERIFY'
   ) NOT NULL,
-  
+
   id_registro_afectado VARCHAR(64),
   descripcion VARCHAR(255),
-  
+
   datos_anteriores JSON,
   datos_nuevos JSON,
 
@@ -243,6 +327,7 @@ CREATE TABLE IF NOT EXISTS logs_acciones (
 ) ENGINE=InnoDB 
   ROW_FORMAT=DYNAMIC
   DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- 🔁 Evento para eliminar logs más antiguos de 1000 días
 CREATE EVENT IF NOT EXISTS limpiar_logs_acciones
@@ -345,7 +430,74 @@ SELECT * FROM categorias LIMIT 5;
 SELECT * FROM subcategorias LIMIT 5;
 
 -- =====================================================================
--- 📦 PRODUCTOS (catálogo principal)
+-- 📦 Blog
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS entradas_blog (
+  entrada_id INT AUTO_INCREMENT PRIMARY KEY,
+  titulo VARCHAR(150) NOT NULL,
+  slug VARCHAR(150) NOT NULL UNIQUE,
+  contenido_largo TEXT NOT NULL,
+  resumen TEXT,
+  imagen_destacada_url VARCHAR(255),
+  autor_id INT,
+  categoria_id INT,
+  fecha_publicacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+  visible BOOLEAN DEFAULT TRUE,
+  borrado_logico BOOLEAN DEFAULT FALSE,
+  etiquetas_json JSON,
+  visitas INT DEFAULT 0,
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (autor_id) REFERENCES usuarios(usuario_id),
+  FOREIGN KEY (categoria_id) REFERENCES blog_categorias(categoria_id)
+);
+CREATE TABLE IF NOT EXISTS blog_categorias (
+  categoria_id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre_categoria VARCHAR(100) NOT NULL UNIQUE,
+  descripcion TEXT,
+  slug_categoria VARCHAR(100) NOT NULL UNIQUE,
+  icono_url VARCHAR(255),
+  estado ENUM('activa', 'inactiva') DEFAULT 'activa',
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS blog_comentarios (
+  comentario_id INT AUTO_INCREMENT PRIMARY KEY,
+  entrada_id INT NOT NULL,
+  usuario_id INT DEFAULT NULL,
+  nombre_autor VARCHAR(100),
+  correo_autor VARCHAR(100),
+  contenido TEXT NOT NULL,
+  moderado BOOLEAN DEFAULT FALSE,
+  aprobado BOOLEAN DEFAULT TRUE,
+  fecha_comentario TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  parent_id INT DEFAULT NULL,
+
+  FOREIGN KEY (entrada_id) REFERENCES entradas_blog(entrada_id) ON DELETE CASCADE,
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id) ON DELETE SET NULL,
+  FOREIGN KEY (parent_id) REFERENCES blog_comentarios(comentario_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS valoraciones (
+  valoracion_id INT AUTO_INCREMENT PRIMARY KEY,
+  producto_id INT NOT NULL,
+  usuario_id INT DEFAULT NULL,
+  estrellas INT NOT NULL CHECK (estrellas BETWEEN 1 AND 5),
+  comentario TEXT,
+  moderado BOOLEAN DEFAULT FALSE,
+  aprobado BOOLEAN DEFAULT TRUE,
+  fecha_valoracion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (producto_id) REFERENCES productos(producto_id) ON DELETE CASCADE,
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id) ON DELETE SET NULL,
+
+  INDEX idx_producto (producto_id),
+  INDEX idx_usuario (usuario_id),
+  INDEX idx_aprobado (aprobado)
+);
+
+-- =====================================================================
+-- 📦 PRODUCTOS (catálogo principal, con soporte para borrado lógico)
 -- =====================================================================
 CREATE TABLE IF NOT EXISTS productos (
   producto_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -398,6 +550,10 @@ CREATE TABLE IF NOT EXISTS productos (
   clave_acceso TEXT,
   duracion_dias INT DEFAULT NULL,
 
+  -- 🆕 Auditoría lógica y de usuario
+  borrado_logico BOOLEAN DEFAULT FALSE,
+  usuario_modificacion_id INT DEFAULT NULL,
+
   fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -407,11 +563,13 @@ CREATE TABLE IF NOT EXISTS productos (
   FOREIGN KEY (subcategoria_id) REFERENCES subcategorias(subcategoria_id),
   FOREIGN KEY (proveedor_id) REFERENCES usuarios(usuario_id),
   FOREIGN KEY (tipo_publicacion_id) REFERENCES tipos_publicacion(tipo_id),
+  FOREIGN KEY (usuario_modificacion_id) REFERENCES usuarios(usuario_id),
 
   INDEX idx_producto_slug (slug_producto),
   INDEX idx_categoria (categoria_id, subcategoria_id),
   INDEX idx_estado (status, publicado)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 CREATE TABLE IF NOT EXISTS galeria_productos (
   media_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -527,17 +685,52 @@ CREATE TABLE IF NOT EXISTS tipos_publicacion (
 -- Tabla creada y verificada
 SHOW TABLES LIKE 'tipos_publicacion';
 DESCRIBE tipos_publicacion;
-SELECT * FROM tipos_publicacion ORDER BY prioridad DESC LIMIT 5;
 
-INSERT INTO tipos_publicacion (nombre_tipo, slug_tipo, descripcion, prioridad, duracion_dias, permite_promociones, permite_destacar, requiere_pago, es_suscripcion, precio_publicacion)
+
+INSERT INTO tipos_publicacion (
+  nombre_tipo,
+  slug_tipo,
+  descripcion,
+  prioridad,
+  duracion_dias,
+  permite_promociones,
+  permite_destacar,
+  requiere_pago,
+  es_suscripcion,
+  precio_publicacion
+)
 VALUES 
-('Básica', 'basica', 'Publicación estándar gratuita con visibilidad limitada', 1, 30, TRUE, FALSE, FALSE, FALSE, 0.00),
-('Destacada', 'destacada', 'Producto aparece en sección destacada', 3, 30, TRUE, TRUE, TRUE, FALSE, 99.00),
-('Premium', 'premium', 'Mayor visibilidad, aparece en resultados prioritarios', 5, 60, TRUE, TRUE, TRUE, FALSE, 199.00),
-('Suscripción Mensual', 'suscripcion_mensual', 'Renovación automática mensual con beneficios premium', 7, 30, TRUE, TRUE, TRUE, TRUE, 149.00)
-ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion), precio_publicacion = VALUES(precio_publicacion);
+-- 🟢 Publicación gratuita básica
+('Básica', 'basica',
+ 'Publicación estándar gratuita, visibilidad normal en listados, sin acceso a sección destacada.',
+ 1, 30, TRUE, FALSE, FALSE, FALSE, 0.00),
 
+-- 🟡 Destacada en sección visible
+('Destacada', 'destacada',
+ 'El producto aparece en una sección visual destacada y se promueve con mayor prioridad.',
+ 3, 30, TRUE, TRUE, TRUE, FALSE, 99.00),
 
+-- 🔵 Premium con prioridad extendida
+('Premium', 'premium',
+ 'Mayor visibilidad, prioridad alta en resultados de búsqueda, se incluye en campañas automáticas.',
+ 5, 60, TRUE, TRUE, TRUE, FALSE, 199.00),
+
+-- 🟣 Suscripción mensual
+('Suscripción Mensual', 'suscripcion_mensual',
+ 'Modelo de membresía con renovación automática, visibilidad máxima y beneficios exclusivos durante el periodo.',
+ 7, 30, TRUE, TRUE, TRUE, TRUE, 149.00)
+
+ON DUPLICATE KEY UPDATE
+  descripcion = VALUES(descripcion),
+  duracion_dias = VALUES(duracion_dias),
+  prioridad = VALUES(prioridad),
+  permite_promociones = VALUES(permite_promociones),
+  permite_destacar = VALUES(permite_destacar),
+  requiere_pago = VALUES(requiere_pago),
+  es_suscripcion = VALUES(es_suscripcion),
+  precio_publicacion = VALUES(precio_publicacion);
+
+SELECT * FROM tipos_publicacion ORDER BY prioridad DESC LIMIT 5;
 -- =====================================================================
 -- 🎖️ Tabla: niveles_fidelidad
 -- ---------------------------------------------------------------------
@@ -743,6 +936,41 @@ CREATE TABLE IF NOT EXISTS ranking_promotores (
   nivel_actual INT DEFAULT 1,
   fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================================
+-- 🎁 Tabla: promociones
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS promociones (
+  promocion_id INT AUTO_INCREMENT PRIMARY KEY,
+
+  nombre VARCHAR(100) NOT NULL,
+  descripcion TEXT,
+  imagen_url VARCHAR(255) COMMENT 'Imagen visual de la promoción',
+
+  tipo_promocion ENUM('porcentaje', 'cantidad_fija', 'envio_gratis', 'regalo', 'especial') NOT NULL DEFAULT 'porcentaje',
+  valor DECIMAL(10,2) DEFAULT 0.00 COMMENT 'Valor del descuento: porcentaje o cantidad fija',
+
+  aplica_a ENUM('producto', 'categoria', 'marca', 'carrito', 'usuario', 'todos') DEFAULT 'carrito',
+  restriccion_json JSON COMMENT 'Reglas condicionales como mínimo de compra, categorías, clientes nuevos, etc.',
+
+  fecha_inicio DATETIME DEFAULT CURRENT_TIMESTAMP,
+  fecha_fin DATETIME DEFAULT NULL,
+
+  activa BOOLEAN DEFAULT TRUE,
+  destacada BOOLEAN DEFAULT FALSE,
+
+  borrado_logico BOOLEAN DEFAULT FALSE,
+  fecha_borrado TIMESTAMP NULL DEFAULT NULL,
+
+  creada_por INT DEFAULT NULL,
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (creada_por) REFERENCES usuarios(usuario_id) ON DELETE SET NULL,
+
+  INDEX idx_codigo (nombre),
+  INDEX idx_fecha (fecha_inicio, fecha_fin),
+  INDEX idx_estado (activa, borrado_logico)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
@@ -1004,7 +1232,9 @@ CREATE TABLE IF NOT EXISTS reportes (
   reporte_id INT AUTO_INCREMENT PRIMARY KEY,
   nombre_reporte VARCHAR(100) NOT NULL,
   descripcion TEXT,
-  tipo ENUM('venta', 'cliente', 'producto', 'actividad', 'auditoria', 'logistica', 'finanzas', 'otros') NOT NULL,
+  tipo ENUM(
+  'admin', 'sistema', 'cliente', 'vendedor', 'proveedor', 'finanzas',
+  'venta', 'producto', 'actividad', 'auditoria', 'logistica', 'otros') NOT NULL,
 
   query_sql TEXT NOT NULL COMMENT 'Consulta SQL en texto plano (validada antes de ejecutar)',
 
@@ -1013,7 +1243,7 @@ CREATE TABLE IF NOT EXISTS reportes (
   hora_programada TIME DEFAULT NULL COMMENT 'Hora sugerida para ejecución automática',
   formato_resultado ENUM('json', 'csv', 'html', 'pdf') DEFAULT 'json',
 
-  visibilidad ENUM('admin', 'soporte', 'vendedor', 'cliente') DEFAULT 'admin',
+  visibilidad ENUM('admin', 'soporte', 'cliente', 'vendedor', 'proveedor', 'finanzas') DEFAULT 'admin',
   creado_por INT,
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -1037,15 +1267,110 @@ CREATE TABLE IF NOT EXISTS ejecucion_reportes (
   FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO reportes (nombre_reporte, descripcion, tipo, query_sql, programado, frecuencia, visibilidad, creado_por)
-VALUES
-('Top 10 productos más vendidos', 'Lista los productos con más ventas totales', 'producto',
- 'SELECT producto_id, COUNT(*) AS total_ventas FROM pedidos_detalle GROUP BY producto_id ORDER BY total_ventas DESC LIMIT 10',
- TRUE, 'mensual', 'admin', 1),
+-- =======================================
+-- INSERT MASIVO DE REPORTES PREDEFINIDOS
+-- =======================================
 
-('Ranking de usuarios por puntos', 'Top usuarios más activos por puntos acumulados', 'actividad',
- 'SELECT usuario_id, puntos_totales FROM ranking_usuarios ORDER BY puntos_totales DESC LIMIT 20',
- TRUE, 'mensual', 'admin', 1);
+INSERT INTO reportes (
+  nombre_reporte, descripcion, tipo, query_sql, programado, frecuencia, visibilidad, creado_por
+)
+VALUES
+-- ========== ADMIN ==========
+('Resumen del sistema', 'Pedidos, clientes y productos totales.', 'admin',
+ 'SELECT (SELECT COUNT(*) FROM pedidos), (SELECT COUNT(*) FROM usuarios WHERE rol_id = 3), (SELECT COUNT(*) FROM productos)', TRUE, 'mensual', 'admin', NULL),
+
+('Pedidos por estado', 'Pedidos agrupados por estado.', 'admin',
+ 'SELECT estado_id, COUNT(*) FROM pedidos GROUP BY estado_id', TRUE, 'mensual', 'admin', NULL),
+
+('Usuarios nuevos por semana', 'Clientes registrados semanalmente.', 'admin',
+ 'SELECT WEEK(fecha_registro), COUNT(*) FROM usuarios WHERE rol_id = 3 GROUP BY WEEK(fecha_registro)', TRUE, 'semanal', 'admin', NULL),
+
+('Ganancia neta mensual', 'Ventas totales menos costos estimados.', 'admin',
+ 'SELECT SUM(dp.subtotal) - SUM(dp.cantidad * p.costo_estimado) FROM detalle_pedido dp JOIN productos p ON dp.producto_id = p.producto_id', TRUE, 'mensual', 'admin', NULL),
+
+('Eventos programados activos', 'Eventos activos y su última ejecución.', 'sistema',
+ 'SELECT EVENT_NAME, STATUS, LAST_EXECUTED FROM information_schema.EVENTS WHERE STATUS = "ENABLED"', TRUE, 'mensual', 'admin', NULL),
+
+('Últimas acciones de administradores', 'Auditoría reciente.', 'sistema',
+ 'SELECT usuario_id, accion, tabla_afectada, fecha FROM logs_acciones WHERE usuario_id IN (SELECT usuario_id FROM usuarios WHERE rol_id IN (SELECT rol_id FROM roles WHERE rol_nombre IN ("admin", "root"))) ORDER BY fecha DESC LIMIT 50', TRUE, 'diario', 'admin', NULL),
+
+-- ========== CLIENTE ==========
+('Mis pedidos recientes', 'Pedidos del mes.', 'cliente',
+ 'SELECT pedido_id, total, fecha_pedido FROM pedidos WHERE cliente_id = @user_id AND MONTH(fecha_pedido) = MONTH(CURDATE())', FALSE, 'mensual', 'cliente', NULL),
+
+('Historial de puntos', 'Mis puntos acumulados.', 'cliente',
+ 'SELECT tipo_evento, puntos, fecha FROM puntos_usuario WHERE usuario_id = @user_id ORDER BY fecha DESC', FALSE, 'mensual', 'cliente', NULL),
+
+('Canjes de puntos', 'Canjes realizados por puntos.', 'cliente',
+ 'SELECT tipo_canje, item_id, puntos_utilizados FROM canjes_puntos WHERE usuario_id = @user_id', FALSE, 'mensual', 'cliente', NULL),
+
+('Cupones disponibles', 'Cupones activos para mí.', 'cliente',
+ 'SELECT c.codigo, c.descripcion FROM cupones c JOIN cupones_usuarios cu ON c.cupon_id = cu.cupon_id WHERE cu.usuario_id = @user_id AND c.activo = TRUE', FALSE, 'mensual', 'cliente', NULL),
+
+('Productos favoritos', 'Productos más comprados.', 'cliente',
+ 'SELECT producto_id, COUNT(*) AS veces FROM detalle_pedido dp JOIN pedidos p ON dp.pedido_id = p.pedido_id WHERE p.cliente_id = @user_id GROUP BY producto_id ORDER BY veces DESC LIMIT 5', FALSE, 'mensual', 'cliente', NULL),
+
+('Devoluciones realizadas', 'Pedidos devueltos.', 'cliente',
+ 'SELECT pedido_id, total FROM pedidos WHERE cliente_id = @user_id AND estado_id = 5', FALSE, 'mensual', 'cliente', NULL),
+
+-- ========== VENDEDOR ==========
+('Mis productos más vendidos', 'Ventas por producto.', 'vendedor',
+ 'SELECT p.nombre, COUNT(dp.producto_id) AS vendidos FROM productos p JOIN detalle_pedido dp ON p.producto_id = dp.producto_id WHERE p.proveedor_id = @user_id GROUP BY p.producto_id ORDER BY vendidos DESC LIMIT 10', TRUE, 'mensual', 'vendedor', NULL),
+
+('Productos con bajo stock', 'Stock < 5.', 'vendedor',
+ 'SELECT nombre, stock FROM productos WHERE proveedor_id = @user_id AND stock < 5', TRUE, 'semanal', 'vendedor', NULL),
+
+('Pedidos activos con mis productos', 'Pedidos pendientes con mis productos.', 'vendedor',
+ 'SELECT DISTINCT p.pedido_id FROM pedidos p JOIN detalle_pedido dp ON p.pedido_id = dp.pedido_id JOIN productos pr ON pr.producto_id = dp.producto_id WHERE pr.proveedor_id = @user_id AND p.estado_id IN (1,2)', TRUE, 'diario', 'vendedor', NULL),
+
+('Ingresos por mis ventas', 'Ventas totales.', 'vendedor',
+ 'SELECT SUM(dp.subtotal) FROM detalle_pedido dp JOIN productos p ON dp.producto_id = p.producto_id WHERE p.proveedor_id = @user_id', TRUE, 'mensual', 'vendedor', NULL),
+
+('Mis productos en promociones', 'Artículos promocionados.', 'vendedor',
+ 'SELECT nombre FROM productos WHERE proveedor_id = @user_id AND tipo_publicacion_id IS NOT NULL', TRUE, 'mensual', 'vendedor', NULL),
+
+('Valoraciones recibidas', 'Opiniones sobre mis productos.', 'vendedor',
+ 'SELECT producto_id, AVG(calificacion) FROM valoraciones WHERE producto_id IN (SELECT producto_id FROM productos WHERE proveedor_id = @user_id) GROUP BY producto_id', TRUE, 'mensual', 'vendedor', NULL),
+
+-- ========== PROVEEDOR ==========
+('Stock total por producto', 'Stock actual por artículo.', 'proveedor',
+ 'SELECT nombre, stock FROM productos WHERE proveedor_id = @user_id ORDER BY stock ASC', TRUE, 'mensual', 'proveedor', NULL),
+
+('Últimos pedidos con mis productos', 'Pedidos recientes con mis artículos.', 'proveedor',
+ 'SELECT DISTINCT p.pedido_id FROM pedidos p JOIN detalle_pedido dp ON dp.pedido_id = p.pedido_id JOIN productos pr ON pr.producto_id = dp.producto_id WHERE pr.proveedor_id = @user_id ORDER BY p.fecha_pedido DESC LIMIT 10', TRUE, 'mensual', 'proveedor', NULL),
+
+('Catálogo activo', 'Productos publicados.', 'proveedor',
+ 'SELECT nombre FROM productos WHERE proveedor_id = @user_id AND publicado = TRUE', TRUE, 'mensual', 'proveedor', NULL),
+
+('Tiempo promedio en stock', 'Días en catálogo.', 'proveedor',
+ 'SELECT nombre, DATEDIFF(NOW(), fecha_creacion) AS dias FROM productos WHERE proveedor_id = @user_id', TRUE, 'mensual', 'proveedor', NULL),
+
+('Margen estimado promedio', 'Ganancia estimada.', 'proveedor',
+ 'SELECT nombre, ROUND(((precio - costo_estimado)/precio)*100,2) FROM productos WHERE proveedor_id = @user_id AND precio > 0', TRUE, 'mensual', 'proveedor', NULL),
+
+('Resumen de entregas', 'Cantidad entregada por producto.', 'proveedor',
+ 'SELECT p.nombre, SUM(dp.cantidad) FROM productos p JOIN detalle_pedido dp ON dp.producto_id = p.producto_id WHERE p.proveedor_id = @user_id GROUP BY p.producto_id', TRUE, 'mensual', 'proveedor', NULL),
+
+-- ========== FINANZAS ==========
+('Ingresos netos mensuales', 'Total de ventas cerradas.', 'finanzas',
+ 'SELECT MONTH(fecha_pedido), SUM(total) FROM pedidos WHERE estado_id IN (2,3,4) GROUP BY MONTH(fecha_pedido)', TRUE, 'mensual', 'finanzas', NULL),
+
+('Pagos por método', 'Método de pago más usado.', 'finanzas',
+ 'SELECT metodo_pago, COUNT(*) FROM pedidos GROUP BY metodo_pago', TRUE, 'mensual', 'finanzas', NULL),
+
+('Comisiones por afiliado', 'Monto pagado por comisiones.', 'finanzas',
+ 'SELECT usuario_id, SUM(comision) FROM comisiones GROUP BY usuario_id', TRUE, 'mensual', 'finanzas', NULL),
+
+('Top productos por ganancia', 'Ranking de utilidad.', 'finanzas',
+ 'SELECT p.nombre, SUM(dp.subtotal - dp.cantidad * p.costo_estimado) AS ganancia FROM detalle_pedido dp JOIN productos p ON dp.producto_id = p.producto_id GROUP BY p.producto_id ORDER BY ganancia DESC LIMIT 10', TRUE, 'mensual', 'finanzas', NULL),
+
+('Descuentos otorgados', 'Monto por promociones.', 'finanzas',
+ 'SELECT SUM(precio * descuento / 100) FROM productos WHERE descuento > 0', TRUE, 'mensual', 'finanzas', NULL),
+
+('Pedidos devueltos', 'Pedidos con estado cancelado.', 'finanzas',
+ 'SELECT pedido_id, total FROM pedidos WHERE estado_id = 5', TRUE, 'mensual', 'finanzas', NULL);
+
+
 
 CREATE OR REPLACE VIEW vista_ultimos_reportes AS
 SELECT
@@ -1167,17 +1492,7 @@ END;
 -- ================================================================
 -- 🔄 MANTENIMIENTO AUTOMÁTICO: EXPIRAR PUNTOS
 -- ================================================================
-DELIMITER ;
 
--- Solo ejecuta si aún no están
-ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS borrado_logico BOOLEAN DEFAULT FALSE;
-ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS fecha_borrado TIMESTAMP NULL;
-
-ALTER TABLE productos ADD COLUMN IF NOT EXISTS borrado_logico BOOLEAN DEFAULT FALSE;
-ALTER TABLE productos ADD COLUMN IF NOT EXISTS fecha_borrado TIMESTAMP NULL;
-
-
-DELIMITER //
 
 -- Evita eliminación física de usuarios
 CREATE TRIGGER trg_proteger_borrado_usuarios
@@ -1223,17 +1538,6 @@ WHERE redimido = TRUE
   AND fecha_expiracion < CURDATE()
 ORDER BY fecha_expiracion DESC;
 
--- Marcar usuario como lógicamente borrado
-UPDATE usuarios SET borrado_logico = TRUE, fecha_borrado = NOW() WHERE usuario_id = 1;
-
--- Intentar borrar físicamente (debe fallar)
-DELETE FROM usuarios WHERE usuario_id = 1;
-
--- Forzar expiración para prueba
-UPDATE puntos_usuario SET fecha_expiracion = CURDATE() - INTERVAL 1 DAY WHERE puntos_id = 123;
-
--- Ejecutar manualmente el evento (para prueba)
-CALL evt_expirar_puntos;
 
 
 CREATE TABLE IF NOT EXISTS auditoria_borrado (
@@ -1277,31 +1581,44 @@ END;
 DELIMITER ;
 
 
+-- Cambia el delimitador para permitir bloques BEGIN...END
 DELIMITER //
 
+-- Trigger para usuarios
 CREATE TRIGGER trg_log_borrado_logico_usuario
 AFTER UPDATE ON usuarios
 FOR EACH ROW
 BEGIN
   IF NEW.borrado_logico = TRUE AND OLD.borrado_logico = FALSE THEN
-    INSERT INTO auditoria_borrado (entidad, entidad_id, usuario_responsable_id, accion, motivo)
-    VALUES ('usuario', OLD.usuario_id, NULL, 'borrado_logico', 'Borrado lógico sin responsable especificado');
+    INSERT INTO auditoria_borrado (
+      entidad, entidad_id, usuario_responsable_id, accion, motivo
+    )
+    VALUES (
+      'usuario', OLD.usuario_id, NULL, 'borrado_logico', 'Borrado lógico sin responsable especificado'
+    );
   END IF;
 END;
 //
 
+-- Trigger para productos
 CREATE TRIGGER trg_log_borrado_logico_producto
 AFTER UPDATE ON productos
 FOR EACH ROW
 BEGIN
   IF NEW.borrado_logico = TRUE AND OLD.borrado_logico = FALSE THEN
-    INSERT INTO auditoria_borrado (entidad, entidad_id, usuario_responsable_id, accion, motivo)
-    VALUES ('producto', OLD.producto_id, NULL, 'borrado_logico', 'Borrado lógico sin responsable especificado');
+    INSERT INTO auditoria_borrado (
+      entidad, entidad_id, usuario_responsable_id, accion, motivo
+    )
+    VALUES (
+      'producto', OLD.producto_id, NULL, 'borrado_logico', 'Borrado lógico sin responsable especificado'
+    );
   END IF;
 END;
 //
 
+-- Restaurar delimitador normal
 DELIMITER ;
+
 
 
 CREATE OR REPLACE VIEW vista_auditoria_borrado AS
@@ -1315,14 +1632,6 @@ ORDER BY ab.fecha DESC;
 -- ================================================================
 -- 🧾 INTEGRIDAD CON FIRMA HASH (verificación de datos)
 -- ================================================================
-
--- Campo de firma_hash en pedidos (suponiendo ya añadido)
--- ALTER TABLE pedidos ADD COLUMN firma_hash CHAR(64);
-
--- Trigger para asignar hash de integridad
-ALTER TABLE pedidos
-  ADD COLUMN IF NOT EXISTS firma_hash CHAR(64) COMMENT 'Hash de integridad de datos del pedido',
-  ADD COLUMN IF NOT EXISTS fecha_firmado TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 
 DELIMITER //
 
@@ -1516,41 +1825,38 @@ WHERE stock = 0 AND publicado = FALSE AND borrado_logico = FALSE
   AND updated_at < (CURRENT_DATE - INTERVAL 60 DAY);
 
 
--- ===============================
--- 🔄 Borrado lógico de promociones vencidas
--- ===============================
-DROP EVENT IF EXISTS evt_desactivar_promociones_vencidas;
+
 
 CREATE EVENT evt_desactivar_promociones_vencidas
 ON SCHEDULE EVERY 1 DAY
 DO
   UPDATE promociones
-  SET activo = FALSE,
+  SET activa = FALSE,
       borrado_logico = TRUE,
       fecha_borrado = CURRENT_TIMESTAMP
   WHERE fecha_fin IS NOT NULL
     AND fecha_fin < CURRENT_DATE
-    AND activo = TRUE
-    AND borrado_logico = FALSE;
+    AND activa = TRUE;
+
 
 -- ===============================
 -- 🧾 Vista recomendada para revisión previa
 -- ===============================
 CREATE OR REPLACE VIEW vista_promociones_vencidas AS
-SELECT promocion_id, nombre, fecha_fin, activo
+SELECT promocion_id, nombre, fecha_fin, activa
 FROM promociones
 WHERE fecha_fin IS NOT NULL
   AND fecha_fin < CURRENT_DATE
-  AND activo = TRUE
-  AND borrado_logico = FALSE;
+  AND activa = TRUE;
+
 
 INSERT INTO auditoria_borrado (entidad, entidad_id, usuario_responsable_id, accion, motivo)
 SELECT 'promocion', promocion_id, NULL, 'borrado_logico', 'Desactivada automáticamente por fecha de vencimiento'
 FROM promociones
 WHERE fecha_fin IS NOT NULL
   AND fecha_fin < CURRENT_DATE
-  AND activo = TRUE
-  AND borrado_logico = FALSE;
+  AND activa = TRUE;
+
 
 
 
@@ -1583,33 +1889,84 @@ DO
 -- ================================================================
 -- 🧮 PROCEDIMIENTOS ALMACENADOS (STORED PROCEDURES)
 -- ================================================================
-
--- 🎯 SP: Registrar nuevo pedido completo de forma transaccional
+-- 🎯 Procedimiento almacenado: Crear pedido completo con validación
 DROP PROCEDURE IF EXISTS sp_crear_pedido_completo;
 DELIMITER //
+
 CREATE PROCEDURE sp_crear_pedido_completo(
-  IN p_cliente_id INT,
+  IN p_usuario_id INT,
   IN p_total DECIMAL(10,2),
   IN p_metodo_pago ENUM('efectivo','tarjeta','transferencia','codi','paypal'),
-  IN p_cupon_codigo VARCHAR(30),
+  IN p_cupon VARCHAR(30),
   IN p_direccion_envio TEXT,
   IN p_notas TEXT
 )
 BEGIN
-  DECLARE exit HANDLER FOR SQLEXCEPTION
+  -- Declaraciones (deben ir al inicio)
+  DECLARE v_usuario_existe INT DEFAULT 0;
+  DECLARE v_pedido_id INT;
+
+  -- Manejador de errores SQL
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
   BEGIN
     ROLLBACK;
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error al registrar el pedido. Transacción revertida.';
   END;
 
+  -- Validación: usuario debe existir y estar activo
+  SELECT COUNT(*) INTO v_usuario_existe
+  FROM usuarios
+  WHERE usuario_id = p_usuario_id AND activo = 1 AND borrado_logico = 0;
+
+  IF v_usuario_existe = 0 THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Usuario no válido, inactivo o eliminado.';
+  END IF;
+
+  -- Validación: total debe ser positivo
+  IF p_total <= 0 THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El total del pedido debe ser mayor a cero.';
+  END IF;
+
+  -- Iniciar transacción
   START TRANSACTION;
 
-  INSERT INTO pedidos (cliente_id, estado_id, total, metodo_pago, cupon, direccion_envio, notas)
-  VALUES (p_cliente_id, 1, p_total, p_metodo_pago, p_cupon_codigo, p_direccion_envio, p_notas);
+  -- Insertar el pedido
+  INSERT INTO pedidos (
+    usuario_id,
+    estado_id,
+    total,
+    metodo_pago,
+    cupon,
+    direccion_envio,
+    notas,
+    borrado_logico,
+    fecha_pedido
+  ) VALUES (
+    p_usuario_id,
+    1, -- Estado inicial "pendiente"
+    p_total,
+    p_metodo_pago,
+    p_cupon,
+    p_direccion_envio,
+    p_notas,
+    0,
+    NOW()
+  );
 
+  -- Obtener el ID del pedido creado
+  SET v_pedido_id = LAST_INSERT_ID();
+
+  -- Confirmar la transacción
   COMMIT;
+
+  -- Devolver el ID del nuevo pedido al frontend
+  SELECT v_pedido_id AS pedido_id;
 END;
 //
 DELIMITER ;
+
+
+
 
 -- 🧾 SP: Canjear puntos por cupon
 DROP PROCEDURE IF EXISTS sp_canjear_puntos_por_cupon;
@@ -1727,21 +2084,10 @@ END;
 DELIMITER ;
 
 -- ================================================================
--- 🧾 INSERT DE LOGROS PREDEFINIDOS
--- ================================================================
-
-INSERT INTO logros (nombre, descripcion, tipo_logro, criterio_json, puntos_recompensa, activo)
-VALUES
-('Primer Pedido', 'Realiza tu primer compra en la tienda.', 'compra', JSON_OBJECT('evento', 'pedido', 'minimo', 1), 50, TRUE),
-('Primera Opinión', 'Comenta en una publicación del blog.', 'contenido', JSON_OBJECT('evento', 'blog_comentario'), 20, TRUE),
-('Primera Valoración', 'Deja una calificación a un producto que hayas comprado.', 'actividad', JSON_OBJECT('evento', 'valoracion'), 30, TRUE);
-
--- ================================================================
 -- 🧩 MEJORAS EN MODERACIÓN DE COMENTARIOS Y TESTIMONIOS
 -- ================================================================
 
--- Añadir campo moderación silenciosa en comentarios
-ALTER TABLE blog_comentarios ADD COLUMN moderado BOOLEAN DEFAULT FALSE;
+
 
 -- Testimonios certificados (de usuarios reales, por producto)
 CREATE TABLE testimonios (
@@ -1753,7 +2099,8 @@ CREATE TABLE testimonios (
   certificado BOOLEAN DEFAULT FALSE,
   fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (producto_id) REFERENCES productos(producto_id) ON DELETE CASCADE,
-  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id) ON DELETE SET NULL
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id) ON DELETE CASCADE
+
 ) ENGINE=InnoDB;
 
 -- Trigger: certifica testimonio si hay pedido previo del producto
@@ -1779,16 +2126,55 @@ DELIMITER ;
 -- 🏆 AMPLIACIÓN DE LOGROS Y RECOMPENSAS POR REFERIDOS
 -- ================================================================
 
--- Logros adicionales
 INSERT INTO logros (nombre, descripcion, tipo_logro, criterio_json, puntos_recompensa, activo)
 VALUES
-('Explorador', 'Visita el sitio 10 veces en una semana.', 'actividad', JSON_OBJECT('evento', 'visitas', 'frecuencia', 'semanal', 'minimo', 10), 15, TRUE),
-('Súper Comprador', 'Realiza 10 compras distintas.', 'compra', JSON_OBJECT('evento', 'pedido', 'minimo', 10), 150, TRUE),
-('Promotor', 'Refiere a 1 nuevo cliente que compre.', 'referido', JSON_OBJECT('evento', 'referido', 'minimo', 1), 75, TRUE),
-('Influencer', 'Refiere a 5 nuevos clientes que compren.', 'referido', JSON_OBJECT('evento', 'referido', 'minimo', 5), 250, TRUE),
-('Comentarista', 'Publica 3 comentarios aprobados en el blog.', 'contenido', JSON_OBJECT('evento', 'comentario', 'minimo', 3), 40, TRUE),
-('Fan del producto', 'Realiza 3 valoraciones de productos distintos.', 'actividad', JSON_OBJECT('evento', 'valoracion', 'minimo', 3), 45, TRUE),
-('Líder de Opinión', 'Tu testimonio certificado recibe al menos 5 likes.', 'contenido', JSON_OBJECT('evento', 'testimonio_like', 'minimo', 5), 100, TRUE);
+-- 🎯 Actividad en sitio
+('Explorador', 'Visita el sitio 10 veces en una semana.', 'actividad',
+ JSON_OBJECT('evento', 'visitas', 'frecuencia', 'semanal', 'minimo', 10), 15, TRUE),
+
+('Fan del producto', 'Realiza 3 valoraciones de productos distintos.', 'actividad',
+ JSON_OBJECT('evento', 'valoracion', 'minimo', 3), 45, TRUE),
+
+('Leal hasta la médula', 'Visita el sitio al menos 50 veces en un mes.', 'actividad',
+ JSON_OBJECT('evento', 'visitas', 'frecuencia', 'mensual', 'minimo', 50), 50, TRUE),
+
+-- 🛒 Compras
+('Súper Comprador', 'Realiza 10 compras distintas.', 'compra',
+ JSON_OBJECT('evento', 'pedido', 'minimo', 10), 150, TRUE),
+
+('Comprador Express', 'Compra en menos de 5 minutos después de entrar.', 'compra',
+ JSON_OBJECT('evento', 'compra_rapida', 'tiempo_max_min', 5), 35, TRUE),
+
+('Comprador Inteligente', 'Aprovecha 3 cupones en un mes.', 'compra',
+ JSON_OBJECT('evento', 'cupones_usados', 'frecuencia', 'mensual', 'minimo', 3), 70, TRUE),
+
+-- 👥 Referidos
+('Promotor', 'Refiere a 1 nuevo cliente que compre.', 'referido',
+ JSON_OBJECT('evento', 'referido', 'minimo', 1), 75, TRUE),
+
+('Influencer', 'Refiere a 5 nuevos clientes que compren.', 'referido',
+ JSON_OBJECT('evento', 'referido', 'minimo', 5), 250, TRUE),
+
+('Embajador de Marca', 'Refiere a 10 personas activas.', 'referido',
+ JSON_OBJECT('evento', 'referido', 'minimo', 10, 'compra', true), 400, TRUE),
+
+-- ✍️ Contenido generado por usuario
+('Comentarista', 'Publica 3 comentarios aprobados en el blog.', 'contenido',
+ JSON_OBJECT('evento', 'comentario', 'minimo', 3), 40, TRUE),
+
+('Líder de Opinión', 'Tu testimonio certificado recibe al menos 5 likes.', 'contenido',
+ JSON_OBJECT('evento', 'testimonio_like', 'minimo', 5), 100, TRUE),
+
+('Reviewer Experto', 'Tus valoraciones tienen un promedio de 4.5 o más.', 'contenido',
+ JSON_OBJECT('evento', 'rating_promedio', 'minimo', 4.5), 60, TRUE),
+
+-- 🕹️ Participación en misiones o gamificación
+('Misionero', 'Completa tu primera misión oficial.', 'evento',
+ JSON_OBJECT('evento', 'mision_completada', 'minimo', 1), 25, TRUE),
+
+('Asiduo de Retos', 'Completa 10 misiones mensuales seguidas.', 'evento',
+ JSON_OBJECT('evento', 'mision_mensual', 'minimo', 10, 'consecutivo', true), 120, TRUE);
+
 
 -- ================================================================
 -- 🎁 DESCUENTOS AUTOMÁTICOS POR REFERIDOS ACTIVOS
@@ -1835,31 +2221,100 @@ DELIMITER ;
 
 -- ================================================================
 -- 🎯 PROMOCIONES PREDEFINIDAS Y EFICIENTES
--- Basadas en estrategias que fomentan ventas y fidelización
+-- Basadas en estrategias reales de conversión, fidelidad y retención
 -- ================================================================
 
-INSERT INTO promociones (titulo, descripcion, imagen_url, fecha_inicio, fecha_fin, activo)
+
+INSERT INTO promociones (nombre, descripcion, imagen_url, fecha_inicio, fecha_fin, activa)
 VALUES
--- 🛍️ Estrategia: Primera compra con descuento
-('Descuento Primera Compra', 'Obtén un 10% de descuento en tu primer pedido. Solo válido para nuevos clientes.', '/promos/primera_compra.png', CURDATE(), CURDATE() + INTERVAL 90 DAY, TRUE),
+-- 🛍️ Primera compra con descuento
+('Descuento Primera Compra',
+ 'Obtén un 10% de descuento en tu primer pedido. Solo válido para nuevos clientes.',
+ '/promos/primera_compra.png',
+ CURDATE(),
+ CURDATE() + INTERVAL 90 DAY,
+ TRUE),
 
--- 🔁 Estrategia: Compra recurrente
-('Cliente Frecuente', 'Si realizas más de 3 pedidos en el mes, obtén un cupón de $50 para tu próxima compra.', '/promos/cliente_frecuente.png', CURDATE(), CURDATE() + INTERVAL 90 DAY, TRUE),
+-- 🔁 Compra recurrente
+('Cliente Frecuente',
+ 'Si realizas más de 3 pedidos en un mes, obtén un cupón de $50 para tu próxima compra.',
+ '/promos/cliente_frecuente.png',
+ CURDATE(),
+ CURDATE() + INTERVAL 90 DAY,
+ TRUE),
 
--- 👭 Estrategia: Trae a un amigo
-('Trae a un Amigo', 'Ambos ganan $25 en cupones cuando tu referido complete su primera compra.', '/promos/referido.png', CURDATE(), CURDATE() + INTERVAL 180 DAY, TRUE),
+-- 👭 Referido activo
+('Trae a un Amigo',
+ 'Ambos ganan $25 en cupones cuando tu referido completa su primera compra.',
+ '/promos/referido.png',
+ CURDATE(),
+ CURDATE() + INTERVAL 90 DAY,
+ TRUE),
 
--- 🎉 Estrategia: Eventos de temporada
-('Promo de Temporada', '20% de descuento en productos seleccionados durante el mes patrio.', '/promos/temporada_mexico.png', '2025-09-01', '2025-09-30', TRUE),
+-- 🇲🇽 Temporada especial
+('Promo de Temporada: Mes Patrio',
+ '20% de descuento en productos seleccionados durante el mes patrio.',
+ '/promos/temporada_mexico.png',
+ '2025-09-01',
+ '2025-09-30',
+ TRUE),
 
--- 💼 Estrategia: Lanza un nuevo producto
-('Lanzamiento Especial', 'Producto nuevo con 15% de descuento por tiempo limitado.', '/promos/lanzamiento.png', CURDATE(), CURDATE() + INTERVAL 14 DAY, TRUE),
+-- 🆕 Lanzamiento de producto
+('Lanzamiento Especial',
+ 'Producto nuevo con 15% de descuento por tiempo limitado.',
+ '/promos/lanzamiento.png',
+ CURDATE(),
+ CURDATE() + INTERVAL 14 DAY,
+ TRUE),
 
--- 🎯 Estrategia: Combos o paquetes
-('Combo Ahorro', 'Llévate 3 productos seleccionados por solo $99.', '/promos/combo.png', CURDATE(), CURDATE() + INTERVAL 30 DAY, TRUE),
+-- 🛍️ Combo estratégico
+('Combo Ahorro',
+ 'Llévate 3 productos seleccionados por solo $99.',
+ '/promos/combo.png',
+ CURDATE(),
+ CURDATE() + INTERVAL 30 DAY,
+ TRUE),
 
--- 🛒 Estrategia: Abandono de carrito (aplicable desde frontend/backend)
-('Vuelve y Compra', 'Recibe un cupón exclusivo si no completaste tu pedido en las últimas 48h.', '/promos/abandono_carrito.png', CURDATE(), CURDATE() + INTERVAL 30 DAY, TRUE);
+-- 🛒 Carrito abandonado
+('Vuelve y Compra',
+ 'Recibe un cupón exclusivo si no completaste tu pedido en las últimas 48h.',
+ '/promos/abandono_carrito.png',
+ CURDATE(),
+ CURDATE() + INTERVAL 30 DAY,
+ TRUE),
+
+-- 📦 Promoción por volumen
+('Descuento por Volumen',
+ 'Compra más de 5 unidades y recibe un 10% adicional de descuento.',
+ '/promos/volumen.png',
+ CURDATE(),
+ CURDATE() + INTERVAL 60 DAY,
+ TRUE),
+
+-- 📆 Cumpleaños
+('Regalo de Cumpleaños',
+ 'Recibe un cupón especial en tu semana de cumpleaños.',
+ '/promos/cumple.png',
+ CURDATE(),
+ CURDATE() + INTERVAL 365 DAY,
+ TRUE),
+
+-- 💳 Compra con tarjeta
+('Pago con Tarjeta',
+ '5% de cashback si pagas con tarjeta seleccionada.',
+ '/promos/pago_tarjeta.png',
+ CURDATE(),
+ CURDATE() + INTERVAL 45 DAY,
+ TRUE),
+
+-- 🧠 Reseña válida
+('Comparte tu Opinión',
+ 'Gana $10 en puntos por valorar productos comprados.',
+ '/promos/reseña.png',
+ CURDATE(),
+ CURDATE() + INTERVAL 90 DAY,
+ TRUE);
+
 
 -- ================================================================
 -- 👁️ VISTAS RECOMENDADAS Y NECESARIAS PARA GESTIÓN Y COMUNIDAD
@@ -1991,11 +2446,12 @@ CREATE OR REPLACE VIEW reporte_estados_tiempo_pedidos AS
 SELECT 
   ep.estado_nombre,
   COUNT(*) AS total_pedidos,
-  ROUND(AVG(TIMESTAMPDIFF(HOUR, p.fecha_pedido, p.fecha_entrega))) AS tiempo_promedio_horas
+  ROUND(AVG(TIMESTAMPDIFF(HOUR, p.fecha_pedido, p.fecha_entregado))) AS tiempo_promedio_horas
 FROM pedidos p
 JOIN estados_pedido ep ON p.estado_id = ep.estado_id
-WHERE p.fecha_entrega IS NOT NULL
+WHERE p.fecha_entregado IS NOT NULL
 GROUP BY ep.estado_nombre;
+
 
 -- 📈 Actividad de usuarios (pedidos, comentarios, valoraciones)
 CREATE OR REPLACE VIEW reporte_actividad_usuarios AS
@@ -2030,25 +2486,27 @@ CREATE OR REPLACE VIEW reporte_cupones_uso AS
 SELECT 
   c.codigo,
   COUNT(p.pedido_id) AS veces_usado,
-  c.fecha_expiracion,
-  c.uso_maximo,
-  c.descuento
+  c.valido_hasta AS fecha_expiracion,
+  c.limite_uso_total AS uso_maximo,
+  c.valor AS descuento
 FROM cupones c
 LEFT JOIN pedidos p ON c.codigo = p.cupon
-GROUP BY c.codigo;
+GROUP BY c.codigo, c.valido_hasta, c.limite_uso_total, c.valor;
+
 
 -- 🕵️ Registro de actividad del sistema
 CREATE OR REPLACE VIEW reporte_log_acciones AS
 SELECT 
   l.log_id,
   u.nombre,
-  l.tabla_afectada,
+  l.modulo_afectado AS tabla_afectada,
   l.accion,
   l.descripcion,
   l.fecha
 FROM logs_acciones l
 LEFT JOIN usuarios u ON l.usuario_id = u.usuario_id
 ORDER BY l.fecha DESC;
+
 
 -- ================================================================
 -- 🚚 RASTREABILIDAD DE PEDIDOS Y COMUNICACIÓN
@@ -2356,19 +2814,23 @@ VALUES
 -- 🧾 METADATOS DE DISEÑO DE BASE DE DATOS
 -- ================================================================
 
-CREATE TABLE metadatos_bd (
+CREATE TABLE IF NOT EXISTS metadatos_bd (
   id INT PRIMARY KEY,
   nombre_sistema VARCHAR(100) NOT NULL,
   version_bd VARCHAR(20) NOT NULL,
-  fecha_creacion DATETIME NOT NULL,
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   creado_por VARCHAR(100),
   descripcion TEXT,
-  estructura_sha256 CHAR(64),
+  estructura_sha256 CHAR(64) COMMENT 'Hash SHA-256 de la estructura para verificación de integridad',
   observaciones TEXT
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- Insert inicial de metadatos del sistema TianguiStore
-INSERT INTO metadatos_bd (id, nombre_sistema, version_bd, fecha_creacion, creado_por, descripcion, estructura_md5, observaciones)
+INSERT INTO metadatos_bd (
+  id, nombre_sistema, version_bd, fecha_creacion, creado_por,
+  descripcion, estructura_sha256, observaciones
+)
 VALUES (
   1,
   'TianguiStore',
@@ -2380,78 +2842,9 @@ VALUES (
   'Versión base lista para despliegue, desarrollo incremental y auditoría.'
 );
 
+
 -- SHA-256 utilizado para mayor seguridad en la verificación interna del archivo.
 
--- ================================================================
--- ✅ VALIDACIONES Y VERIFICACIONES GLOBALES
--- Seguridad, integridad, economía, persistencia, eficiencia, confiabilidad
--- ================================================================
-
--- 🚫 Verificar datos duplicados críticos
-ALTER TABLE usuarios
-ADD CONSTRAINT chk_email_unico UNIQUE (correo_electronico);
-
-ALTER TABLE productos
-ADD CONSTRAINT chk_nombre_unico UNIQUE (nombre);
-
--- 🔎 Restricciones lógicas en valores numéricos
-ALTER TABLE productos
-ADD CONSTRAINT chk_precio_positivo CHECK (precio >= 0);
-
-ALTER TABLE productos
-ADD CONSTRAINT chk_descuento_valido CHECK (descuento BETWEEN 0 AND 100);
-
-ALTER TABLE productos
-ADD CONSTRAINT chk_stock_no_negativo CHECK (stock >= 0);
-
-ALTER TABLE detalle_pedido
-ADD CONSTRAINT chk_cantidad_valida CHECK (cantidad > 0);
-
--- 🛑 Validación de estado de pedidos
-ALTER TABLE pedidos
-ADD CONSTRAINT chk_total_no_negativo CHECK (total >= 0);
-
--- ✅ Validez de puntos
-ALTER TABLE puntos_usuario
-ADD CONSTRAINT chk_puntos_positivos CHECK (puntos > 0);
-
--- 🔒 No permitir facturas con total negativo
-ALTER TABLE facturas
-ADD CONSTRAINT chk_factura_total_valida CHECK (total >= 0);
-
--- ✅ Consistencia en contabilidad
-ALTER TABLE partidas_poliza
-ADD CONSTRAINT chk_partidas_no_nulas CHECK ((debe > 0 AND haber = 0) OR (haber > 0 AND debe = 0));
-
--- 🧩 Persistencia mínima: evitar campos vacíos críticos
-ALTER TABLE categorias
-MODIFY nombre_categoria VARCHAR(100) NOT NULL;
-
-ALTER TABLE marcas
-MODIFY nombre_marca VARCHAR(100) NOT NULL;
-
--- 🔁 Garantizar correspondencia entre tipos de pago y cuentas
--- (Validación lógica en backend adicional recomendada)
-
--- 💼 Protección ante inconsistencias de referidos
-ALTER TABLE referidos
-ADD CONSTRAINT chk_no_autoreferencia CHECK (referido_por <> usuario_referido);
-
--- 🔄 Integridad en promociones activas
-ALTER TABLE promociones
-ADD CONSTRAINT chk_fecha_promo_valida CHECK (fecha_fin > fecha_inicio);
-
--- 🚫 Evitar datos futuros inválidos
-ALTER TABLE pedidos
-ADD CONSTRAINT chk_fecha_pedido_realista CHECK (fecha_pedido <= NOW());
-
--- 🛑 Evitar rebases en uso de cupones
--- (Requiere trigger si uso_maximo es superado — lógica en backend o SP)
-
--- 🔐 Protección extra en triggers:
--- Verificar si usuario está activo antes de permitir acciones críticas
-
--- Este bloque refuerza la seguridad, persistencia y eficiencia del modelo.
 
 -- ================================================================
 -- ⚙️ ESTADO DEL SISTEMA, USO, BACKUPS Y MANTENIMIENTO
@@ -2615,32 +3008,88 @@ ORDER BY margen_utilidad ASC;
 -- 📢 CAMPAÑAS INTELIGENTES Y ESTRATEGIAS DE NEGOCIO AUTOMATIZADAS
 -- ================================================================
 
--- Reglas de negocio automatizadas (condiciones para campañas)
-CREATE TABLE reglas_negocio (
+CREATE TABLE IF NOT EXISTS reglas_negocio (
   regla_id INT AUTO_INCREMENT PRIMARY KEY,
+
   nombre VARCHAR(100) NOT NULL,
   descripcion TEXT,
-  tipo_evento ENUM('stock_bajo', 'venta_lenta', 'alta_rotacion', 'bajo_margen', 'abandono_carrito', 'clientes_inactivos'),
-  umbral_valor DECIMAL(10,2),
-  criterio JSON,
-  accion_automatizada ENUM('activar_promocion', 'ajustar_precio', 'notificar_admin', 'generar_cupon', 'sugerir_combo'),
-  activa BOOLEAN DEFAULT TRUE,
-  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
 
--- Campañas generadas automáticamente
-CREATE TABLE campanas (
+  tipo_evento ENUM(
+    'stock_bajo',
+    'venta_lenta',
+    'alta_rotacion',
+    'bajo_margen',
+    'abandono_carrito',
+    'clientes_inactivos',
+    'producto_sin_visitas',
+    'producto_favorito_no_comprado',
+    'carrito_valioso',
+    'primer_pedido',
+    'valoracion_positiva',
+    'compra_recurrente',
+    'baja_conversion',
+    'cupon_sin_usar'
+  ) NOT NULL COMMENT 'Evento o condición que activa esta regla',
+
+  umbral_valor DECIMAL(10,2) DEFAULT NULL COMMENT 'Valor numérico base (stock, días, margen)',
+
+  criterio JSON COMMENT 'Condiciones adicionales como {"stock": "<5"} o {"dias_inactivos": 60}',
+
+  accion_automatizada ENUM(
+    'activar_promocion',
+    'ajustar_precio',
+    'notificar_admin',
+    'generar_cupon',
+    'sugerir_combo',
+    'marcar_prioridad',
+    'destacar_producto',
+    'enviar_recordatorio',
+    'reordenar_catalogo',
+    'asignar_logro_y_puntos',
+    'sumar_puntos',
+    'sugerir_suscripcion',
+    'despublicar_producto'
+  ) NOT NULL COMMENT 'Acción automática al cumplirse la condición',
+
+  activa BOOLEAN DEFAULT TRUE,
+  borrado_logico BOOLEAN DEFAULT FALSE,
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+
+
+CREATE TABLE IF NOT EXISTS campanas (
   campana_id INT AUTO_INCREMENT PRIMARY KEY,
-  nombre VARCHAR(100),
-  tipo ENUM('descuento', 'combo', 'envio_gratis', 'cupon_unico', 'destacado'),
+
+  nombre VARCHAR(100) NOT NULL,
+
+  tipo ENUM(
+    'descuento',
+    'combo',
+    'envio_gratis',
+    'cupon',
+    'cupon_unico',
+    'destacado',
+    'urgencia',
+    'recordatorio'
+  ) NOT NULL COMMENT 'Tipo de campaña aplicada',
+
   descripcion TEXT,
   fecha_inicio DATE,
   fecha_fin DATE,
   activa BOOLEAN DEFAULT TRUE,
+
   generada_por ENUM('admin', 'sistema') DEFAULT 'sistema',
-  regla_id INT,
+  regla_id INT DEFAULT NULL,
+
   FOREIGN KEY (regla_id) REFERENCES reglas_negocio(regla_id)
-) ENGINE=InnoDB;
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
 
 -- Relación entre campañas y productos afectados
 CREATE TABLE productos_campana (
@@ -2696,22 +3145,51 @@ GROUP BY h.campana_id;
 -- Reglas de negocio inteligentes
 INSERT INTO reglas_negocio (nombre, descripcion, tipo_evento, umbral_valor, criterio, accion_automatizada)
 VALUES 
+-- Reglas existentes
 ('Stock Críticamente Bajo', 'Activa una promoción al detectar menos de 5 unidades en stock', 'stock_bajo', 5, JSON_OBJECT('comparador', '<', 'stock', 5), 'activar_promocion'),
 ('Producto No Vendido en 30 Días', 'Descuento automático si no hay ventas recientes', 'venta_lenta', 30, JSON_OBJECT('dias_sin_ventas', 30), 'activar_promocion'),
-('Alta Rotación', 'Sugerir reabastecimiento para productos de alta venta semanal', 'alta_rotacion', 20, JSON_OBJECT('ventas_semanales', '>20'), 'reordenar_catalogo'),
+('Alta Rotación', 'Sugerir reabastecimiento para productos de alta venta semanal', 'alta_rotacion', 20, JSON_OBJECT('ventas_semanales', 20), 'reordenar_catalogo'),
 ('Márgenes Menores al 15%', 'Detecta y sugiere precio o combos si el margen es bajo', 'bajo_margen', 15, JSON_OBJECT('margen_minimo', 15), 'sugerir_combo'),
 ('Clientes Inactivos por 60 Días', 'Generar cupón si no han comprado en más de 2 meses', 'clientes_inactivos', 60, JSON_OBJECT('dias_inactivos', 60), 'generar_cupon'),
-('Abandono de Carrito', 'Enviar recordatorio/cupón a clientes que dejaron productos sin comprar', 'abandono_carrito', 1, JSON_OBJECT('carrito_sin_finalizar', true), 'generar_cupon');
+('Abandono de Carrito', 'Enviar recordatorio/cupón a clientes que dejaron productos sin comprar', 'abandono_carrito', 1, JSON_OBJECT('carrito_sin_finalizar', true), 'generar_cupon'),
+
+-- Nuevas reglas adicionales
+('Carrito Alto Valor', 'Enviar cupón si el carrito supera cierto monto y no se finaliza', 'carrito_valioso', 2000, JSON_OBJECT('valor_carrito', 2000), 'generar_cupon'),
+('Primer Pedido Realizado', 'Otorga puntos y logro al completar el primer pedido', 'primer_pedido', 1, JSON_OBJECT('pedido_completado', true), 'asignar_logro_y_puntos'),
+('Valoración 5 Estrellas', 'Otorga puntos adicionales por buena valoración', 'valoracion_positiva', 5, JSON_OBJECT('calificacion', 5), 'sumar_puntos'),
+('Compra Frecuente', 'Recomendar suscripción mensual a clientes que compran recurrentemente', 'compra_recurrente', 3, JSON_OBJECT('compras_en_mes', 3), 'sugerir_suscripcion'),
+('Baja Conversión', 'Desactiva automáticamente productos con muchas vistas pero sin ventas', 'baja_conversion', 50, JSON_OBJECT('vistas', 50, 'ventas', 0), 'despublicar_producto'),
+('Cupones No Usados', 'Enviar recordatorio de cupones no redimidos antes de expirar', 'cupon_sin_usar', 3, JSON_OBJECT('dias_restantes', 3), 'enviar_recordatorio');
+
+
 
 -- Campañas automáticas basadas en reglas
 INSERT INTO campanas (nombre, tipo, descripcion, fecha_inicio, fecha_fin, generada_por, regla_id)
 VALUES
+-- Campañas anteriores (reglas 1 al 6)
 ('Descuento Stock Bajo', 'descuento', '10% de descuento por bajo inventario', CURDATE(), CURDATE() + INTERVAL 10 DAY, 'sistema', 1),
 ('Promoción Producto Congelado', 'descuento', 'Activa visibilidad con 15% de descuento por falta de ventas', CURDATE(), CURDATE() + INTERVAL 15 DAY, 'sistema', 2),
 ('Reabastecer Éxitos', 'combo', 'Crea combos de productos con alta demanda para fomentar más ventas', CURDATE(), CURDATE() + INTERVAL 20 DAY, 'sistema', 3),
 ('Oferta Margen Bajo', 'combo', 'Combina productos con bajo margen para mejorar ticket promedio', CURDATE(), CURDATE() + INTERVAL 14 DAY, 'sistema', 4),
 ('Gana de Regreso', 'cupon_unico', 'Cupón exclusivo para reactivar clientes inactivos', CURDATE(), CURDATE() + INTERVAL 30 DAY, 'sistema', 5),
-('Vuelve y Compra Ya', 'cupon_unico', '15% descuento si abandonaste tu carrito', CURDATE(), CURDATE() + INTERVAL 7 DAY, 'sistema', 6);
+('Vuelve y Compra Ya', 'cupon_unico', '15% descuento si abandonaste tu carrito', CURDATE(), CURDATE() + INTERVAL 7 DAY, 'sistema', 6),
+
+-- Nuevas campañas (reglas 7 al 12)
+('¡No pierdas tu cupón!', 'recordatorio', 'Última llamada antes que tu cupón expire', CURDATE(), CURDATE() + INTERVAL 2 DAY, 'sistema', 12),
+('Bienvenido VIP', 'descuento', 'Otorga beneficio al completar la primera compra exitosa', CURDATE(), CURDATE() + INTERVAL 60 DAY, 'sistema', 7),
+('Recomiéndanos', 'descuento', 'Gana más al valorar con 5 estrellas', CURDATE(), CURDATE() + INTERVAL 20 DAY, 'sistema', 8),
+('Cliente Leal', 'descuento', 'Invitación automática por alta recurrencia de compra', CURDATE(), CURDATE() + INTERVAL 30 DAY, 'sistema', 9),
+('Auto-Off: Poca Conversión', 'destacado', 'Despublica automáticamente producto con mal desempeño', CURDATE(), CURDATE() + INTERVAL 10 DAY, 'sistema', 10),
+
+-- Campañas adicionales (adaptadas)
+('Pack Especial por Alta Demanda', 'combo', 'Combina productos más vendidos de la semana', CURDATE(), CURDATE() + INTERVAL 10 DAY, 'sistema', 3),
+('Recompensa por Reseñas', 'descuento', 'Otorga beneficio por cada reseña validada', CURDATE(), CURDATE() + INTERVAL 15 DAY, 'sistema', 8),
+('Combo Rentable', 'combo', 'Productos con bajo margen combinados estratégicamente', CURDATE(), CURDATE() + INTERVAL 12 DAY, 'sistema', 4),
+('Cupón Carrito Grande', 'cupon_unico', 'Recibe cupón si el carrito supera los $2000 MXN', CURDATE(), CURDATE() + INTERVAL 5 DAY, 'sistema', 7),
+('Recordatorio Recompra', 'recordatorio', 'Te queda poco de tu último producto, ¡recompra ahora!', CURDATE(), CURDATE() + INTERVAL 10 DAY, 'sistema', 9),
+('Oferta Exclusiva Recomendados', 'descuento', 'Campaña con productos sugeridos según compras previas', CURDATE(), CURDATE() + INTERVAL 20 DAY, 'sistema', 3),
+('Preventa Especial Suscriptores', 'descuento', 'Desbloquea productos nuevos solo para clientes VIP', CURDATE(), CURDATE() + INTERVAL 30 DAY, 'sistema', 9);
+
 
 -- ================================================================
 -- 📅 ÚLTIMOS EVENTOS Y ACTIVIDAD DEL USUARIO
@@ -2814,17 +3292,60 @@ DELIMITER ;
 -- 👥 NUEVOS TIPOS DE USUARIOS Y EVENTOS POR ROL
 -- ================================================================
 
--- Agregar nuevos roles sugeridos con permisos iniciales (si no existen ya)
+-- ================================================================
+-- 👤 Roles necesarios para el sistema TianguiStore
+-- Se evita duplicado y se actualiza la descripción si el rol ya existe.
+-- ================================================================
 INSERT INTO roles (rol_nombre, descripcion, permisos_json)
 VALUES 
+('admin', 'Administrador general con acceso total.',
+ JSON_OBJECT('usuarios', true, 'productos', true, 'pedidos', true, 'config', true, 'cupones', true, 'roles', true)),
+
+('cliente', 'Comprador registrado con acceso al catálogo, historial y fidelidad.',
+ JSON_OBJECT('comprar', true, 'ver_historial', true, 'puntos', true, 'cupones', true)),
+
+('vendedor', 'Vendedor con catálogo propio y acceso a sus pedidos.',
+ JSON_OBJECT('productos', JSON_OBJECT('crear', true, 'leer', true, 'actualizar', true), 'pedidos', true)),
+
+('soporte', 'Soporte técnico y atención a clientes.',
+ JSON_OBJECT('ver_tickets', true, 'gestionar_usuarios', false)),
+
+('moderador', 'Revisor de productos, comentarios y contenido reportado.',
+ JSON_OBJECT('moderar_contenido', true, 'bloquear_comentarios', true)),
+
+('logistica', 'Encargado de envíos, devoluciones y seguimiento de pedidos.',
+ JSON_OBJECT('envios', true, 'seguimiento', true)),
+
+('marketing', 'Responsable de campañas, promociones y redes sociales.',
+ JSON_OBJECT('cupones', true, 'analiticas', true, 'blog', true)),
+
+('finanzas', 'Control de pagos, retiros y reportes económicos.',
+ JSON_OBJECT('pagos', true, 'reportes', true)),
+
+('editor', 'Gestor de contenido editorial y multimedia.',
+ JSON_OBJECT('posts', true, 'multimedia', true)),
+
+('auditor', 'Acceso de solo lectura para auditorías internas.',
+ JSON_OBJECT('ver_logs', true, 'ver_reportes', true)),
+
+('root', 'Acceso total sin restricciones.',
+ JSON_OBJECT('todo', true)),
+
+-- Nuevos roles sugeridos (2025)
 ('influencer', 'Promueve productos y recibe beneficios por referidos.',
  JSON_OBJECT('productos', JSON_OBJECT('leer', true), 'referidos', JSON_OBJECT('crear', true, 'leer', true))),
+
 ('afiliado', 'Usuario que comparte productos y gana comisiones.',
  JSON_OBJECT('productos', JSON_OBJECT('leer', true), 'reportes', JSON_OBJECT('exportar', true))),
+
 ('proveedor', 'Usuario con permiso para subir productos de una marca.',
  JSON_OBJECT('productos', JSON_OBJECT('crear', true, 'leer', true, 'modificar', true))),
+
 ('blogger', 'Usuario con capacidad para escribir entradas de blog y responder comentarios.',
- JSON_OBJECT('blog', JSON_OBJECT('crear', true, 'responder', true)));
+ JSON_OBJECT('blog', JSON_OBJECT('crear', true, 'responder', true)))
+
+ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion);
+
 
 -- Ampliar eventos de actividad a nivel de trigger y lógica backend (manual o SP)
 
@@ -2912,17 +3433,18 @@ CREATE TABLE producto_punto_entrega (
 ) ENGINE=InnoDB;
 
 -- Opcional: Relación con repartidores callejeros
-CREATE TABLE asignaciones_movil (
+CREATE TABLE IF NOT EXISTS asignaciones_movil (
   asignacion_id INT AUTO_INCREMENT PRIMARY KEY,
   repartidor_id INT NOT NULL,
   producto_id INT NOT NULL,
-  fecha_asignacion DATE DEFAULT CURRENT_DATE,
+  fecha_asignacion DATETIME DEFAULT CURRENT_TIMESTAMP,
   punto_id INT,
   status ENUM('activo', 'completado', 'cancelado') DEFAULT 'activo',
   FOREIGN KEY (repartidor_id) REFERENCES usuarios(usuario_id),
   FOREIGN KEY (producto_id) REFERENCES productos(producto_id),
   FOREIGN KEY (punto_id) REFERENCES puntos_entrega(punto_id)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- Ticket relacionado a entregas ambulantes o cocinas ocultas
 ALTER TABLE tickets_soporte
@@ -2974,17 +3496,18 @@ CREATE TABLE suscripciones (
 ) ENGINE=InnoDB;
 
 -- Registro de usuarios suscritos
-CREATE TABLE usuarios_suscripciones (
+CREATE TABLE IF NOT EXISTS usuarios_suscripciones (
   usuario_id INT NOT NULL,
   suscripcion_id INT NOT NULL,
-  fecha_inicio DATE DEFAULT CURRENT_DATE,
+  fecha_inicio DATETIME DEFAULT CURRENT_TIMESTAMP,
   fecha_fin DATE,
   activa BOOLEAN DEFAULT TRUE,
   usos_restantes INT,
   PRIMARY KEY (usuario_id, suscripcion_id),
   FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id),
   FOREIGN KEY (suscripcion_id) REFERENCES suscripciones(suscripcion_id)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- Historial de asistencia a eventos
 CREATE TABLE asistencia_eventos (
@@ -3240,35 +3763,52 @@ END;
 //
 
 DELIMITER ;
-
 -- ================================================================
 -- 📜 POLÍTICAS DE NEGOCIO APLICABLES, AUTOMATIZADAS Y SEGURAS
 -- ================================================================
 
--- Tabla maestra de políticas de operación
-CREATE TABLE politicas_negocio (
+-- 🧩 Tabla maestra de políticas operativas del sistema
+CREATE TABLE IF NOT EXISTS politicas_negocio (
   politica_id INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(150) NOT NULL,
   descripcion TEXT,
-  categoria ENUM('seguridad', 'finanzas', 'usuario', 'reparto', 'fidelizacion', 'publicidad', 'retencion'),
-  aplica_a ENUM('usuarios', 'productos', 'pedidos', 'pagos', 'cupones', 'eventos', 'servicios', 'suscripciones'),
+  categoria ENUM(
+    'seguridad',
+    'finanzas',
+    'usuario',
+    'reparto',
+    'fidelizacion',
+    'publicidad',
+    'retencion',
+    'productos'  -- ✅ agregado por uso en INSERT
+  ) NOT NULL,
+  aplica_a ENUM(
+    'usuarios',
+    'productos',
+    'pedidos',
+    'pagos',
+    'cupones',
+    'eventos',
+    'servicios',
+    'suscripciones'
+  ) NOT NULL,
   severidad ENUM('alta', 'media', 'baja') DEFAULT 'media',
   activa BOOLEAN DEFAULT TRUE,
   automatizable BOOLEAN DEFAULT TRUE,
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Ejemplos de políticas automatizadas sugeridas
+-- ✅ Inserción de políticas de ejemplo
 INSERT INTO politicas_negocio (nombre, descripcion, categoria, aplica_a, severidad, automatizable) VALUES
 ('Expiración de puntos a 90 días', 'Los puntos de fidelización expiran automáticamente tras 90 días sin uso.', 'fidelizacion', 'usuarios', 'media', TRUE),
 ('Descuento automático por recomendación', 'Los usuarios recomendados obtienen un 5% de descuento en su primera compra.', 'retencion', 'cupones', 'baja', TRUE),
 ('Bloqueo por 5 intentos de login fallidos', 'Se bloquea temporalmente el acceso tras múltiples fallos de autenticación.', 'seguridad', 'usuarios', 'alta', TRUE),
-('Eliminación de productos sin stock por 30 días', 'Se desactiva el producto automáticamente si no tiene stock ni venta en 30 días.', 'productos', 'media', 'productos', TRUE),
+('Eliminación de productos sin stock por 30 días', 'Se desactiva el producto automáticamente si no tiene stock ni venta en 30 días.', 'productos', 'productos', 'media', TRUE),
 ('Notificación automática de carrito abandonado', 'Se envía recordatorio a clientes tras 24h de abandono.', 'retencion', 'pedidos', 'media', TRUE),
 ('Validación de precios de proveedores', 'No se permite publicar productos con precios por debajo de un umbral.', 'finanzas', 'productos', 'alta', TRUE);
 
--- Registro de aplicación de políticas (para trazabilidad)
-CREATE TABLE aplicacion_politicas (
+-- 🔍 Registro de aplicación de políticas (auditoría)
+CREATE TABLE IF NOT EXISTS aplicacion_politicas (
   aplicacion_id INT AUTO_INCREMENT PRIMARY KEY,
   politica_id INT NOT NULL,
   usuario_id INT,
@@ -3276,13 +3816,16 @@ CREATE TABLE aplicacion_politicas (
   id_entidad INT,
   resultado TEXT,
   fecha_aplicacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (politica_id) REFERENCES politicas_negocio(politica_id),
-  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id)
-) ENGINE=InnoDB;
+  FOREIGN KEY (politica_id) REFERENCES politicas_negocio(politica_id) ON DELETE CASCADE,
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Vista para políticas activas y automatizables
+-- 🧠 Vista para consultar solo las políticas activas y automatizables
 CREATE OR REPLACE VIEW vista_politicas_automatizadas AS
-SELECT * FROM politicas_negocio WHERE activa = TRUE AND automatizable = TRUE;
+SELECT *
+FROM politicas_negocio
+WHERE activa = TRUE AND automatizable = TRUE;
+
 
 -- ================================================================
 -- 📦 GESTIÓN AVANZADA DE INVENTARIOS
@@ -3290,7 +3833,7 @@ SELECT * FROM politicas_negocio WHERE activa = TRUE AND automatizable = TRUE;
 -- ================================================================
 
 -- Almacenes físicos o virtuales
-CREATE TABLE almacenes (
+CREATE TABLE IF NOT EXISTS almacenes (
   almacen_id INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(100) NOT NULL,
   ubicacion TEXT,
@@ -3345,14 +3888,15 @@ CREATE OR REPLACE VIEW vista_stock_actual AS
 SELECT 
   p.producto_id,
   a.almacen_id,
-  p.nombre,
-  a.nombre AS nombre_almacen,
+  p.nombre AS nombre_producto,
+  a.nombre_almacen,
   SUM(l.cantidad) AS stock_total,
   MIN(l.fecha_vencimiento) AS proxima_vencimiento
 FROM productos p
 JOIN lotes l ON l.producto_id = p.producto_id
 JOIN almacenes a ON l.almacen_id = a.almacen_id
 GROUP BY p.producto_id, a.almacen_id;
+
 
 -- ================================================================
 -- ⏰ EVENTOS PROGRAMADOS PARA INVENTARIO
@@ -3411,13 +3955,53 @@ CREATE TABLE IF NOT EXISTS meta_instalacion (
   id INT AUTO_INCREMENT PRIMARY KEY,
   sistema VARCHAR(100) DEFAULT 'TianguiStore',
   version VARCHAR(20) DEFAULT 'v1.0.0',
-  instalado_por VARCHAR(100) DEFAULT CURRENT_USER(),
+  instalado_por VARCHAR(100),
   fecha_instalacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   estado ENUM('completo', 'parcial', 'fallido') DEFAULT 'completo',
   observaciones TEXT
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO meta_instalacion (estado, observaciones) VALUES ('completo', 'Estructura creada correctamente');
 
--- Verificación final
-SHOW TABLES;
+INSERT INTO meta_instalacion (instalado_por)
+VALUES (CURRENT_USER());
+
+
+-- 📊 Vista para verificar la instalación completa de TianguiStore
+CREATE OR REPLACE VIEW vista_estado_instalacion AS
+SELECT 
+  esperado.tabla AS nombre_tabla,
+  CASE 
+    WHEN real_tables.table_name IS NOT NULL THEN '✅ existe'
+    ELSE '❌ faltante'
+  END AS estado,
+  NOW() AS fecha_verificacion
+FROM (
+  SELECT 'usuarios' AS tabla UNION ALL
+  SELECT 'productos' UNION ALL
+  SELECT 'categorias' UNION ALL
+  SELECT 'pedidos' UNION ALL
+  SELECT 'detalle_pedido' UNION ALL
+  SELECT 'roles' UNION ALL
+  SELECT 'marcas' UNION ALL
+  SELECT 'almacenes' UNION ALL
+  SELECT 'inventario_productos' UNION ALL
+  SELECT 'puntos_usuario' UNION ALL
+  SELECT 'canjes_puntos' UNION ALL
+  SELECT 'logros' UNION ALL
+  SELECT 'misiones' UNION ALL
+  SELECT 'configuracion_tienda' UNION ALL
+  SELECT 'reportes' UNION ALL
+  SELECT 'cupones' UNION ALL
+  SELECT 'campanas' UNION ALL
+  SELECT 'politicas_negocio' UNION ALL
+  SELECT 'meta_instalacion'
+) AS esperado
+LEFT JOIN information_schema.tables real_tables 
+  ON real_tables.table_name = esperado.tabla 
+  AND real_tables.table_schema = DATABASE();
+
+-- ✅ Ejecución automática al final
+SELECT * FROM vista_estado_instalacion;
+
+
+
