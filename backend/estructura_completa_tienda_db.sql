@@ -1,264 +1,707 @@
-
 -- ================================================================
--- 🌐 TianguiStore – Estructura Base de Datos Expandida v1.0
+-- 🇲🇽 TianguiStore – Estructura Expandida de Base de Datos
 -- ================================================================
--- 🔧 Arquitectura Modular, Escalable y Autogestionada
--- ✅ Cobertura: E-commerce + Servicios + Eventos + Gamificación + Contabilidad
--- 🧠 Incluye: Fidelización, Marketing, Auditoría, Estadísticas, Seguridad, Pagos, Profesionistas
--- 📅 Última generación automatizada: Estructura SQL completa, documentada y lista para producción
--- ================================================================
-
--- ================================================================
--- 🌐 TianguiStore – Estructura Completa y Expandida de Base de Datos
--- Versión: 1.0.0
--- Autor: I.S.C. Erick Renato Vega Ceron
--- Descripción: Este archivo contiene la estructura lógica completa del sistema TianguiStore,
---              optimizada para comercio electrónico, fidelización, gamificación, analítica,
---              trazabilidad, contabilidad y marketing digital automatizado.
--- Base de datos: tienda_db
--- Última generación: 01/05/2025
+-- 🧱 Versión: 1.0.0
+-- 📅 Fecha de generación: 2025-05-01
+-- 👨‍💻 Autor: I.S.C. Erick Renato Vega Ceron
+-- 🏗️ Propósito: Crear e inicializar la base de datos "tienda_db"
 -- ================================================================
 
-/* NOTAS:
- - Esta base de datos está normalizada para eficiencia y extensibilidad.
- - Incluye triggers, vistas, procedimientos almacenados, validaciones, métricas, auditoría.
- - Utiliza SHA-256 como identificador de estructura para verificación de consistencia.
- - Cada módulo tiene comentarios que explican su propósito.
-*/
+-- 🔎 Descripción general del sistema:
+-- Este script define toda la estructura base del sistema TianguiStore.
+-- Incluye módulos clave para:
+--   🛍️ Comercio electrónico multivendedor
+--   🧾 Servicios digitales y físicos
+--   🎟️ Eventos, boletos y reservas
+--   🕹️ Gamificación (misiones, logros, puntos)
+--   💳 Contabilidad, fidelización y promociones
+--   🔐 Seguridad, auditoría y trazabilidad
+--   💵 Soporte de pagos (MercadoPago, PayPal, CoDi)
+--   ⚙️ Automatización y eventos programados
+--   📦 Preparado para instalación vía backend (/instalar)
 
-
+-- 🧠 Requisitos técnicos:
+-- ✅ MySQL 8.0+ o MariaDB 10.5+
+-- ✅ Ejecución desde: CLI / PHPMyAdmin / Workbench / DBeaver / Backend
+-- ✅ Permisos para TRIGGERS, EVENTS y FOREIGN KEY
+-- ✅ Charset: UTF-8 extendido (emoji, tildes, multilenguaje)
 
 -- ================================================================
--- 🏗️ ESTRUCTURA COMPLETA COMENTADA DE BASE DE DATOS: tienda_db
--- Para tienda en línea con marketing, blog, prospección y postventa
+-- 🧭 Módulo base: Inicialización del sistema y configuración global
 -- ================================================================
 
+-- ⚙️ Activar programador de eventos (necesario para cron internos)
+SET GLOBAL event_scheduler = ON;
+
+-- 🧼 Reiniciar base de datos solo para instalación limpia (⚠️ CUIDADO)
 DROP DATABASE IF EXISTS tienda_db;
-CREATE DATABASE tienda_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE tienda_db
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+-- 🎯 Seleccionar base de datos activa
 USE tienda_db;
 
--- ================================================================
--- 🧾 ESTADOS DE PEDIDO
--- ================================================================
--- Define los distintos estados que puede tener un pedido
-CREATE TABLE estados_pedido (
+-- 🛡️ Desactivar temporalmente las restricciones de claves foráneas
+-- (para permitir la creación ordenada de tablas con dependencias cruzadas)
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- =====================================================================
+-- 📦 MÓDULO: estados_pedido
+-- ---------------------------------------------------------------------
+-- Catálogo maestro de estados que puede tener un pedido dentro del 
+-- sistema TianguiStore. Utilizado para trazabilidad y control lógico.
+-- =====================================================================
+
+CREATE TABLE IF NOT EXISTS estados_pedido (
   estado_id INT AUTO_INCREMENT PRIMARY KEY,
-  estado_nombre VARCHAR(50) NOT NULL UNIQUE,
-  descripcion TEXT
-) ENGINE=InnoDB;
+  estado_nombre VARCHAR(50) NOT NULL UNIQUE COMMENT 'Nombre del estado (ej. Pendiente, Enviado)',
+  descripcion TEXT COMMENT 'Descripción opcional del estado',
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de registro del estado'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ================================================================
--- 🧑‍⚖️ ROLES DE USUARIOS
--- ================================================================
--- Define los diferentes roles de usuarios y sus permisos
-CREATE TABLE roles (
+-- 🔄 DATOS INICIALES SUGERIDOS
+INSERT INTO estados_pedido (estado_nombre, descripcion) VALUES
+('Pendiente', 'El pedido ha sido recibido pero aún no procesado'),
+('Procesando', 'El pedido está siendo preparado'),
+('Enviado', 'El pedido ha sido enviado al cliente'),
+('Entregado', 'El cliente ha recibido el pedido'),
+('Cancelado', 'El pedido ha sido cancelado por el cliente o la tienda'),
+('Reembolsado', 'El pedido ha sido devuelto y reembolsado')
+ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion);
+
+-- ✅ VERIFICACIÓN DEL MÓDULO
+SELECT 'OK - estados_pedido' AS modulo, COUNT(*) AS registros FROM estados_pedido;
+
+-- =====================================================================
+-- 🔐 MÓDULO: roles_y_usuarios_completo
+-- ---------------------------------------------------------------------
+-- Define roles, perfiles extendidos de usuarios, sistema de verificación,
+-- asociación a sucursales, postulaciones y soporte para fidelización.
+-- =====================================================================
+
+-- 🧑‍⚖️ Tabla: roles
+CREATE TABLE IF NOT EXISTS roles (
   rol_id INT AUTO_INCREMENT PRIMARY KEY,
-  rol_nombre VARCHAR(50) NOT NULL UNIQUE,
-  descripcion TEXT,
-  permisos_json JSON NOT NULL
-) ENGINE=InnoDB;
+  rol_nombre VARCHAR(50) NOT NULL UNIQUE COMMENT 'Nombre del rol (ej. admin, cliente)',
+  descripcion TEXT COMMENT 'Descripción del rol',
+  permisos_json JSON NOT NULL COMMENT 'Permisos del rol en formato JSON',
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ================================================================
--- 👤 USUARIOS
--- ================================================================
--- Información de los usuarios, incluyendo clientes, vendedores, administradores
-CREATE TABLE usuarios (
+-- 🏬 Tabla: sucursales físicas
+CREATE TABLE IF NOT EXISTS sucursales (
+  sucursal_id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
+  direccion TEXT,
+  telefono VARCHAR(20),
+  correo_contacto VARCHAR(100),
+  activa BOOLEAN DEFAULT TRUE,
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 👤 Tabla: usuarios
+CREATE TABLE IF NOT EXISTS usuarios (
   usuario_id INT AUTO_INCREMENT PRIMARY KEY,
+  rol_id INT NOT NULL DEFAULT 3,
+  sucursal_id INT DEFAULT NULL COMMENT 'Sucursal asignada si es personal interno',
+
   correo_electronico VARCHAR(100) NOT NULL UNIQUE,
   contrasena_hash VARCHAR(255) NOT NULL,
-  nombre VARCHAR(50) NOT NULL,
+
+  nombre VARCHAR(100) NOT NULL,
   apellido_paterno VARCHAR(50),
   apellido_materno VARCHAR(50),
+  genero ENUM('masculino', 'femenino', 'otro', 'no_especificado') DEFAULT 'no_especificado',
+  fecha_nacimiento DATE,
+
   telefono VARCHAR(20),
   direccion TEXT,
   foto_perfil_url VARCHAR(255),
-  activo BOOLEAN DEFAULT TRUE,
-  rol_id INT NOT NULL DEFAULT 3,
-  fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (rol_id) REFERENCES roles(rol_id)
-) ENGINE=InnoDB;
+  biografia TEXT,
 
--- ================================================================
--- 🧾 LOGS DE ACCIONES
--- ================================================================
--- Registro de acciones del sistema para trazabilidad y auditoría
-CREATE TABLE logs_acciones (
+  sitio_web VARCHAR(255),
+  facebook_url VARCHAR(255),
+  instagram_url VARCHAR(255),
+  twitter_url VARCHAR(255),
+  linkedin_url VARCHAR(255),
+  github_url VARCHAR(255),
+  youtube_url VARCHAR(255),
+  tiktok_url VARCHAR(255),
+  otro_repositorio_url VARCHAR(255),
+
+  cv_url VARCHAR(255),
+  portafolio_url VARCHAR(255),
+
+  activo BOOLEAN DEFAULT TRUE,
+  verificado BOOLEAN DEFAULT FALSE,
+
+  origen_reclutamiento ENUM('externo', 'interno', 'campaña', 'referido', 'fidelidad') DEFAULT 'externo',
+  estado_postulante ENUM('ninguno', 'candidato', 'en_revision', 'entrevista', 'contratado', 'rechazado') DEFAULT 'ninguno',
+  cargo_postulado VARCHAR(100),
+  fue_convocado_por_empresa BOOLEAN DEFAULT FALSE,
+  campaña_origen VARCHAR(100),
+  es_personal_tienda BOOLEAN DEFAULT FALSE,
+
+  fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
+  fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (rol_id) REFERENCES roles(rol_id) ON UPDATE CASCADE ON DELETE RESTRICT,
+  FOREIGN KEY (sucursal_id) REFERENCES sucursales(sucursal_id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 📧 Tabla: verificaciones de usuario
+CREATE TABLE IF NOT EXISTS verificaciones_usuario (
+  verificacion_id INT AUTO_INCREMENT PRIMARY KEY,
+  usuario_id INT NOT NULL,
+  tipo ENUM('correo', 'telefono', 'mfa') NOT NULL DEFAULT 'correo',
+  codigo VARCHAR(10) NOT NULL,
+  expiracion DATETIME NOT NULL,
+  verificado BOOLEAN DEFAULT FALSE,
+  intentos INT DEFAULT 0,
+  creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 📝 Tabla: postulaciones laborales
+CREATE TABLE IF NOT EXISTS postulaciones (
+  postulacion_id INT AUTO_INCREMENT PRIMARY KEY,
+  usuario_id INT NOT NULL,
+  puesto_aplicado VARCHAR(100) NOT NULL,
+  sucursal_id INT DEFAULT NULL,
+  descripcion_postulacion TEXT,
+  estado ENUM('recibido', 'en_revision', 'entrevista', 'rechazado', 'contratado') DEFAULT 'recibido',
+  fecha_postulacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id) ON DELETE CASCADE,
+  FOREIGN KEY (sucursal_id) REFERENCES sucursales(sucursal_id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO roles (rol_nombre, descripcion, permisos_json) VALUES
+('admin', 'Administrador general', JSON_OBJECT('usuarios', true, 'productos', true, 'pedidos', true, 'config', true)),
+('cliente', 'Comprador registrado', JSON_OBJECT('comprar', true, 'ver_historial', true)),
+('vendedor', 'Gestión de productos propios', JSON_OBJECT('productos', true, 'pedidos', true)),
+('soporte', 'Atención al cliente', JSON_OBJECT('ver_tickets', true)),
+('logistica', 'Manejo de entregas', JSON_OBJECT('envios', true)),
+('finanzas', 'Control de pagos y retiros', JSON_OBJECT('pagos', true)),
+('editor', 'Publicación de contenido', JSON_OBJECT('posts', true)),
+('marketing', 'Promoción y campañas', JSON_OBJECT('cupones', true)),
+('auditor', 'Solo lectura', JSON_OBJECT('ver_logs', true)),
+('candidato', 'Postulante a vacantes', JSON_OBJECT('postularse', true)),
+('reclutador', 'Gestión de postulaciones', JSON_OBJECT('ver_postulaciones', true)),
+('entrevistador', 'Evaluación de candidatos', JSON_OBJECT('evaluar', true)),
+('root', 'Acceso absoluto al sistema', JSON_OBJECT('todo', true))
+ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion);
+
+INSERT INTO usuarios (
+  rol_id, correo_electronico, contrasena_hash, nombre, apellido_paterno,
+  activo, verificado, es_personal_tienda
+)
+SELECT rol_id, 'admin@tianguistore.mx', '$2y$10$EjemploHashSeguro1234567890', 'Admin', 'General',
+       TRUE, TRUE, TRUE
+FROM roles WHERE rol_nombre = 'admin'
+ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);
+
+SELECT 'OK - roles' AS modulo, COUNT(*) FROM roles;
+SELECT 'OK - usuarios' AS modulo, COUNT(*) FROM usuarios;
+SELECT 'OK - verificaciones_usuario' AS modulo, COUNT(*) FROM verificaciones_usuario;
+SELECT 'OK - sucursales' AS modulo, COUNT(*) FROM sucursales;
+SELECT 'OK - postulaciones' AS modulo, COUNT(*) FROM postulaciones;
+-- =====================================================================
+-- 📋 MÓDULO: logs_acciones (optimizado)
+-- ---------------------------------------------------------------------
+-- Registro eficiente y detallado de eventos de usuario para auditoría,
+-- trazabilidad y seguridad, diseñado para alta concurrencia y volumen.
+-- =====================================================================
+
+CREATE TABLE IF NOT EXISTS logs_acciones (
   log_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  usuario_id INT,
-  tabla_afectada VARCHAR(100),
-  id_registro_afectado VARCHAR(100),
-  accion ENUM('INSERT', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT') NOT NULL,
-  descripcion TEXT,
+  usuario_id INT NOT NULL,
+  
+  modulo_afectado VARCHAR(60) COMMENT 'Módulo lógico (ej. pedidos, usuarios)',
+  accion ENUM(
+    'INSERT', 'UPDATE', 'DELETE',
+    'LOGIN', 'LOGOUT', 'LOGIN_FAILED',
+    'VIEW', 'EXPORT', 'TOKEN_REFRESH', 'VERIFY'
+  ) NOT NULL,
+  
+  id_registro_afectado VARCHAR(64),
+  descripcion VARCHAR(255),
+  
   datos_anteriores JSON,
   datos_nuevos JSON,
+
+  ip_origen VARCHAR(45),
+  user_agent VARCHAR(255),
+
   fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id) ON DELETE SET NULL
-) ENGINE=InnoDB;
 
--- ================================================================
--- 🏷️ MARCAS Y CATEGORÍAS
--- ================================================================
--- Marcas asociadas a productos
-CREATE TABLE marcas (
+  INDEX idx_usuario_fecha (usuario_id, fecha),
+  INDEX idx_modulo_accion (modulo_afectado, accion),
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
+) ENGINE=InnoDB 
+  ROW_FORMAT=DYNAMIC
+  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 🔁 Evento para eliminar logs más antiguos de 1000 días
+CREATE EVENT IF NOT EXISTS limpiar_logs_acciones
+ON SCHEDULE EVERY 1 WEEK
+DO
+  DELETE FROM logs_acciones
+  WHERE fecha < NOW() - INTERVAL 1000 DAY;
+
+-- =====================================================================
+-- 🏷️ MÓDULO: marcas
+-- ---------------------------------------------------------------------
+-- Catálogo de marcas comerciales con campos visuales y de SEO.
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS marcas (
   marca_id INT AUTO_INCREMENT PRIMARY KEY,
-  nombre_marca VARCHAR(100) NOT NULL UNIQUE,
-  descripcion TEXT,
-  logo_url VARCHAR(255),
-  micrositio_url VARCHAR(255)
-) ENGINE=InnoDB;
+  nombre_marca VARCHAR(100) NOT NULL UNIQUE COMMENT 'Nombre comercial visible de la marca',
+  slug_marca VARCHAR(100) NOT NULL UNIQUE COMMENT 'Identificador único para URL amigable (sin espacios)',
+  descripcion TEXT COMMENT 'Historia o descripción de la marca',
+  logo_url VARCHAR(255) COMMENT 'URL del logotipo oficial',
+  micrositio_url VARCHAR(255) COMMENT 'Enlace externo a un sitio dedicado (opcional)',
 
--- Categorías principales
-CREATE TABLE categorias (
+  estado ENUM('activo', 'inactivo', 'borrador') DEFAULT 'activo' COMMENT 'Control de visibilidad y estado',
+  orden_visual INT DEFAULT 0 COMMENT 'Orden de aparición en listados',
+  destacada BOOLEAN DEFAULT FALSE COMMENT 'Marca destacada para frontend',
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  INDEX idx_nombre_marca (nombre_marca),
+  INDEX idx_slug_marca (slug_marca),
+  INDEX idx_estado_destacada (estado, destacada)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- =====================================================================
+-- 📂 MÓDULO: categorias
+-- ---------------------------------------------------------------------
+-- Categorías principales del catálogo, con campos visuales y de control.
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS categorias (
   categoria_id INT AUTO_INCREMENT PRIMARY KEY,
   nombre_categoria VARCHAR(100) NOT NULL UNIQUE,
-  descripcion TEXT
-) ENGINE=InnoDB;
+  slug_categoria VARCHAR(100) NOT NULL UNIQUE COMMENT 'Identificador único amigable para URLs',
+  descripcion TEXT COMMENT 'Resumen o propósito de la categoría',
+  icono_url VARCHAR(255) COMMENT 'Icono visual de la categoría (opcional)',
 
--- Subcategorías relacionadas a una categoría
-CREATE TABLE subcategorias (
+  estado ENUM('activa', 'inactiva', 'borrador') DEFAULT 'activa',
+  orden_visual INT DEFAULT 0,
+  destacada BOOLEAN DEFAULT FALSE,
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  INDEX idx_nombre_categoria (nombre_categoria),
+  INDEX idx_slug_categoria (slug_categoria),
+  INDEX idx_estado_categoria (estado)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- =====================================================================
+-- 📁 MÓDULO: subcategorias
+-- ---------------------------------------------------------------------
+-- Subcategorías dependientes de categorías padre, con control visual.
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS subcategorias (
   subcategoria_id INT AUTO_INCREMENT PRIMARY KEY,
   categoria_id INT NOT NULL,
-  nombre_subcategoria VARCHAR(100) NOT NULL,
-  descripcion TEXT,
-  UNIQUE (categoria_id, nombre_subcategoria),
-  FOREIGN KEY (categoria_id) REFERENCES categorias(categoria_id) ON DELETE CASCADE
-) ENGINE=InnoDB;
 
--- ================================================================
--- 📦 PRODUCTOS
--- ================================================================
--- Información de productos, incluye publicación, variantes y categorías
-CREATE TABLE productos (
+  nombre_subcategoria VARCHAR(100) NOT NULL,
+  slug_subcategoria VARCHAR(100) NOT NULL COMMENT 'Slug único por subcategoría',
+  descripcion TEXT,
+  icono_url VARCHAR(255),
+
+  estado ENUM('activa', 'inactiva', 'borrador') DEFAULT 'activa',
+  orden_visual INT DEFAULT 0,
+  destacada BOOLEAN DEFAULT FALSE,
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE (categoria_id, nombre_subcategoria),
+  UNIQUE (categoria_id, slug_subcategoria),
+
+  FOREIGN KEY (categoria_id) REFERENCES categorias(categoria_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+
+  INDEX idx_nombre_subcategoria (nombre_subcategoria),
+  INDEX idx_slug_subcategoria (slug_subcategoria),
+  INDEX idx_estado_subcategoria (estado)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 🔍 Tablas creadas
+SHOW TABLES LIKE 'marcas';
+SHOW TABLES LIKE 'categorias';
+SHOW TABLES LIKE 'subcategorias';
+
+-- 🧠 Estructura
+DESCRIBE marcas;
+DESCRIBE categorias;
+DESCRIBE subcategorias;
+
+-- 📄 Registros de prueba
+SELECT * FROM marcas LIMIT 5;
+SELECT * FROM categorias LIMIT 5;
+SELECT * FROM subcategorias LIMIT 5;
+
+-- =====================================================================
+-- 📦 PRODUCTOS (catálogo principal)
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS productos (
   producto_id INT AUTO_INCREMENT PRIMARY KEY,
-  nombre VARCHAR(100) NOT NULL,
+
+  nombre VARCHAR(150) NOT NULL,
+  slug_producto VARCHAR(150) NOT NULL UNIQUE,
   descripcion TEXT NOT NULL,
+  especificaciones TEXT,
+  sku VARCHAR(50) UNIQUE,
+
   marca_id INT,
-  precio DECIMAL(10,2) NOT NULL,
-  descuento DECIMAL(5,2) DEFAULT 0.00,
-  stock INT DEFAULT 0,
   categoria_id INT,
   subcategoria_id INT,
-  imagen_url VARCHAR(255),
-  publicado BOOLEAN DEFAULT FALSE,
   proveedor_id INT,
+  tipo_publicacion_id INT,
+
+  precio DECIMAL(10,2) NOT NULL,
+  descuento DECIMAL(5,2) DEFAULT 0.00,
+  precio_final DECIMAL(10,2) GENERATED ALWAYS AS (
+    precio * (1 - descuento / 100)
+  ) STORED,
+
+  stock INT DEFAULT 0,
+  mostrar_sin_stock BOOLEAN DEFAULT FALSE,
+  stock_ilimitado BOOLEAN DEFAULT FALSE,
+
+  peso_kg DECIMAL(5,2),
+  dimensiones_cm VARCHAR(50),
+  garantia_meses INT,
+  envio_gratis BOOLEAN DEFAULT FALSE,
+
+  imagen_url VARCHAR(255),
+  video_url VARCHAR(255),
+  modelo_3d_url VARCHAR(255),
+
+  publicado BOOLEAN DEFAULT FALSE,
+  fecha_publicacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+  destacado BOOLEAN DEFAULT FALSE,
+
+  estado_visible ENUM('visible', 'oculto', 'pendiente') DEFAULT 'visible',
+  status ENUM('activo', 'inactivo', 'borrador', 'eliminado') DEFAULT 'activo',
+  motivo_inactivo TEXT,
+
+  meses_sin_intereses BOOLEAN DEFAULT FALSE,
+
+  -- Digitales / suscripciones
+  es_digital BOOLEAN DEFAULT FALSE,
+  tipo_digital ENUM('descargable', 'clave', 'streaming', 'suscripcion') DEFAULT NULL,
+  archivo_descarga_url VARCHAR(255),
+  clave_acceso TEXT,
+  duracion_dias INT DEFAULT NULL,
+
   fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  status ENUM('activo', 'inactivo', 'demo') DEFAULT 'activo',
-  meses_sin_intereses BOOLEAN DEFAULT FALSE,
-  tipo_publicacion_id INT,
-  FOREIGN KEY (marca_id) REFERENCES marcas(marca_id) ON DELETE SET NULL,
-  FOREIGN KEY (categoria_id) REFERENCES categorias(categoria_id) ON DELETE SET NULL,
-  FOREIGN KEY (subcategoria_id) REFERENCES subcategorias(subcategoria_id) ON DELETE SET NULL,
-  FOREIGN KEY (proveedor_id) REFERENCES usuarios(usuario_id) ON DELETE SET NULL,
-  FOREIGN KEY (tipo_publicacion_id) REFERENCES tipos_publicacion(tipo_id) ON DELETE SET NULL
-) ENGINE=InnoDB;
 
--- Tipos de publicación (ej. membresías de vendedor)
-CREATE TABLE tipos_publicacion (
+  FOREIGN KEY (marca_id) REFERENCES marcas(marca_id),
+  FOREIGN KEY (categoria_id) REFERENCES categorias(categoria_id),
+  FOREIGN KEY (subcategoria_id) REFERENCES subcategorias(subcategoria_id),
+  FOREIGN KEY (proveedor_id) REFERENCES usuarios(usuario_id),
+  FOREIGN KEY (tipo_publicacion_id) REFERENCES tipos_publicacion(tipo_id),
+
+  INDEX idx_producto_slug (slug_producto),
+  INDEX idx_categoria (categoria_id, subcategoria_id),
+  INDEX idx_estado (status, publicado)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS galeria_productos (
+  media_id INT AUTO_INCREMENT PRIMARY KEY,
+  producto_id INT NOT NULL,
+  tipo ENUM('imagen', 'video', 'modelo_3d') DEFAULT 'imagen',
+  url VARCHAR(255) NOT NULL,
+  alt_text VARCHAR(150),
+  orden_visual INT DEFAULT 0,
+  destacada BOOLEAN DEFAULT FALSE,
+  fecha_subida TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (producto_id) REFERENCES productos(producto_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS atributos_dinamicos (
+  atributo_id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre_atributo VARCHAR(100) NOT NULL,
+  slug_atributo VARCHAR(100) NOT NULL UNIQUE,
+  tipo_valor ENUM('texto', 'numero', 'booleano', 'lista') DEFAULT 'texto',
+  unidad_medida VARCHAR(50),
+  categoria_id INT,
+  subcategoria_id INT,
+  FOREIGN KEY (categoria_id) REFERENCES categorias(categoria_id),
+  FOREIGN KEY (subcategoria_id) REFERENCES subcategorias(subcategoria_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS producto_atributo_valor (
+  producto_id INT NOT NULL,
+  atributo_id INT NOT NULL,
+  valor_texto TEXT,
+  PRIMARY KEY (producto_id, atributo_id),
+  FOREIGN KEY (producto_id) REFERENCES productos(producto_id) ON DELETE CASCADE,
+  FOREIGN KEY (atributo_id) REFERENCES atributos_dinamicos(atributo_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS variantes_producto (
+  variante_id INT AUTO_INCREMENT PRIMARY KEY,
+  producto_id INT NOT NULL,
+  combinacion_slug VARCHAR(100) NOT NULL,
+  sku_variante VARCHAR(50),
+  precio_variante DECIMAL(10,2),
+  stock_variante INT DEFAULT 0,
+  imagen_variante_url VARCHAR(255),
+  activa BOOLEAN DEFAULT TRUE,
+  UNIQUE (producto_id, combinacion_slug),
+  FOREIGN KEY (producto_id) REFERENCES productos(producto_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS precios_por_volumen (
+  producto_id INT NOT NULL,
+  cantidad_minima INT NOT NULL,
+  precio_unitario DECIMAL(10,2) NOT NULL,
+  PRIMARY KEY (producto_id, cantidad_minima),
+  FOREIGN KEY (producto_id) REFERENCES productos(producto_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS almacenes (
+  almacen_id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre_almacen VARCHAR(100) NOT NULL,
+  tipo ENUM('físico', 'virtual', 'proveedor') DEFAULT 'físico',
+  ubicacion TEXT,
+  activo BOOLEAN DEFAULT TRUE,
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS inventario_productos (
+  producto_id INT NOT NULL,
+  almacen_id INT NOT NULL,
+  cantidad INT DEFAULT 0,
+  stock_minimo INT DEFAULT 0,
+  ultima_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (producto_id, almacen_id),
+  FOREIGN KEY (producto_id) REFERENCES productos(producto_id) ON DELETE CASCADE,
+  FOREIGN KEY (almacen_id) REFERENCES almacenes(almacen_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SHOW TABLES LIKE 'productos';
+SHOW TABLES LIKE 'galeria_productos';
+SHOW TABLES LIKE 'atributos_dinamicos';
+SHOW TABLES LIKE 'producto_atributo_valor';
+SHOW TABLES LIKE 'variantes_producto';
+SHOW TABLES LIKE 'precios_por_volumen';
+SHOW TABLES LIKE 'almacenes';
+SHOW TABLES LIKE 'inventario_productos';
+
+SELECT COUNT(*) AS total_productos FROM productos;
+
+-- =====================================================================
+-- 📢 MÓDULO: tipos_publicacion
+-- ---------------------------------------------------------------------
+-- Modalidades de publicación para productos o servicios en TianguiStore.
+-- =====================================================================
+
+CREATE TABLE IF NOT EXISTS tipos_publicacion (
   tipo_id INT AUTO_INCREMENT PRIMARY KEY,
-  nombre_tipo VARCHAR(50) NOT NULL UNIQUE,
-  descripcion TEXT,
-  prioridad INT DEFAULT 0,
-  duracion_dias INT DEFAULT 30,
-  permite_promociones BOOLEAN DEFAULT FALSE,
-  permite_destacar BOOLEAN DEFAULT FALSE,
-  requiere_pago BOOLEAN DEFAULT FALSE,
-  precio_publicacion DECIMAL(10,2) DEFAULT 0.00
-) ENGINE=InnoDB;
 
--- ================================================================
--- 🎁 SISTEMA DE FIDELIDAD Y PUNTOS
--- ================================================================
+  nombre_tipo VARCHAR(50) NOT NULL UNIQUE COMMENT 'Nombre visible del tipo (ej. Básica, Premium)',
+  slug_tipo VARCHAR(50) NOT NULL UNIQUE COMMENT 'Clave interna para URLs o control lógico',
+  descripcion TEXT COMMENT 'Descripción breve del alcance de esta modalidad',
 
--- Configuración general de niveles o planes de fidelidad
-CREATE TABLE niveles_fidelidad (
+  prioridad INT DEFAULT 0 COMMENT 'Nivel de visibilidad: mayor es más prominente',
+  duracion_dias INT DEFAULT 30 COMMENT 'Duración activa en días antes de vencimiento',
+  
+  permite_promociones BOOLEAN DEFAULT FALSE COMMENT '¿Permite aplicar cupones/promos?',
+  permite_destacar BOOLEAN DEFAULT FALSE COMMENT '¿Puede mostrarse como producto destacado?',
+  requiere_pago BOOLEAN DEFAULT FALSE COMMENT '¿Necesita pago para activarse?',
+  es_suscripcion BOOLEAN DEFAULT FALSE COMMENT '¿Se trata de una publicación recurrente?',
+  precio_publicacion DECIMAL(10,2) DEFAULT 0.00 COMMENT 'Costo total de esta publicación',
+
+  creada_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  actualizada_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla creada y verificada
+SHOW TABLES LIKE 'tipos_publicacion';
+DESCRIBE tipos_publicacion;
+SELECT * FROM tipos_publicacion ORDER BY prioridad DESC LIMIT 5;
+
+INSERT INTO tipos_publicacion (nombre_tipo, slug_tipo, descripcion, prioridad, duracion_dias, permite_promociones, permite_destacar, requiere_pago, es_suscripcion, precio_publicacion)
+VALUES 
+('Básica', 'basica', 'Publicación estándar gratuita con visibilidad limitada', 1, 30, TRUE, FALSE, FALSE, FALSE, 0.00),
+('Destacada', 'destacada', 'Producto aparece en sección destacada', 3, 30, TRUE, TRUE, TRUE, FALSE, 99.00),
+('Premium', 'premium', 'Mayor visibilidad, aparece en resultados prioritarios', 5, 60, TRUE, TRUE, TRUE, FALSE, 199.00),
+('Suscripción Mensual', 'suscripcion_mensual', 'Renovación automática mensual con beneficios premium', 7, 30, TRUE, TRUE, TRUE, TRUE, 149.00)
+ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion), precio_publicacion = VALUES(precio_publicacion);
+
+
+-- =====================================================================
+-- 🎖️ Tabla: niveles_fidelidad
+-- ---------------------------------------------------------------------
+-- Define niveles de fidelización con beneficios opcionales.
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS niveles_fidelidad (
   nivel_id INT AUTO_INCREMENT PRIMARY KEY,
   nombre_nivel VARCHAR(50) NOT NULL UNIQUE,
   descripcion TEXT,
   puntos_necesarios INT NOT NULL,
   beneficios JSON,
-  activo BOOLEAN DEFAULT TRUE
-) ENGINE=InnoDB;
+  activo BOOLEAN DEFAULT TRUE,
+  creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Registro de puntos ganados por usuario
-CREATE TABLE puntos_usuario (
+
+-- =====================================================================
+-- 🪙 Tabla: puntos_usuario
+-- ---------------------------------------------------------------------
+-- Registro de todos los eventos que generan puntos por usuario.
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS puntos_usuario (
   puntos_id INT AUTO_INCREMENT PRIMARY KEY,
   usuario_id INT NOT NULL,
-  tipo_evento ENUM('compra', 'registro', 'comentario', 'referido') NOT NULL,
-  referencia_id INT,
+  tipo_evento ENUM(
+    'registro', 'inicio_sesion', 'compra', 'carrito_completado',
+    'valoracion_producto', 'comentario_producto', 'reseña_servicio',
+    'referido', 'cupon_canjeado', 'membresia_renovada', 'meta_lograda',
+    'aniversario', 'evento_especial', 'promocion_temporal',
+    'ayuda_a_otro_usuario', 'misiones_colaborativas',
+    'actividad_comunitaria', 'respuesta_util'
+  ) NOT NULL,
+  referencia_id INT COMMENT 'ID de pedido/comentario/evento relacionado',
   puntos INT NOT NULL,
   descripcion TEXT,
+  redimido BOOLEAN DEFAULT FALSE,
   fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id)
-) ENGINE=InnoDB;
+  fecha_expiracion DATE DEFAULT NULL,
 
--- Canje de puntos por productos o cupones
-CREATE TABLE canjes_puntos (
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- =====================================================================
+-- 🎁 Tabla: canjes_puntos
+-- ---------------------------------------------------------------------
+-- Registro de redenciones por cupones o productos.
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS canjes_puntos (
   canje_id INT AUTO_INCREMENT PRIMARY KEY,
   usuario_id INT NOT NULL,
   tipo_canje ENUM('cupon', 'producto') NOT NULL,
   item_id INT,
   puntos_utilizados INT NOT NULL,
-  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   estado ENUM('pendiente', 'entregado', 'rechazado') DEFAULT 'pendiente',
-  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id)
-) ENGINE=InnoDB;
+  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
--- Historial de cambios de nivel de fidelidad
-CREATE TABLE historial_niveles (
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- =====================================================================
+-- 🧾 Tabla: historial_niveles
+-- ---------------------------------------------------------------------
+-- Trazabilidad de cambios de nivel por usuario.
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS historial_niveles (
   historial_id INT AUTO_INCREMENT PRIMARY KEY,
   usuario_id INT NOT NULL,
   nivel_anterior_id INT,
   nivel_nuevo_id INT NOT NULL,
   fecha_cambio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id),
-  FOREIGN KEY (nivel_anterior_id) REFERENCES niveles_fidelidad(nivel_id),
+
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (nivel_anterior_id) REFERENCES niveles_fidelidad(nivel_id)
+    ON DELETE SET NULL ON UPDATE CASCADE,
   FOREIGN KEY (nivel_nuevo_id) REFERENCES niveles_fidelidad(nivel_id)
-) ENGINE=InnoDB;
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ================================================================
--- 🕹️ GAMIFICACIÓN AVANZADA
--- ================================================================
 
--- Definición de logros desbloqueables
-CREATE TABLE logros (
+-- Verificación de existencia de tablas
+SHOW TABLES LIKE 'niveles_fidelidad';
+SHOW TABLES LIKE 'puntos_usuario';
+SHOW TABLES LIKE 'canjes_puntos';
+SHOW TABLES LIKE 'historial_niveles';
+
+-- Estructura detallada
+DESCRIBE niveles_fidelidad;
+DESCRIBE puntos_usuario;
+DESCRIBE canjes_puntos;
+DESCRIBE historial_niveles;
+
+-- Ejemplo de prueba
+SELECT usuario_id, SUM(puntos) AS puntos_totales
+FROM puntos_usuario
+WHERE redimido = FALSE AND fecha_expiracion IS NULL OR fecha_expiracion >= CURDATE()
+GROUP BY usuario_id
+ORDER BY puntos_totales DESC
+LIMIT 10;
+
+-- =====================================================================
+-- 🏆 Tabla: logros
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS logros (
   logro_id INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(100) NOT NULL,
   descripcion TEXT NOT NULL,
   icono_url VARCHAR(255),
-  tipo_logro ENUM('compra', 'actividad', 'referido', 'contenido', 'evento') NOT NULL,
-  criterio_json JSON NOT NULL,
+  tipo_logro ENUM('compra', 'actividad', 'referido', 'contenido', 'evento', 'comunidad') NOT NULL,
+  nivel INT DEFAULT 1 COMMENT 'Nivel del logro (para progresivos: 1, 2, 3...)',
+  criterio_json JSON NOT NULL COMMENT 'Ej: {"compras_minimas":5,"categoria_id":2}',
+  recompensa_tipo ENUM('puntos', 'cupon', 'producto') DEFAULT 'puntos',
+  recompensa_valor VARCHAR(100) COMMENT 'Ej. puntos=50, cupon_id=3, producto_id=5',
   puntos_recompensa INT DEFAULT 0,
-  activo BOOLEAN DEFAULT TRUE
-) ENGINE=InnoDB;
+  activo BOOLEAN DEFAULT TRUE,
+  UNIQUE (nombre, nivel)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Logros obtenidos por usuario
-CREATE TABLE logros_usuario (
+
+
+-- =====================================================================
+-- 🏅 Tabla: logros_usuario
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS logros_usuario (
   id INT AUTO_INCREMENT PRIMARY KEY,
   usuario_id INT NOT NULL,
   logro_id INT NOT NULL,
   fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id),
   FOREIGN KEY (logro_id) REFERENCES logros(logro_id)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Misiones diarias, semanales o de campaña
-CREATE TABLE misiones (
+-- =====================================================================
+-- 🎯 Tabla: misiones
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS misiones (
   mision_id INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(100) NOT NULL,
   descripcion TEXT NOT NULL,
-  tipo ENUM('diaria', 'semanal', 'especial') DEFAULT 'diaria',
+  tipo ENUM('diaria', 'semanal', 'mensual', 'especial', 'campaña') DEFAULT 'diaria',
+  grupo ENUM('individual', 'colaborativa', 'equipo') DEFAULT 'individual',
   recompensa_puntos INT DEFAULT 0,
   recompensa_cupon_id INT,
+  recompensa_producto_id INT,
   fecha_inicio DATE,
   fecha_fin DATE,
   condiciones JSON NOT NULL,
-  FOREIGN KEY (recompensa_cupon_id) REFERENCES cupones(cupon_id)
-) ENGINE=InnoDB;
+  estado ENUM('activa', 'inactiva') DEFAULT 'activa',
+  creada_por VARCHAR(100) DEFAULT 'sistema',
+  creada_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (recompensa_cupon_id) REFERENCES cupones(cupon_id),
+  FOREIGN KEY (recompensa_producto_id) REFERENCES productos(producto_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Seguimiento de progreso de misiones por usuario
-CREATE TABLE progreso_mision (
+
+
+-- =====================================================================
+-- 🧩 Tabla: progreso_mision
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS progreso_mision (
   progreso_id INT AUTO_INCREMENT PRIMARY KEY,
   usuario_id INT NOT NULL,
   mision_id INT NOT NULL,
@@ -267,33 +710,30 @@ CREATE TABLE progreso_mision (
   fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id),
   FOREIGN KEY (mision_id) REFERENCES misiones(mision_id)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Clasificación general de usuarios (ranking)
-CREATE TABLE ranking_usuarios (
+
+
+-- =====================================================================
+-- 🧮 Tabla: ranking_usuarios
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS ranking_usuarios (
   usuario_id INT PRIMARY KEY,
   puntos_totales INT DEFAULT 0,
   nivel_actual INT DEFAULT 1,
   logros_obtenidos INT DEFAULT 0,
   misiones_completadas INT DEFAULT 0,
+  aportes_comunidad INT DEFAULT 0,
+  votos_recibidos INT DEFAULT 0,
+  productos_promocionados INT DEFAULT 0,
   fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ================================================================
--- 🔄 PUNTOS EXPIRABLES
--- ================================================================
--- Registro extendido de puntos con fecha de expiración y redención
-ALTER TABLE puntos_usuario
-ADD COLUMN fecha_expiracion DATE DEFAULT NULL,
-ADD COLUMN redimido BOOLEAN DEFAULT FALSE;
-
--- ================================================================
--- 🧮 RANKING DE VENDEDORES Y PROMOTORES
--- ================================================================
-
--- Ranking basado en rendimiento de vendedores o promotores
-CREATE TABLE ranking_promotores (
+-- =====================================================================
+-- 🧑‍💼 Tabla: ranking_promotores
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS ranking_promotores (
   usuario_id INT PRIMARY KEY,
   tipo ENUM('vendedor', 'promotor') DEFAULT 'vendedor',
   total_productos_vendidos INT DEFAULT 0,
@@ -303,10 +743,14 @@ CREATE TABLE ranking_promotores (
   nivel_actual INT DEFAULT 1,
   fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Relación de productos promocionados por usuario
-CREATE TABLE productos_promocionados (
+
+
+-- =====================================================================
+-- 🛒 Tabla: productos_promocionados
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS productos_promocionados (
   id INT AUTO_INCREMENT PRIMARY KEY,
   usuario_id INT NOT NULL,
   producto_id INT NOT NULL,
@@ -314,10 +758,13 @@ CREATE TABLE productos_promocionados (
   destacado BOOLEAN DEFAULT FALSE,
   FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id),
   FOREIGN KEY (producto_id) REFERENCES productos(producto_id)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Historial de promociones concretadas con éxito
-CREATE TABLE historial_promociones (
+
+-- =====================================================================
+-- 🗃️ Tabla: historial_promociones
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS historial_promociones (
   id INT AUTO_INCREMENT PRIMARY KEY,
   usuario_id INT NOT NULL,
   producto_id INT NOT NULL,
@@ -327,32 +774,47 @@ CREATE TABLE historial_promociones (
   FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id),
   FOREIGN KEY (producto_id) REFERENCES productos(producto_id),
   FOREIGN KEY (cliente_id) REFERENCES usuarios(usuario_id)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+SHOW TABLES LIKE 'logros';
+SHOW TABLES LIKE 'misiones';
+SHOW TABLES LIKE 'ranking_usuarios';
 
--- ================================================================
--- 🔁 TRIGGERS RECOMENDADOS
--- ================================================================
-
+DESCRIBE logros;
+DESCRIBE progreso_mision;
+SELECT * FROM ranking_promotores ORDER BY total_productos_vendidos DESC LIMIT 10;
+-- =====================================================================
+-- 🔁 TRIGGERS RECOMENDADOS – GAMIFICACIÓN TIANGUISTORE
+-- =====================================================================
 DELIMITER //
 
--- Recalcular puntos totales al registrar nuevo punto
+-- 1. Recalcular puntos totales al registrar nuevos puntos
 CREATE TRIGGER trg_actualizar_puntos_usuario
 AFTER INSERT ON puntos_usuario
 FOR EACH ROW
 BEGIN
+  DECLARE total_actual INT;
+
+  -- Asegurar existencia del ranking
+  INSERT IGNORE INTO ranking_usuarios (usuario_id, puntos_totales)
+  VALUES (NEW.usuario_id, 0);
+
+  -- Actualizar puntos
   UPDATE ranking_usuarios
   SET puntos_totales = puntos_totales + NEW.puntos
   WHERE usuario_id = NEW.usuario_id;
 END;
 //
 
--- Actualizar ranking de promotores por venta
+-- 2. Actualizar ventas en ranking_promotores tras promoción exitosa
 CREATE TRIGGER trg_incrementar_ventas_promotor
 AFTER INSERT ON historial_promociones
 FOR EACH ROW
 BEGIN
   IF NEW.tipo_logro = 'compra_directa' THEN
+    INSERT IGNORE INTO ranking_promotores (usuario_id, tipo)
+    VALUES (NEW.usuario_id, 'promotor');
+
     UPDATE ranking_promotores
     SET total_productos_vendidos = total_productos_vendidos + 1
     WHERE usuario_id = NEW.usuario_id;
@@ -360,125 +822,495 @@ BEGIN
 END;
 //
 
+-- 3. Registrar misiones completadas automáticamente
+CREATE TRIGGER trg_completar_mision
+AFTER UPDATE ON progreso_mision
+FOR EACH ROW
+BEGIN
+  IF NEW.completada = TRUE AND OLD.completada = FALSE THEN
+    UPDATE ranking_usuarios
+    SET misiones_completadas = misiones_completadas + 1
+    WHERE usuario_id = NEW.usuario_id;
+  END IF;
+END;
+//
+
+-- 4. Asignar logros y sumar en ranking
+CREATE TRIGGER trg_logro_obtenido
+AFTER INSERT ON logros_usuario
+FOR EACH ROW
+BEGIN
+  INSERT IGNORE INTO ranking_usuarios (usuario_id, puntos_totales)
+  VALUES (NEW.usuario_id, 0);
+
+  UPDATE ranking_usuarios
+  SET logros_obtenidos = logros_obtenidos + 1
+  WHERE usuario_id = NEW.usuario_id;
+END;
+//
+
+-- 5. Restar puntos tras canje
+CREATE TRIGGER trg_restar_puntos_por_canje
+AFTER INSERT ON canjes_puntos
+FOR EACH ROW
+BEGIN
+  UPDATE ranking_usuarios
+  SET puntos_totales = puntos_totales - NEW.puntos_utilizados
+  WHERE usuario_id = NEW.usuario_id;
+END;
+//
+
 DELIMITER ;
 
 -- ================================================================
--- 👁️ VISTAS RECOMENDADAS
+-- 👑 VISTA: TOP 10 USUARIOS POR PUNTAJE GENERAL
 -- ================================================================
-
--- Vista de ranking top 10 general
 CREATE OR REPLACE VIEW vista_top_usuarios AS
-SELECT u.usuario_id, u.nombre, ru.puntos_totales, ru.nivel_actual
+SELECT 
+  u.usuario_id,
+  CONCAT(u.nombre, ' ', u.apellido_paterno) AS nombre_completo,
+  u.correo_electronico,
+  ru.puntos_totales,
+  ru.nivel_actual,
+  ru.logros_obtenidos,
+  ru.misiones_completadas,
+  (ru.puntos_totales + (ru.logros_obtenidos * 10) + (ru.misiones_completadas * 5)) AS indice_gamificado
 FROM ranking_usuarios ru
 JOIN usuarios u ON ru.usuario_id = u.usuario_id
-ORDER BY ru.puntos_totales DESC
+ORDER BY indice_gamificado DESC
 LIMIT 10;
 
--- Vista de vendedores con mejor rendimiento
+
+-- ================================================================
+-- 💼 VISTA: RANKING DE VENDEDORES
+-- ================================================================
 CREATE OR REPLACE VIEW vista_top_vendedores AS
-SELECT u.usuario_id, u.nombre, rp.total_productos_vendidos, rp.total_clientes_atendidos
+SELECT 
+  u.usuario_id,
+  CONCAT(u.nombre, ' ', u.apellido_paterno) AS nombre_completo,
+  rp.total_productos_vendidos,
+  rp.total_clientes_atendidos,
+  rp.total_misiones_cumplidas,
+  ROUND(rp.total_productos_vendidos / GREATEST(rp.total_clientes_atendidos, 1), 2) AS conversion_ratio,
+  rp.nivel_actual
 FROM ranking_promotores rp
 JOIN usuarios u ON rp.usuario_id = u.usuario_id
 WHERE rp.tipo = 'vendedor'
 ORDER BY rp.total_productos_vendidos DESC;
 
--- Vista de puntos expirados y no redimidos
+
+-- ================================================================
+-- 🔥 VISTA: LOGROS MÁS COMUNES
+-- ================================================================
+CREATE OR REPLACE VIEW vista_logros_comunes AS
+SELECT 
+  l.logro_id,
+  l.nombre,
+  l.tipo_logro,
+  COUNT(lu.logro_id) AS veces_obtenido
+FROM logros_usuario lu
+JOIN logros l ON lu.logro_id = l.logro_id
+GROUP BY l.logro_id, l.nombre, l.tipo_logro
+ORDER BY veces_obtenido DESC;
+
+
+-- ================================================================
+-- 🧩 VISTA: PROGRESO DE MISIONES ACTIVAS
+-- ================================================================
+CREATE OR REPLACE VIEW vista_progreso_misiones AS
+SELECT 
+  pm.usuario_id,
+  CONCAT(u.nombre, ' ', u.apellido_paterno) AS nombre_completo,
+  m.nombre AS nombre_mision,
+  m.tipo,
+  m.grupo,
+  pm.progreso_json,
+  pm.completada,
+  pm.fecha_actualizacion
+FROM progreso_mision pm
+JOIN misiones m ON pm.mision_id = m.mision_id
+JOIN usuarios u ON pm.usuario_id = u.usuario_id
+WHERE m.estado = 'activa'
+ORDER BY pm.fecha_actualizacion DESC;
+
+
+-- ================================================================
+-- ⏳ VISTA: PUNTOS EXPIRADOS Y NO REDIMIDOS
+-- ================================================================
 CREATE OR REPLACE VIEW vista_puntos_expirados AS
-SELECT pu.*, u.nombre
+SELECT 
+  pu.puntos_id,
+  u.usuario_id,
+  CONCAT(u.nombre, ' ', u.apellido_paterno) AS nombre_completo,
+  pu.tipo_evento,
+  pu.puntos,
+  pu.fecha,
+  pu.fecha_expiracion,
+  DATEDIFF(CURRENT_DATE, pu.fecha_expiracion) AS dias_vencido
 FROM puntos_usuario pu
 JOIN usuarios u ON pu.usuario_id = u.usuario_id
-WHERE pu.redimido = FALSE AND pu.fecha_expiracion IS NOT NULL AND pu.fecha_expiracion < CURRENT_DATE;
+WHERE pu.redimido = FALSE
+  AND pu.fecha_expiracion IS NOT NULL
+  AND pu.fecha_expiracion < CURRENT_DATE
+ORDER BY pu.fecha_expiracion ASC;
+
 
 -- ================================================================
--- 📊 SISTEMA DE REPORTES PERSONALIZADOS
+-- 🎁 VISTA: HISTORIAL DE CANJES DE PUNTOS
 -- ================================================================
+CREATE OR REPLACE VIEW vista_historial_canjes AS
+SELECT 
+  cp.canje_id,
+  u.usuario_id,
+  CONCAT(u.nombre, ' ', u.apellido_paterno) AS nombre_completo,
+  cp.tipo_canje,
+  cp.item_id,
+  cp.puntos_utilizados,
+  cp.estado,
+  cp.fecha
+FROM canjes_puntos cp
+JOIN usuarios u ON cp.usuario_id = u.usuario_id
+ORDER BY cp.fecha DESC;
 
--- Catálogo de tipos de reporte predefinidos o personalizados
-CREATE TABLE reportes (
+
+-- ================================================================
+-- 🧠 VISTA: LOGROS PENDIENTES (usuario sin logro asignado)
+-- ================================================================
+CREATE OR REPLACE VIEW vista_logros_pendientes AS
+SELECT 
+  u.usuario_id,
+  CONCAT(u.nombre, ' ', u.apellido_paterno) AS nombre_completo,
+  l.logro_id,
+  l.nombre AS logro,
+  l.tipo_logro
+FROM usuarios u
+CROSS JOIN logros l
+LEFT JOIN logros_usuario lu ON lu.usuario_id = u.usuario_id AND lu.logro_id = l.logro_id
+WHERE lu.id IS NULL
+ORDER BY u.usuario_id, l.logro_id;
+
+SELECT * FROM vista_top_usuarios;
+SELECT * FROM vista_top_vendedores;
+SELECT * FROM vista_logros_comunes;
+SELECT * FROM vista_progreso_misiones;
+SELECT * FROM vista_puntos_expirados;
+SELECT * FROM vista_historial_canjes;
+SELECT * FROM vista_logros_pendientes;
+
+-- ================================================================
+-- 📄 Catálogo de reportes personalizados
+-- ================================================================
+CREATE TABLE IF NOT EXISTS reportes (
   reporte_id INT AUTO_INCREMENT PRIMARY KEY,
   nombre_reporte VARCHAR(100) NOT NULL,
   descripcion TEXT,
-  tipo ENUM('venta', 'cliente', 'producto', 'actividad', 'auditoria', 'otros') NOT NULL,
-  query_sql TEXT NOT NULL,
-  programado BOOLEAN DEFAULT FALSE,
-  visibilidad ENUM('admin', 'vendedor', 'cliente', 'soporte') DEFAULT 'admin',
+  tipo ENUM('venta', 'cliente', 'producto', 'actividad', 'auditoria', 'logistica', 'finanzas', 'otros') NOT NULL,
+
+  query_sql TEXT NOT NULL COMMENT 'Consulta SQL en texto plano (validada antes de ejecutar)',
+
+  programado BOOLEAN DEFAULT FALSE COMMENT '¿Se ejecuta automáticamente?',
+  frecuencia ENUM('diario', 'semanal', 'mensual', 'manual') DEFAULT 'manual',
+  hora_programada TIME DEFAULT NULL COMMENT 'Hora sugerida para ejecución automática',
+  formato_resultado ENUM('json', 'csv', 'html', 'pdf') DEFAULT 'json',
+
+  visibilidad ENUM('admin', 'soporte', 'vendedor', 'cliente') DEFAULT 'admin',
   creado_por INT,
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (creado_por) REFERENCES usuarios(usuario_id) ON DELETE SET NULL
-) ENGINE=InnoDB;
 
--- Historial de ejecuciones de reportes
-CREATE TABLE ejecucion_reportes (
+  FOREIGN KEY (creado_por) REFERENCES usuarios(usuario_id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ================================================================
+-- 🧾 Historial de ejecuciones de reportes
+-- ================================================================
+CREATE TABLE IF NOT EXISTS ejecucion_reportes (
   ejecucion_id INT AUTO_INCREMENT PRIMARY KEY,
   reporte_id INT NOT NULL,
   usuario_id INT,
-  resultado_resumen TEXT,
+  resultado_resumen TEXT COMMENT 'Puede incluir totales, errores o link al archivo',
   exito BOOLEAN DEFAULT TRUE,
+  mensaje_error TEXT,
   fecha_ejecucion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
   FOREIGN KEY (reporte_id) REFERENCES reportes(reporte_id),
   FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO reportes (nombre_reporte, descripcion, tipo, query_sql, programado, frecuencia, visibilidad, creado_por)
+VALUES
+('Top 10 productos más vendidos', 'Lista los productos con más ventas totales', 'producto',
+ 'SELECT producto_id, COUNT(*) AS total_ventas FROM pedidos_detalle GROUP BY producto_id ORDER BY total_ventas DESC LIMIT 10',
+ TRUE, 'mensual', 'admin', 1),
+
+('Ranking de usuarios por puntos', 'Top usuarios más activos por puntos acumulados', 'actividad',
+ 'SELECT usuario_id, puntos_totales FROM ranking_usuarios ORDER BY puntos_totales DESC LIMIT 20',
+ TRUE, 'mensual', 'admin', 1);
+
+CREATE OR REPLACE VIEW vista_ultimos_reportes AS
+SELECT
+  e.ejecucion_id,
+  r.nombre_reporte,
+  u.nombre AS ejecutado_por,
+  e.fecha_ejecucion,
+  e.exito,
+  LEFT(e.resultado_resumen, 200) AS resumen
+FROM ejecucion_reportes e
+JOIN reportes r ON e.reporte_id = r.reporte_id
+LEFT JOIN usuarios u ON e.usuario_id = u.usuario_id
+ORDER BY e.fecha_ejecucion DESC
+LIMIT 20;
+DELIMITER //
 
 -- ================================================================
--- 🔐 MEDIDAS DE SEGURIDAD, INTEGRIDAD Y MANTENIMIENTO
+-- 🚫 Evitar asignación de puntos a usuarios inactivos
 -- ================================================================
-
--- ================================================================
--- 🔒 RESTRICCIONES Y VALIDACIONES
--- ================================================================
-
--- Evita que usuarios inactivos reciban puntos
 CREATE TRIGGER trg_validar_usuario_activo_puntos
 BEFORE INSERT ON puntos_usuario
 FOR EACH ROW
 BEGIN
   DECLARE es_activo BOOLEAN;
-  SELECT activo INTO es_activo FROM usuarios WHERE usuario_id = NEW.usuario_id;
+
+  SELECT activo INTO es_activo
+  FROM usuarios
+  WHERE usuario_id = NEW.usuario_id;
+
   IF es_activo IS FALSE THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se pueden asignar puntos a usuarios inactivos';
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = '⛔ No se pueden asignar puntos a usuarios inactivos';
   END IF;
 END;
+//
 
--- Protege contra eliminación de usuarios tipo admin
+
+-- ================================================================
+-- 🚫 Proteger contra eliminación de usuarios con rol "admin"
+-- ================================================================
 CREATE TRIGGER trg_proteger_admin_delete
 BEFORE DELETE ON usuarios
 FOR EACH ROW
 BEGIN
   DECLARE tipo_rol VARCHAR(50);
-  SELECT rol_nombre INTO tipo_rol FROM roles WHERE rol_id = OLD.rol_id;
-  IF tipo_rol = 'admin' THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se permite eliminar usuarios administradores';
+
+  SELECT rol_nombre INTO tipo_rol
+  FROM roles
+  WHERE rol_id = OLD.rol_id;
+
+  IF tipo_rol = 'admin' OR tipo_rol = 'root' THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = '⚠️ No se permite eliminar usuarios con rol administrativo o root';
   END IF;
 END;
+//
+
+
+-- ================================================================
+-- 🚫 Proteger contra eliminación directa de roles en uso
+-- ================================================================
+CREATE TRIGGER trg_prevenir_eliminacion_rol_en_uso
+BEFORE DELETE ON roles
+FOR EACH ROW
+BEGIN
+  DECLARE existe_usuario INT;
+
+  SELECT COUNT(*) INTO existe_usuario
+  FROM usuarios
+  WHERE rol_id = OLD.rol_id;
+
+  IF existe_usuario > 0 THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = '⚠️ Este rol está asignado a usuarios y no puede eliminarse';
+  END IF;
+END;
+//
+
+
+-- ================================================================
+-- 🔒 Validar que el usuario exista antes de asignar logros
+-- ================================================================
+CREATE TRIGGER trg_validar_logro_usuario_existente
+BEFORE INSERT ON logros_usuario
+FOR EACH ROW
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM usuarios WHERE usuario_id = NEW.usuario_id) THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = '⚠️ No se puede asignar un logro a un usuario inexistente';
+  END IF;
+END;
+//
+
+
+-- ================================================================
+-- ⛔ Validar que usuarios bloqueados no participen en misiones
+-- ================================================================
+CREATE TRIGGER trg_prevenir_progreso_usuario_inactivo
+BEFORE INSERT ON progreso_mision
+FOR EACH ROW
+BEGIN
+  DECLARE estado BOOLEAN;
+
+  SELECT activo INTO estado
+  FROM usuarios
+  WHERE usuario_id = NEW.usuario_id;
+
+  IF estado = FALSE THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = '⛔ Usuario inactivo no puede registrar progreso de misiones';
+  END IF;
+END;
+//
+
 
 -- ================================================================
 -- 🔁 BORRADO LÓGICO PARA USUARIOS Y PRODUCTOS
 -- ================================================================
+-- ================================================================
+-- 🔄 MANTENIMIENTO AUTOMÁTICO: EXPIRAR PUNTOS
+-- ================================================================
+DELIMITER ;
 
--- Campos de borrado lógico (solo si no existen aún)
--- ALTER TABLE usuarios ADD COLUMN borrado_logico BOOLEAN DEFAULT FALSE;
--- ALTER TABLE productos ADD COLUMN borrado_logico BOOLEAN DEFAULT FALSE;
+-- Solo ejecuta si aún no están
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS borrado_logico BOOLEAN DEFAULT FALSE;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS fecha_borrado TIMESTAMP NULL;
 
--- Triggers para prevenir borrado físico (alternativa segura)
+ALTER TABLE productos ADD COLUMN IF NOT EXISTS borrado_logico BOOLEAN DEFAULT FALSE;
+ALTER TABLE productos ADD COLUMN IF NOT EXISTS fecha_borrado TIMESTAMP NULL;
+
+
+DELIMITER //
+
+-- Evita eliminación física de usuarios
 CREATE TRIGGER trg_proteger_borrado_usuarios
 BEFORE DELETE ON usuarios
 FOR EACH ROW
 BEGIN
-  SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se permite eliminar usuarios. Use borrado lógico.';
+  SIGNAL SQLSTATE '45000'
+  SET MESSAGE_TEXT = '🚫 No se permite eliminar usuarios. Use el borrado lógico.';
 END;
+//
 
--- ================================================================
--- 🔄 MANTENIMIENTO AUTOMÁTICO: EXPIRAR PUNTOS
--- ================================================================
+-- Evita eliminación física de productos
+CREATE TRIGGER trg_proteger_borrado_productos
+BEFORE DELETE ON productos
+FOR EACH ROW
+BEGIN
+  SIGNAL SQLSTATE '45000'
+  SET MESSAGE_TEXT = '🚫 No se permite eliminar productos. Use el borrado lógico.';
+END;
+//
 
--- Evento programado (requiere habilitar event_scheduler = ON en MySQL)
+DELIMITER ;
+
+
+-- Asegúrate de tener habilitado:
+-- SET GLOBAL event_scheduler = ON;
+
 DROP EVENT IF EXISTS evt_expirar_puntos;
 CREATE EVENT evt_expirar_puntos
 ON SCHEDULE EVERY 1 DAY
 DO
   UPDATE puntos_usuario
   SET redimido = TRUE
-  WHERE fecha_expiracion IS NOT NULL AND fecha_expiracion < CURRENT_DATE AND redimido = FALSE;
+  WHERE redimido = FALSE
+    AND fecha_expiracion IS NOT NULL
+    AND fecha_expiracion < CURDATE();
+
+CREATE OR REPLACE VIEW vista_puntos_expirados_recientes AS
+SELECT puntos_id, usuario_id, puntos, fecha_expiracion, fecha
+FROM puntos_usuario
+WHERE redimido = TRUE
+  AND fecha_expiracion IS NOT NULL
+  AND fecha_expiracion < CURDATE()
+ORDER BY fecha_expiracion DESC;
+
+-- Marcar usuario como lógicamente borrado
+UPDATE usuarios SET borrado_logico = TRUE, fecha_borrado = NOW() WHERE usuario_id = 1;
+
+-- Intentar borrar físicamente (debe fallar)
+DELETE FROM usuarios WHERE usuario_id = 1;
+
+-- Forzar expiración para prueba
+UPDATE puntos_usuario SET fecha_expiracion = CURDATE() - INTERVAL 1 DAY WHERE puntos_id = 123;
+
+-- Ejecutar manualmente el evento (para prueba)
+CALL evt_expirar_puntos;
+
+
+CREATE TABLE IF NOT EXISTS auditoria_borrado (
+  auditoria_id INT AUTO_INCREMENT PRIMARY KEY,
+  entidad ENUM('usuario', 'producto') NOT NULL,
+  entidad_id INT NOT NULL,
+  usuario_responsable_id INT,
+  accion ENUM('borrado_logico', 'restauracion') NOT NULL,
+  motivo TEXT,
+  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (usuario_responsable_id) REFERENCES usuarios(usuario_id)
+    ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- Restaurar usuario
+DELIMITER //
+CREATE PROCEDURE restaurar_usuario(IN p_usuario_id INT, IN p_responsable_id INT, IN p_motivo TEXT)
+BEGIN
+  UPDATE usuarios
+  SET borrado_logico = FALSE, fecha_borrado = NULL
+  WHERE usuario_id = p_usuario_id;
+
+  INSERT INTO auditoria_borrado (entidad, entidad_id, usuario_responsable_id, accion, motivo)
+  VALUES ('usuario', p_usuario_id, p_responsable_id, 'restauracion', p_motivo);
+END;
+//
+
+-- Restaurar producto
+CREATE PROCEDURE restaurar_producto(IN p_producto_id INT, IN p_responsable_id INT, IN p_motivo TEXT)
+BEGIN
+  UPDATE productos
+  SET borrado_logico = FALSE, fecha_borrado = NULL
+  WHERE producto_id = p_producto_id;
+
+  INSERT INTO auditoria_borrado (entidad, entidad_id, usuario_responsable_id, accion, motivo)
+  VALUES ('producto', p_producto_id, p_responsable_id, 'restauracion', p_motivo);
+END;
+//
+DELIMITER ;
+
+
+DELIMITER //
+
+CREATE TRIGGER trg_log_borrado_logico_usuario
+AFTER UPDATE ON usuarios
+FOR EACH ROW
+BEGIN
+  IF NEW.borrado_logico = TRUE AND OLD.borrado_logico = FALSE THEN
+    INSERT INTO auditoria_borrado (entidad, entidad_id, usuario_responsable_id, accion, motivo)
+    VALUES ('usuario', OLD.usuario_id, NULL, 'borrado_logico', 'Borrado lógico sin responsable especificado');
+  END IF;
+END;
+//
+
+CREATE TRIGGER trg_log_borrado_logico_producto
+AFTER UPDATE ON productos
+FOR EACH ROW
+BEGIN
+  IF NEW.borrado_logico = TRUE AND OLD.borrado_logico = FALSE THEN
+    INSERT INTO auditoria_borrado (entidad, entidad_id, usuario_responsable_id, accion, motivo)
+    VALUES ('producto', OLD.producto_id, NULL, 'borrado_logico', 'Borrado lógico sin responsable especificado');
+  END IF;
+END;
+//
+
+DELIMITER ;
+
+
+CREATE OR REPLACE VIEW vista_auditoria_borrado AS
+SELECT ab.auditoria_id, ab.entidad, ab.entidad_id, ab.accion, ab.motivo,
+       CONCAT(u.nombre, ' ', u.apellido_paterno) AS responsable,
+       ab.fecha
+FROM auditoria_borrado ab
+LEFT JOIN usuarios u ON ab.usuario_responsable_id = u.usuario_id
+ORDER BY ab.fecha DESC;
 
 -- ================================================================
 -- 🧾 INTEGRIDAD CON FIRMA HASH (verificación de datos)
@@ -488,12 +1320,60 @@ DO
 -- ALTER TABLE pedidos ADD COLUMN firma_hash CHAR(64);
 
 -- Trigger para asignar hash de integridad
-CREATE TRIGGER trg_firma_hash_pedido
+ALTER TABLE pedidos
+  ADD COLUMN IF NOT EXISTS firma_hash CHAR(64) COMMENT 'Hash de integridad de datos del pedido',
+  ADD COLUMN IF NOT EXISTS fecha_firmado TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
+DELIMITER //
+
+-- Crear firma hash al insertar
+CREATE TRIGGER trg_firma_hash_pedido_insert
 BEFORE INSERT ON pedidos
 FOR EACH ROW
 BEGIN
-  SET NEW.firma_hash = SHA2(CONCAT(NEW.cliente_id, NEW.total, NEW.fecha_pedido), 256);
+  SET NEW.firma_hash = SHA2(CONCAT_WS('|', NEW.cliente_id, NEW.total, NEW.fecha_pedido), 256);
+  SET NEW.fecha_firmado = CURRENT_TIMESTAMP;
 END;
+//
+
+-- Recalcular firma hash al actualizar total o cliente
+CREATE TRIGGER trg_firma_hash_pedido_update
+BEFORE UPDATE ON pedidos
+FOR EACH ROW
+BEGIN
+  IF NEW.total <> OLD.total OR NEW.cliente_id <> OLD.cliente_id THEN
+    SET NEW.firma_hash = SHA2(CONCAT_WS('|', NEW.cliente_id, NEW.total, NEW.fecha_pedido), 256);
+    SET NEW.fecha_firmado = CURRENT_TIMESTAMP;
+  END IF;
+END;
+//
+
+DELIMITER ;
+DELIMITER //
+
+CREATE PROCEDURE verificar_integridad_pedido(IN pid INT)
+BEGIN
+  DECLARE hash_actual CHAR(64);
+  DECLARE hash_recalculado CHAR(64);
+
+  SELECT firma_hash INTO hash_actual FROM pedidos WHERE pedido_id = pid;
+
+  SELECT SHA2(CONCAT_WS('|', cliente_id, total, fecha_pedido), 256)
+  INTO hash_recalculado
+  FROM pedidos
+  WHERE pedido_id = pid;
+
+  IF hash_actual = hash_recalculado THEN
+    SELECT '✔️ Integridad verificada' AS estado, hash_actual AS hash;
+  ELSE
+    SELECT '❌ Integridad comprometida' AS estado, hash_actual AS hash, hash_recalculado AS esperado;
+  END IF;
+END;
+//
+
+DELIMITER ;
+
+
 
 -- ================================================================
 -- 🔄 MANEJO TRANSACCIONAL SUGERIDO (a nivel aplicación)
@@ -515,12 +1395,13 @@ END;
 -- ================================================================
 
 -- Habilitar EVENT SCHEDULER si no está activo
--- SET GLOBAL event_scheduler = ON;
+SET GLOBAL event_scheduler = ON;
 
 -- ===============================
 -- 🔄 Limpieza de puntos expirados
 -- ===============================
 DROP EVENT IF EXISTS evt_expirar_puntos;
+
 CREATE EVENT evt_expirar_puntos
 ON SCHEDULE EVERY 1 DAY
 DO
@@ -528,65 +1409,176 @@ DO
   SET redimido = TRUE
   WHERE redimido = FALSE
     AND fecha_expiracion IS NOT NULL
-    AND fecha_expiracion < CURRENT_DATE;
+    AND fecha_expiracion < CURDATE();
+
+-- ===============================
+-- 🔄 EVENTO: Restaurar visibilidad a productos programados
+-- ===============================
+DROP EVENT IF EXISTS evt_publicar_programados;
+
+CREATE EVENT evt_publicar_programados
+ON SCHEDULE EVERY 1 HOUR
+DO
+  UPDATE productos
+  SET publicado = TRUE
+  WHERE publicado = FALSE
+    AND estado_visible = 'pendiente'
+    AND fecha_publicacion <= NOW();
+
+-- ===============================
+-- 🔄 EVENTO: Limpieza de pedidos borradores vencidos
+-- ===============================
+DROP EVENT IF EXISTS evt_limpiar_pedidos_borrador;
+
+CREATE EVENT evt_limpiar_pedidos_borrador
+ON SCHEDULE EVERY 1 WEEK
+DO
+  DELETE FROM pedidos
+  WHERE status = 'borrador'
+    AND fecha_pedido < NOW() - INTERVAL 30 DAY;
+
+
 
 -- ===============================
 -- 🔄 Limpieza lógica de usuarios inactivos por más de 1 año
 -- ===============================
 DROP EVENT IF EXISTS evt_archivar_usuarios_inactivos;
+
 CREATE EVENT evt_archivar_usuarios_inactivos
 ON SCHEDULE EVERY 1 WEEK
 DO
   UPDATE usuarios
-  SET activo = FALSE
+  SET activo = FALSE,
+      borrado_logico = TRUE,
+      fecha_borrado = CURRENT_TIMESTAMP
   WHERE activo = TRUE
+    AND borrado_logico = FALSE
     AND fecha_registro < (CURRENT_DATE - INTERVAL 1 YEAR)
     AND usuario_id NOT IN (
-      SELECT DISTINCT usuario_id FROM pedidos
+      SELECT usuario_id FROM pedidos
+      UNION
+      SELECT usuario_id FROM puntos_usuario
+      UNION
+      SELECT usuario_id FROM ejecucion_reportes
     );
+
+CREATE OR REPLACE VIEW vista_usuarios_inactivos_1_ano AS
+SELECT usuario_id, correo_electronico, nombre, fecha_registro
+FROM usuarios
+WHERE activo = TRUE
+  AND borrado_logico = FALSE
+  AND fecha_registro < (CURRENT_DATE - INTERVAL 1 YEAR)
+  AND usuario_id NOT IN (
+    SELECT usuario_id FROM pedidos
+    UNION
+    SELECT usuario_id FROM puntos_usuario
+    UNION
+    SELECT usuario_id FROM ejecucion_reportes
+  );
+
 
 -- ===============================
 -- 🔄 Limpieza lógica de productos sin stock e inactivos
 -- ===============================
 DROP EVENT IF EXISTS evt_archivar_productos_inactivos;
+
 CREATE EVENT evt_archivar_productos_inactivos
 ON SCHEDULE EVERY 1 WEEK
 DO
   UPDATE productos
-  SET status = 'inactivo'
+  SET status = 'inactivo',
+      borrado_logico = TRUE,
+      fecha_borrado = CURRENT_TIMESTAMP
   WHERE stock = 0
     AND publicado = FALSE
+    AND borrado_logico = FALSE
     AND updated_at < (CURRENT_DATE - INTERVAL 60 DAY);
+
+
+-- ===============================
+-- 🧪 Vista de revisión previa al evento
+-- ===============================
+CREATE OR REPLACE VIEW vista_productos_inactivos_limpieza AS
+SELECT producto_id, nombre, updated_at, stock, publicado, status
+FROM productos
+WHERE stock = 0
+  AND publicado = FALSE
+  AND borrado_logico = FALSE
+  AND updated_at < (CURRENT_DATE - INTERVAL 60 DAY);
+
+-- ===============================
+-- 🧾 integrar auditoría
+-- ===============================
+INSERT INTO auditoria_borrado (entidad, entidad_id, usuario_responsable_id, accion, motivo)
+SELECT 'producto', p.producto_id, NULL, 'borrado_logico', 'Limpieza automática por inactividad'
+FROM productos p
+WHERE stock = 0 AND publicado = FALSE AND borrado_logico = FALSE
+  AND updated_at < (CURRENT_DATE - INTERVAL 60 DAY);
+
 
 -- ===============================
 -- 🔄 Borrado lógico de promociones vencidas
 -- ===============================
 DROP EVENT IF EXISTS evt_desactivar_promociones_vencidas;
+
 CREATE EVENT evt_desactivar_promociones_vencidas
 ON SCHEDULE EVERY 1 DAY
 DO
   UPDATE promociones
-  SET activo = FALSE
+  SET activo = FALSE,
+      borrado_logico = TRUE,
+      fecha_borrado = CURRENT_TIMESTAMP
   WHERE fecha_fin IS NOT NULL
     AND fecha_fin < CURRENT_DATE
-    AND activo = TRUE;
+    AND activo = TRUE
+    AND borrado_logico = FALSE;
+
+-- ===============================
+-- 🧾 Vista recomendada para revisión previa
+-- ===============================
+CREATE OR REPLACE VIEW vista_promociones_vencidas AS
+SELECT promocion_id, nombre, fecha_fin, activo
+FROM promociones
+WHERE fecha_fin IS NOT NULL
+  AND fecha_fin < CURRENT_DATE
+  AND activo = TRUE
+  AND borrado_logico = FALSE;
+
+INSERT INTO auditoria_borrado (entidad, entidad_id, usuario_responsable_id, accion, motivo)
+SELECT 'promocion', promocion_id, NULL, 'borrado_logico', 'Desactivada automáticamente por fecha de vencimiento'
+FROM promociones
+WHERE fecha_fin IS NOT NULL
+  AND fecha_fin < CURRENT_DATE
+  AND activo = TRUE
+  AND borrado_logico = FALSE;
+
+
 
 -- ===============================
 -- 🔄 Actualización automática de rankings
 -- ===============================
 DROP EVENT IF EXISTS evt_actualizar_rankings;
+
 CREATE EVENT evt_actualizar_rankings
 ON SCHEDULE EVERY 1 DAY
 DO
   UPDATE ranking_usuarios ru
   JOIN (
-    SELECT usuario_id, SUM(puntos) AS total
-    FROM puntos_usuario
-    WHERE redimido = FALSE
-    GROUP BY usuario_id
-  ) pt ON ru.usuario_id = pt.usuario_id
-  SET ru.puntos_totales = pt.total,
+    SELECT 
+      u.usuario_id,
+      COALESCE(SUM(pu.puntos), 0) AS puntos_total,
+      (SELECT COUNT(*) FROM logros_usuario lu WHERE lu.usuario_id = u.usuario_id) AS logros,
+      (SELECT COUNT(*) FROM progreso_mision pm WHERE pm.usuario_id = u.usuario_id AND pm.completada = TRUE) AS misiones
+    FROM usuarios u
+    LEFT JOIN puntos_usuario pu ON pu.usuario_id = u.usuario_id AND pu.redimido = FALSE
+    WHERE u.activo = TRUE AND u.borrado_logico = FALSE
+    GROUP BY u.usuario_id
+  ) resumen ON resumen.usuario_id = ru.usuario_id
+  SET ru.puntos_totales = resumen.puntos_total,
+      ru.logros_obtenidos = resumen.logros,
+      ru.misiones_completadas = resumen.misiones,
       ru.fecha_actualizacion = CURRENT_TIMESTAMP;
+
 
 -- ================================================================
 -- 🧮 PROCEDIMIENTOS ALMACENADOS (STORED PROCEDURES)
@@ -2410,3 +3402,22 @@ JOIN productos p ON p.producto_id = dp.producto_id
 WHERE pe.fecha_pedido >= CURDATE() - INTERVAL 30 DAY
 GROUP BY dp.producto_id
 HAVING COUNT(dp.detalle_id) < 5;
+
+-- Restaurar chequeo de llaves foráneas
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- Registro en meta_instalacion
+CREATE TABLE IF NOT EXISTS meta_instalacion (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  sistema VARCHAR(100) DEFAULT 'TianguiStore',
+  version VARCHAR(20) DEFAULT 'v1.0.0',
+  instalado_por VARCHAR(100) DEFAULT CURRENT_USER(),
+  fecha_instalacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  estado ENUM('completo', 'parcial', 'fallido') DEFAULT 'completo',
+  observaciones TEXT
+);
+
+INSERT INTO meta_instalacion (estado, observaciones) VALUES ('completo', 'Estructura creada correctamente');
+
+-- Verificación final
+SHOW TABLES;
