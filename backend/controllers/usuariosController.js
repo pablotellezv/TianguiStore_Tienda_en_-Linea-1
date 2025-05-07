@@ -2,29 +2,15 @@
  * 📁 CONTROLADOR: usuariosController.js
  * 📦 Módulo: Gestión de usuarios (TianguiStore)
  *
- * Este controlador expone funciones para manejar las operaciones relacionadas
- * con usuarios dentro del sistema: obtención, registro, edición, desactivación
- * y borrado lógico.
- *
- * 🔹 HTTP VERBS utilizados:
- *   - GET:     Para obtener información sin modificar datos.
- *   - POST:    Para registrar nuevos usuarios o buscar por correo.
- *   - PATCH:   Para actualizar parcialmente un recurso (por ejemplo, cambiar contraseña).
- *   - DELETE:  Para eliminar lógicamente un recurso (no se borra físicamente).
- *
- * 🧠 ¿Por qué usar PATCH y no PUT?
- * PATCH se utiliza para actualizar **solo algunos campos** de un recurso.
- * Es más eficiente y claro cuando no se desea reemplazar todo el objeto.
- *
- * 📂 Modelo utilizado:
- *   - usuarios.model.js
+ * Este controlador expone funciones para manejar operaciones con usuarios:
+ * obtención, búsqueda, registro, actualización, activación, desactivación y borrado lógico.
  */
 
 const usuariosModel = require("../models/usuarios.model");
 
 // ─────────────────────────────────────────────
 // 📋 GET /usuarios
-// 🔎 Obtener todos los usuarios activos y no eliminados
+// Obtener todos los usuarios activos
 // ─────────────────────────────────────────────
 async function obtenerUsuarios(req, res) {
   try {
@@ -38,11 +24,10 @@ async function obtenerUsuarios(req, res) {
 
 // ─────────────────────────────────────────────
 // 🔍 GET /usuarios/:id
-// 🔎 Buscar usuario por ID (si no está eliminado)
+// Buscar usuario por ID
 // ─────────────────────────────────────────────
 async function obtenerUsuarioPorId(req, res) {
   const { id } = req.params;
-
   try {
     const usuario = await usuariosModel.buscarUsuarioPorId(id);
     if (!usuario) {
@@ -57,15 +42,13 @@ async function obtenerUsuarioPorId(req, res) {
 
 // ─────────────────────────────────────────────
 // 🔍 POST /usuarios/buscar-correo
-// 🔎 Buscar usuario por correo electrónico
+// Buscar usuario por correo electrónico
 // ─────────────────────────────────────────────
 async function obtenerUsuarioPorCorreo(req, res) {
   const { correo } = req.body;
-
   if (!correo) {
     return res.status(400).json({ mensaje: "El campo 'correo' es obligatorio." });
   }
-
   try {
     const usuario = await usuariosModel.buscarUsuarioPorCorreo(correo.trim());
     if (!usuario) {
@@ -80,12 +63,11 @@ async function obtenerUsuarioPorCorreo(req, res) {
 
 // ─────────────────────────────────────────────
 // ➕ POST /usuarios/registro
-// ✨ Registrar nuevo usuario (con rol cliente)
+// Registrar nuevo usuario
 // ─────────────────────────────────────────────
 async function registrarUsuario(req, res) {
   const datos = req.body;
   const requeridos = ["correo_electronico", "contrasena_hash", "nombre"];
-
   for (const campo of requeridos) {
     if (!datos[campo]?.trim()) {
       return res.status(400).json({ mensaje: `El campo '${campo}' es obligatorio.` });
@@ -113,13 +95,28 @@ async function registrarUsuario(req, res) {
 }
 
 // ─────────────────────────────────────────────
-// 🔁 PATCH /usuarios/:id/cambiar-contrasena
-// 🔐 Cambiar contraseña (se recibe el nuevo hash bcrypt)
+// ✏️ PUT /usuarios/:id
+// Actualizar perfil del usuario
+// ─────────────────────────────────────────────
+async function actualizarUsuario(req, res) {
+  const { id } = req.params;
+  const datos = req.body;
+  try {
+    await usuariosModel.actualizarUsuario(id, datos);
+    res.status(200).json({ mensaje: "Perfil actualizado correctamente" });
+  } catch (error) {
+    console.error("❌ Error al actualizar perfil:", error);
+    res.status(500).json({ mensaje: "Error al actualizar el perfil" });
+  }
+}
+
+// ─────────────────────────────────────────────
+// 🔐 PATCH /usuarios/:id/contrasena
+// Cambiar contraseña del usuario
 // ─────────────────────────────────────────────
 async function cambiarContrasena(req, res) {
   const { id } = req.params;
   const { nuevo_hash } = req.body;
-
   if (!nuevo_hash) {
     return res.status(400).json({ mensaje: "Debes proporcionar la nueva contraseña (hash)" });
   }
@@ -134,29 +131,11 @@ async function cambiarContrasena(req, res) {
 }
 
 // ─────────────────────────────────────────────
-// ✏️ PATCH /usuarios/:id/actualizar-perfil
-// 📝 Actualizar datos del perfil del usuario
-// ─────────────────────────────────────────────
-async function actualizarPerfil(req, res) {
-  const { id } = req.params;
-  const datos = req.body;
-
-  try {
-    await usuariosModel.actualizarPerfil(id, datos);
-    res.status(200).json({ mensaje: "Perfil actualizado correctamente" });
-  } catch (error) {
-    console.error("❌ Error al actualizar perfil:", error);
-    res.status(500).json({ mensaje: "Error al actualizar el perfil" });
-  }
-}
-
-// ─────────────────────────────────────────────
-// 🟢 PATCH /usuarios/:id/habilitar
-// ✅ Activar cuenta de usuario (por admin o sistema)
+// ✅ PATCH /usuarios/:id/activar
+// Activar usuario (admin o sistema)
 // ─────────────────────────────────────────────
 async function habilitarUsuario(req, res) {
   const { id } = req.params;
-
   try {
     await usuariosModel.activarUsuario(id);
     res.status(200).json({ mensaje: "Usuario habilitado correctamente" });
@@ -167,12 +146,11 @@ async function habilitarUsuario(req, res) {
 }
 
 // ─────────────────────────────────────────────
-// 🔴 PATCH /usuarios/:id/deshabilitar
-// 🚫 Desactivar cuenta de usuario (sin eliminar)
+// 🔴 PATCH /usuarios/:id/desactivar
+// Desactivar usuario (baja lógica)
 // ─────────────────────────────────────────────
 async function deshabilitarUsuario(req, res) {
   const { id } = req.params;
-
   try {
     await usuariosModel.desactivarUsuario(id);
     res.status(200).json({ mensaje: "Usuario deshabilitado correctamente" });
@@ -184,11 +162,10 @@ async function deshabilitarUsuario(req, res) {
 
 // ─────────────────────────────────────────────
 // 🗑️ DELETE /usuarios/:id
-// 🧹 Eliminar usuario de forma lógica (sin borrar físicamente)
+// Eliminar usuario (borrado lógico)
 // ─────────────────────────────────────────────
 async function eliminarUsuario(req, res) {
   const { id } = req.params;
-
   try {
     const usuario = await usuariosModel.buscarUsuarioPorId(id);
     if (!usuario) {
@@ -203,13 +180,16 @@ async function eliminarUsuario(req, res) {
   }
 }
 
+// ─────────────────────────────────────────────
+// 📦 Exportar todas las funciones
+// ─────────────────────────────────────────────
 module.exports = {
   obtenerUsuarios,
   obtenerUsuarioPorId,
   obtenerUsuarioPorCorreo,
   registrarUsuario,
+  actualizarUsuario,        // <- corregido aquí
   cambiarContrasena,
-  actualizarPerfil,
   habilitarUsuario,
   deshabilitarUsuario,
   eliminarUsuario

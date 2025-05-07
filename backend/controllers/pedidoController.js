@@ -13,7 +13,7 @@
  * 🧠 Basado en procedimiento almacenado: sp_crear_pedido_completo
  */
 
-const db = require("../db"); // Conexión MySQL con pool.promise()
+const db = require("../db/connection"); // ✅ Corregido
 
 /**
  * 🧾 GET /api/pedidos
@@ -21,14 +21,13 @@ const db = require("../db"); // Conexión MySQL con pool.promise()
  */
 exports.obtenerPedidos = async (req, res) => {
   try {
-    const [resultados] = await db.promise().query(`
+    const [resultados] = await db.query(`
       SELECT p.*, u.correo_electronico AS cliente_correo, e.estado_nombre
       FROM pedidos p
       JOIN usuarios u ON p.usuario_id = u.usuario_id
       JOIN estados_pedido e ON p.estado_id = e.estado_id
       WHERE p.borrado_logico = 0
     `);
-
     res.status(200).json(resultados);
   } catch (err) {
     console.error("❌ Error al obtener pedidos:", err);
@@ -42,11 +41,10 @@ exports.obtenerPedidos = async (req, res) => {
  */
 exports.obtenerMisPedidos = async (req, res) => {
   const usuario = req.usuario;
-
   if (!usuario) return res.status(403).json({ mensaje: "No autenticado" });
 
   try {
-    const [resultados] = await db.promise().query(`
+    const [resultados] = await db.query(`
       SELECT p.*, e.estado_nombre
       FROM pedidos p
       JOIN estados_pedido e ON p.estado_id = e.estado_id
@@ -70,13 +68,12 @@ exports.crearPedido = async (req, res) => {
   if (!usuario) return res.status(403).json({ mensaje: "No autenticado" });
 
   const { total, metodo_pago, cupon, direccion_envio, notas } = req.body;
-
   if (!total || !metodo_pago || !direccion_envio) {
     return res.status(400).json({ mensaje: "Faltan campos requeridos" });
   }
 
   try {
-    const [result] = await db.promise().query(`
+    const [result] = await db.query(`
       CALL sp_crear_pedido_completo(?, ?, ?, ?, ?, ?)
     `, [
       usuario.usuario_id,
@@ -88,10 +85,7 @@ exports.crearPedido = async (req, res) => {
     ]);
 
     const pedido_id = result?.[0]?.[0]?.pedido_id;
-
-    if (!pedido_id) {
-      return res.status(500).json({ mensaje: "Error al generar el pedido" });
-    }
+    if (!pedido_id) return res.status(500).json({ mensaje: "Error al generar el pedido" });
 
     res.status(201).json({ mensaje: "Pedido creado correctamente", pedido_id });
   } catch (error) {
@@ -109,7 +103,7 @@ exports.crearPedidoDesdeCarrito = async (req, res) => {
   if (!usuario) return res.status(403).json({ mensaje: "No autenticado" });
 
   try {
-    const [[{ total }]] = await db.promise().query(`
+    const [[{ total }]] = await db.query(`
       SELECT SUM(c.cantidad * p.precio) AS total
       FROM carrito c
       JOIN productos p ON c.producto_id = p.producto_id
@@ -126,7 +120,7 @@ exports.crearPedidoDesdeCarrito = async (req, res) => {
       return res.status(400).json({ mensaje: "Faltan datos para procesar el pedido" });
     }
 
-    const [result] = await db.promise().query(`
+    const [result] = await db.query(`
       CALL sp_crear_pedido_completo(?, ?, ?, ?, ?, ?)
     `, [
       usuario.usuario_id,
@@ -142,9 +136,7 @@ exports.crearPedidoDesdeCarrito = async (req, res) => {
       return res.status(500).json({ mensaje: "No se generó el pedido correctamente" });
     }
 
-    // Limpiar el carrito tras generar el pedido
-    await db.promise().query(`DELETE FROM carrito WHERE usuario_id = ?`, [usuario.usuario_id]);
-
+    await db.query(`DELETE FROM carrito WHERE usuario_id = ?`, [usuario.usuario_id]);
     res.status(201).json({ mensaje: "Pedido generado correctamente", pedido_id });
   } catch (error) {
     console.error("❌ Error al generar pedido desde carrito:", error);
@@ -163,7 +155,7 @@ exports.cancelarPedido = async (req, res) => {
   if (!usuario) return res.status(403).json({ mensaje: "No autenticado" });
 
   try {
-    const [[pedido]] = await db.promise().query(`
+    const [[pedido]] = await db.query(`
       SELECT * FROM pedidos
       WHERE pedido_id = ? AND usuario_id = ? AND borrado_logico = 0
     `, [pedido_id, usuario.usuario_id]);
@@ -176,7 +168,7 @@ exports.cancelarPedido = async (req, res) => {
       return res.status(400).json({ mensaje: "El pedido ya no puede cancelarse" });
     }
 
-    await db.promise().query(`
+    await db.query(`
       UPDATE pedidos SET estado_id = 6 WHERE pedido_id = ?
     `, [pedido_id]);
 

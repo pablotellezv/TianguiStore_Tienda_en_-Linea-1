@@ -4,22 +4,22 @@
  *
  * 🧩 Este controlador gestiona:
  *   - Registro de nuevos usuarios
- *   - Verificación de credenciales (login)
+ *   - Inicio de sesión (login) con validación de credenciales
  *   - Generación y renovación de tokens JWT (access + refresh)
- *   - Validación de sesión activa
+ *   - Consulta de sesión activa
  *   - Cierre de sesión
  *
- * 🔐 Depende de:
- *   - 🔧 utils/jwt.js (manejo de tokens)
- *   - 📊 models/usuario.model.js (modelo de usuarios)
- *   - 🛡️ bcrypt, validator (seguridad y validaciones)
+ * 🔐 Dependencias:
+ *   - 📊 models/usuarios.model.js → funciones de consulta y escritura en DB
+ *   - 🔧 utils/jwt.js → utilidades para generación y validación de JWT
+ *   - 🛡️ bcrypt, validator → hashing y validación de datos
  */
 
 require("dotenv").config();
 const bcrypt = require("bcrypt");
 const validator = require("validator");
 
-const usuarioModel = require("../models/usuario.model");
+const usuarioModel = require("../models/usuarios.model");
 const {
   generarAccessToken,
   generarRefreshToken,
@@ -28,10 +28,6 @@ const {
 
 /**
  * ➕ REGISTRO DE NUEVO USUARIO
- * - Valida que el correo sea único y bien formado.
- * - Verifica que la contraseña sea fuerte.
- * - Hashea la contraseña y almacena el usuario como CLIENTE.
- *
  * @route POST /auth/registro
  */
 async function registrarUsuario(req, res) {
@@ -45,7 +41,7 @@ async function registrarUsuario(req, res) {
     direccion = ""
   } = req.body;
 
-  // ✅ Validaciones básicas
+  // Validaciones básicas
   if (!correo_electronico || !contrasena || !nombre) {
     return res.status(400).json({
       message: "Faltan campos obligatorios: correo_electronico, contrasena, nombre."
@@ -69,16 +65,13 @@ async function registrarUsuario(req, res) {
   }
 
   try {
-    // 🔍 Validar que el correo no esté registrado
     const yaExiste = await usuarioModel.existeCorreo(correo_electronico);
     if (yaExiste) {
       return res.status(409).json({ message: "El correo ya está registrado." });
     }
 
-    // 🔐 Hashear la contraseña con bcrypt
     const hash = await bcrypt.hash(contrasena, 10);
 
-    // 💾 Crear usuario
     await usuarioModel.crearUsuario({
       correo_electronico,
       contrasena_hash: hash,
@@ -97,9 +90,7 @@ async function registrarUsuario(req, res) {
 }
 
 /**
- * 🔐 INICIO DE SESIÓN (LOGIN)
- * - Verifica credenciales y genera accessToken y refreshToken.
- *
+ * 🔐 INICIO DE SESIÓN
  * @route POST /auth/login
  */
 async function verificarUsuario(req, res) {
@@ -110,27 +101,23 @@ async function verificarUsuario(req, res) {
   }
 
   try {
-    // 🔍 Buscar al usuario en la BD
     const usuario = await usuarioModel.buscarUsuarioPorCorreo(correo_electronico);
     if (!usuario) {
       return res.status(401).json({ message: "Credenciales inválidas." });
     }
 
-    // 🔐 Comparar hash de contraseña
     const coincide = await bcrypt.compare(contrasena, usuario.contrasena_hash);
     if (!coincide) {
       return res.status(401).json({ message: "Credenciales inválidas." });
     }
 
-    // 🧩 Extraer permisos
     let permisos = [];
     try {
       permisos = JSON.parse(usuario.permisos_json || "[]");
     } catch (e) {
-      console.warn("⚠️ Permisos corruptos:", usuario.usuario_id);
+      console.warn("⚠️ Permisos corruptos para usuario_id:", usuario.usuario_id);
     }
 
-    // 🧾 Payload para el token
     const payload = {
       usuario_id: usuario.usuario_id,
       correo: usuario.correo_electronico,
@@ -153,8 +140,6 @@ async function verificarUsuario(req, res) {
 
 /**
  * 📦 OBTENER SESIÓN ACTUAL
- * - Devuelve el payload extraído del token de acceso (usuario autenticado).
- *
  * @route GET /auth/sesion
  */
 function obtenerSesion(req, res) {
@@ -167,8 +152,6 @@ function obtenerSesion(req, res) {
 
 /**
  * ♻️ REFRESCAR TOKEN
- * - Usa un refresh token válido para generar un nuevo access token.
- *
  * @route POST /auth/refrescar
  */
 async function refrescarToken(req, res) {
@@ -179,7 +162,6 @@ async function refrescarToken(req, res) {
   }
 
   try {
-    // 🔐 Validar token
     const decoded = verificarRefreshToken(refreshToken);
 
     const usuario = await usuarioModel.buscarUsuarioPorId(decoded.usuario_id);
@@ -191,7 +173,7 @@ async function refrescarToken(req, res) {
     try {
       permisos = JSON.parse(usuario.permisos_json || "[]");
     } catch (e) {
-      console.warn("⚠️ Permisos corruptos:", usuario.usuario_id);
+      console.warn("⚠️ Permisos corruptos para usuario_id:", usuario.usuario_id);
     }
 
     const payload = {
@@ -215,9 +197,6 @@ async function refrescarToken(req, res) {
 
 /**
  * 🔓 CERRAR SESIÓN
- * - No invalida el token en el servidor (JWT es stateless).
- * - El frontend debe eliminar access/refresh tokens localmente.
- *
  * @route POST /auth/logout
  */
 function cerrarSesion(req, res) {

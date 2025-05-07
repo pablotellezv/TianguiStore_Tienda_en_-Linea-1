@@ -1,6 +1,15 @@
+/**
+ * 📁 MIDDLEWARE: sanitizeAndValidateMiddleware.js
+ * 🧼 Sanitiza y valida entradas (body, query, params) usando reglas predefinidas.
+ *
+ * ✔️ Compatible con rutas protegidas y públicas.
+ * ❌ Ignora campos no definidos en la configuración.
+ * 🔐 Usa 'validator' para validaciones y limpieza contra XSS y formatos incorrectos.
+ */
+
 const validator = require("validator");
 
-// 🎯 Definición de campos permitidos y reglas
+// 🎯 Definición de campos válidos y sus reglas de validación
 const camposPermitidos = {
   correo_electronico: { tipo: "string", max: 120, validar: "isEmail" },
   contrasena: { tipo: "string", max: 100, validar: "isStrongPassword" },
@@ -23,9 +32,9 @@ const camposPermitidos = {
 };
 
 /**
- * 🧽 Sanitiza y valida un objeto plano (body, query o params)
- * @param {Object} obj
- * @returns {string[]} lista de errores encontrados
+ * 🧽 Función de sanitización y validación para objetos simples.
+ * @param {Object} obj - Objeto a sanitizar (body, query, params)
+ * @returns {string[]} - Lista de errores encontrados
  */
 function sanitizarYValidar(obj) {
   const errores = [];
@@ -35,15 +44,15 @@ function sanitizarYValidar(obj) {
     const config = camposPermitidos[campo];
 
     if (!config) {
-      delete obj[campo];
+      delete obj[campo]; // Elimina campos no permitidos
       continue;
     }
 
     try {
-      // 🔤 Cadenas de texto
+      // 🔤 Strings
       if (config.tipo === "string" && typeof valor === "string") {
         let limpio = validator.stripLow(validator.escape(valor.trim()));
-        limpio = validator.whitelist(limpio, 'a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ@._\\-\\s');
+        limpio = validator.whitelist(limpio, "a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ@._\\-\\s");
 
         if (config.max && limpio.length > config.max) {
           limpio = limpio.slice(0, config.max);
@@ -53,15 +62,22 @@ function sanitizarYValidar(obj) {
           errores.push(`"${campo}" no es un correo electrónico válido.`);
         }
 
-        if (config.validar === "isStrongPassword" &&
-            !validator.isStrongPassword(limpio, { minLength: 8, minUppercase: 1, minNumbers: 1 })) {
+        if (
+          config.validar === "isStrongPassword" &&
+          !validator.isStrongPassword(limpio, {
+            minLength: 8,
+            minUppercase: 1,
+            minNumbers: 1,
+            minSymbols: 0
+          })
+        ) {
           errores.push(`"${campo}" no es una contraseña segura.`);
         }
 
         obj[campo] = limpio;
       }
 
-      // 🔢 Flotantes
+      // 🔢 Floats
       else if (config.tipo === "float") {
         const num = parseFloat(valor);
         if (isNaN(num) || !validator.isFloat(String(num), config.opciones)) {
@@ -71,7 +87,7 @@ function sanitizarYValidar(obj) {
         }
       }
 
-      // 🔢 Enteros
+      // 🔢 Ints
       else if (config.tipo === "int") {
         const entero = parseInt(valor);
         if (isNaN(entero) || !validator.isInt(String(entero), config.opciones)) {
@@ -92,13 +108,13 @@ function sanitizarYValidar(obj) {
         }
       }
 
-      // ❌ Tipo incorrecto
+      // ❌ Tipo incompatible
       else if (typeof valor !== config.tipo) {
-        errores.push(`"${campo}" tiene un tipo incorrecto (se esperaba ${config.tipo}).`);
+        errores.push(`"${campo}" tiene un tipo inválido. Se esperaba "${config.tipo}".`);
       }
 
     } catch (err) {
-      errores.push(`Error procesando el campo "${campo}".`);
+      errores.push(`Error al procesar el campo "${campo}".`);
     }
   }
 
@@ -106,14 +122,14 @@ function sanitizarYValidar(obj) {
 }
 
 /**
- * 🛡️ Middleware Express para sanitizar y validar req.body, req.query y req.params
+ * 🧱 Middleware de Express para sanitizar y validar los datos entrantes.
  */
 module.exports = function sanitizeAndValidate(req, res, next) {
   try {
     const errores = [
-      ...sanitizarYValidar(req.body),
-      ...sanitizarYValidar(req.query),
-      ...sanitizarYValidar(req.params),
+      ...sanitizarYValidar(req.body || {}),
+      ...sanitizarYValidar(req.query || {}),
+      ...sanitizarYValidar(req.params || {}),
     ];
 
     if (errores.length > 0) {
@@ -125,7 +141,7 @@ module.exports = function sanitizeAndValidate(req, res, next) {
 
     next();
   } catch (err) {
-    console.error("❌ Error interno en sanitización:", err);
+    console.error("❌ Error en sanitizeAndValidateMiddleware:", err);
     return res.status(500).json({ message: "Error interno del servidor." });
   }
 };

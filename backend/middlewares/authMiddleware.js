@@ -1,53 +1,63 @@
+/**
+ * 📁 MIDDLEWARE: authMiddleware.js
+ * 🔐 Verificación de autenticación y control de acceso basado en permisos o roles
+ *
+ * ✅ Usa JWT para identificar usuarios.
+ * ✅ Permite validar permisos por recurso/acción.
+ * ✅ Permite restringir acceso por roles permitidos.
+ */
+
 const jwt = require("jsonwebtoken");
-const dotenv = require("dotenv");
+require("dotenv").config();
 
-dotenv.config();
-
+// 🔐 Secreto JWT desde .env o uno por defecto (no recomendado en producción)
 const JWT_SECRET = process.env.JWT_SECRET || "clave_predeterminada";
 
 /**
- * 🔐 Middleware: Verifica autenticación JWT.
- * Requiere header Authorization: Bearer <token>
+ * 🔐 Middleware: Verifica autenticación JWT
+ * - Extrae token del header Authorization: Bearer <token>
+ * - Inserta el payload JWT en req.usuario
  */
 function verificarAutenticacion(req, res, next) {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || typeof authHeader !== "string" || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ mensaje: "Token no proporcionado o formato incorrecto (se espera 'Bearer <token>')." });
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({
+      mensaje: "Token no proporcionado o formato incorrecto (se espera 'Bearer <token>')."
+    });
   }
 
   const token = authHeader.split(" ")[1];
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    req.usuario = payload;
+    req.usuario = payload; // Inyecta los datos del usuario en la petición
     next();
   } catch (err) {
     if (err instanceof jwt.TokenExpiredError) {
-      return res.status(401).json({ mensaje: "Token expirado. Por favor, vuelva a iniciar sesión." });
+      return res.status(401).json({ mensaje: "Token expirado. Por favor, inicie sesión nuevamente." });
     }
-
     if (err instanceof jwt.JsonWebTokenError) {
       return res.status(401).json({ mensaje: "Token inválido o manipulado." });
     }
 
-    console.error("❌ Error desconocido al verificar token:", err);
-    return res.status(500).json({ mensaje: "Error interno al verificar token." });
+    console.error("❌ Error inesperado al verificar token:", err);
+    return res.status(500).json({ mensaje: "Error interno al verificar autenticación." });
   }
 }
 
 /**
- * ✅ Middleware: Verifica si el usuario tiene un permiso específico.
- * @param {string} recurso - Ejemplo: "usuarios"
- * @param {string} accion - Ejemplo: "crear", "leer", "actualizar", "eliminar"
+ * 🛂 Middleware: Verifica si el usuario tiene permiso para una acción específica
+ * @param {string} recurso - Ej. "productos", "usuarios"
+ * @param {string} accion - Ej. "crear", "leer", "actualizar", "eliminar"
  */
 function verificarPermiso(recurso, accion) {
   return (req, res, next) => {
-    const permisos = req.usuario?.permisos;
+    const permisos = req.usuario?.permisos || {};
 
-    if (!permisos || !permisos[recurso] || permisos[recurso][accion] !== true) {
+    if (!permisos[recurso] || permisos[recurso][accion] !== true) {
       return res.status(403).json({
-        mensaje: `Acceso denegado. Falta permiso para '${recurso}' → '${accion}'.`
+        mensaje: `Permiso denegado. Se requiere permiso '${accion}' en '${recurso}'.`
       });
     }
 
@@ -56,8 +66,8 @@ function verificarPermiso(recurso, accion) {
 }
 
 /**
- * ✅ Middleware: Permitir acceso solo si el rol está en la lista
- * @param {...string} rolesPermitidos - Ejemplo: "admin", "cliente", "soporte"
+ * 🧾 Middleware: Permitir acceso solo si el rol del usuario está autorizado
+ * @param {...string} rolesPermitidos - Ej. "admin", "cliente"
  */
 function permitirRoles(...rolesPermitidos) {
   return (req, res, next) => {
@@ -65,7 +75,7 @@ function permitirRoles(...rolesPermitidos) {
 
     if (!rolUsuario || !rolesPermitidos.includes(rolUsuario)) {
       return res.status(403).json({
-        mensaje: `Acceso denegado. Se requiere uno de los siguientes roles: ${rolesPermitidos.join(", ")}.`
+        mensaje: `Acceso denegado. Solo los roles permitidos: ${rolesPermitidos.join(", ")}.`
       });
     }
 

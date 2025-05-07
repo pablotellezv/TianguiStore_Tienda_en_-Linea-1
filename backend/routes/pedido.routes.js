@@ -15,7 +15,8 @@ const {
 } = require("../middlewares/authMiddleware");
 
 const validarResultados = require("../middlewares/validacion/validarResultados");
-const { pedidoSchema } = require("../middlewares/validacion/pedidoSchema");
+const pedidoSchema = require("../middlewares/validacion/pedidoSchema");
+
 
 // 📦 Obtener todos los pedidos (solo admin o soporte)
 router.get(

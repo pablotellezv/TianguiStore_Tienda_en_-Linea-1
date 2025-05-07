@@ -14,8 +14,8 @@
  *   - galeriaModel.js
  */
 
-const productosModel = require("../models/productosModel");
-const galeriaModel = require("../models/galeria.model");
+const productosModel = require('../models/producto.model');
+const galeriaModel = require('../models/galeria.model');
 
 // ─────────────────────────────────────────────
 // 📥 GET /productos → Obtener todos los productos publicados
@@ -37,7 +37,9 @@ exports.obtenerProductoPorId = async (req, res) => {
   const { id } = req.params;
   try {
     const producto = await productosModel.obtenerProductoPorId(id);
-    if (!producto) return res.status(404).json({ mensaje: "Producto no encontrado." });
+    if (!producto) {
+      return res.status(404).json({ mensaje: "Producto no encontrado." });
+    }
 
     const galeria = await galeriaModel.obtenerGaleriaPorProducto(id);
     const imagenes = galeria.filter(e => e.tipo === "imagen").map(e => e.url);
@@ -89,8 +91,7 @@ exports.agregarProductoConArchivos = async (req, res) => {
   }
 
   try {
-    const insertId = await productosModel.insertarProducto(datos);
-    const productoId = insertId;
+    const productoId = await productosModel.insertarProducto(datos);
 
     // Subir imágenes
     const imagenes = req.files?.imagenes || [];

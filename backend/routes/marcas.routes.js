@@ -10,7 +10,7 @@ const router = express.Router();
 
 // 🛡️ Middlewares
 const { verificarAutenticacion } = require("../middlewares/authMiddleware");
-const sanitizarEntradas = require("../middlewares/sanitizeMiddleware");
+const sanitizarEntradas = require("../middlewares/sanitizeAndValidateMiddleware");
 
 // 🧠 Controladores
 const {

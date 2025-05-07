@@ -70,7 +70,8 @@ CREATE TABLE IF NOT EXISTS pedidos (
   coordenadas_entrega POINT,
 
   fecha_pedido DATETIME DEFAULT CURRENT_TIMESTAMP,
-  fecha_entregado DATETIME DEFAULT NULL,
+  fecha_entregado 
+  DATETIME DEFAULT NULL,
   fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
   firma_hash CHAR(64) COMMENT 'Hash de integridad del pedido',

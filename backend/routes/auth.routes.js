@@ -4,13 +4,13 @@
  *
  * 🔐 Rutas para:
  *   - Registro de usuarios
- *   - Inicio/cierre de sesión
+ *   - Inicio y cierre de sesión
  *   - Manejo de tokens (Access & Refresh)
  *   - Validación de sesiones activas
  *
  * 🛠️ Integrado con:
  *   - Controladores: authController.js
- *   - Middlewares: authMiddleware.js, sanitizeMiddleware.js
+ *   - Middlewares: authMiddleware.js, sanitizeAndValidateMiddleware.js
  *   - Sistema JWT con Access Token + Refresh Token
  */
 
@@ -23,35 +23,32 @@ const {
   verificarUsuario,
   obtenerSesion,
   cerrarSesion,
-  renovarToken,
   refrescarToken
 } = require("../controllers/authController");
 
 // 🛡️ Middlewares
 const { verificarAutenticacion } = require("../middlewares/authMiddleware");
-const sanitizarEntradas = require("../middlewares/sanitizeMiddleware");
+const sanitizarEntradas = require("../middlewares/sanitizeAndValidateMiddleware");
 
 // ───────────────────────────────────────────────
-// 🔓 RUTAS PÚBLICAS — sin autenticación
+// 🔓 RUTAS PÚBLICAS — no requieren autenticación
 // ───────────────────────────────────────────────
 
 /**
  * 📝 POST /auth/registro
  * Registra un nuevo usuario cliente.
- * Requiere: nombre, correo_electronico, contrasena_hash
  */
 router.post("/registro", sanitizarEntradas, registrarUsuario);
 
 /**
  * 🔐 POST /auth/login
  * Inicia sesión con correo y contraseña.
- * Devuelve: access_token + refresh_token
  */
 router.post("/login", sanitizarEntradas, verificarUsuario);
 
 /**
  * ♻️ POST /auth/refrescar
- * Obtiene un nuevo access token desde refresh token.
+ * Genera un nuevo access token usando el refresh token.
  */
 router.post("/refrescar", sanitizarEntradas, refrescarToken);
 
@@ -61,19 +58,13 @@ router.post("/refrescar", sanitizarEntradas, refrescarToken);
 
 /**
  * 📦 GET /auth/sesion
- * Retorna información del usuario autenticado.
+ * Devuelve los datos del usuario autenticado.
  */
 router.get("/sesion", verificarAutenticacion, obtenerSesion);
 
 /**
- * 🔄 POST /auth/renovar
- * Renueva access token si el anterior aún no ha expirado.
- */
-router.post("/renovar", verificarAutenticacion, renovarToken);
-
-/**
  * 🔓 POST /auth/logout
- * Finaliza sesión (el frontend debe limpiar los tokens).
+ * Finaliza la sesión actual. El frontend debe limpiar los tokens.
  */
 router.post("/logout", verificarAutenticacion, cerrarSesion);
 

@@ -1,3 +1,16 @@
+/**
+ * 📁 MIDDLEWARE: uploadMiddleware.js
+ * 📦 Manejo de archivos con multer: imágenes y modelos 3D
+ *
+ * ✅ Soporta:
+ *   - Subida de imágenes (.jpeg, .png, .webp, etc.)
+ *   - Subida de archivos 3D (.glb, .gltf, .obj, .stl, etc.)
+ *
+ * 🧩 Depende de:
+ *   - multer (manejo de uploads)
+ *   - path, fs (manejo de rutas)
+ */
+
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -10,46 +23,52 @@ const rutaModelos = path.join(__dirname, '..', 'public', 'uploads', 'modelos');
 fs.mkdirSync(rutaImagenes, { recursive: true });
 fs.mkdirSync(rutaModelos, { recursive: true });
 
-// 📦 Configuración de almacenamiento
+// 📦 Configuración del almacenamiento en disco
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    if (file.fieldname === 'imagenes') return cb(null, rutaImagenes);
-    if (file.fieldname === 'modelo3d') return cb(null, rutaModelos);
-    return cb(new Error(`Campo de archivo no permitido: ${file.fieldname}`));
+    switch (file.fieldname) {
+      case 'imagenes':
+        return cb(null, rutaImagenes);
+      case 'modelo3d':
+        return cb(null, rutaModelos);
+      default:
+        return cb(new Error(`Campo de archivo no permitido: ${file.fieldname}`));
+    }
   },
   filename: (req, file, cb) => {
     const timestamp = Date.now();
-    const random = Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, `${file.fieldname}-${timestamp}-${random}${ext}`);
+    const random = Math.floor(Math.random() * 1e9);
+    const extension = path.extname(file.originalname);
+    cb(null, `${file.fieldname}-${timestamp}-${random}${extension}`);
   }
 });
 
-// 🎯 Validación de tipos MIME
+// 🎯 Validación de tipos MIME permitidos
 const fileFilter = (req, file, cb) => {
-  const validImages = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-  const validModelTypes = [
-    'model/gltf+json', 'model/gltf-binary', // .gltf y .glb
-    'application/octet-stream',             // genérico
-    'model/obj', 'model/stl', 'model/fbx'   // opcional: si tu visor 3D los soporta
+  const mimeImagenes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  const mimeModelos = [
+    'model/gltf+json', 'model/gltf-binary',
+    'application/octet-stream', // genérico (usado por .glb y .fbx)
+    'model/obj', 'model/stl', 'model/fbx'
   ];
 
-  if (file.fieldname === 'imagenes' && validImages.includes(file.mimetype)) {
+  if (file.fieldname === 'imagenes' && mimeImagenes.includes(file.mimetype)) {
     return cb(null, true);
   }
 
   if (file.fieldname === 'modelo3d') {
-    return cb(null, true); // puedes reforzar si lo deseas con mimetype
+    // Puedes hacer validación más estricta aquí si lo deseas
+    return cb(null, true);
   }
 
   return cb(new Error(`Tipo de archivo no permitido: ${file.originalname}`));
 };
 
-// 🚀 Middleware final
+// 🚀 Middleware final de subida
 const upload = multer({
   storage,
   limits: {
-    fileSize: 15 * 1024 * 1024 // hasta 15MB por archivo
+    fileSize: 15 * 1024 * 1024 // 15 MB por archivo
   },
   fileFilter
 });

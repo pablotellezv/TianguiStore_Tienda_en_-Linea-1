@@ -8,10 +8,11 @@
 
 const express = require("express");
 const router = express.Router();
-const categoriasModel = require("../models/categoriasModel");
+const categoriasModel = require("../models/categoria.model");
+
 
 const { verificarAutenticacion } = require("../middlewares/authMiddleware");
-const sanitizarEntradas = require("../middlewares/sanitizeMiddleware");
+const sanitizarEntradas = require("../middlewares/sanitizeAndValidateMiddleware");
 
 // ───────────────────────────────────────────────
 // 📥 Rutas protegidas — requieren JWT válido

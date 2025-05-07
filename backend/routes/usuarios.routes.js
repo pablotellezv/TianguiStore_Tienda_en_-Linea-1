@@ -1,30 +1,16 @@
-/**
- * 📁 RUTA: routes/usuarios.routes.js
- * 📦 Descripción: API para gestión de usuarios del sistema.
- * 🔐 Todas las rutas están protegidas y controladas por permisos.
- */
-
 const express = require("express");
 const router = express.Router();
 const usuariosController = require("../controllers/usuariosController");
 
-// 🛡️ Middlewares
 const {
   verificarAutenticacion,
   verificarPermiso
 } = require("../middlewares/authMiddleware");
 
 const validarResultados = require("../middlewares/validacion/validarResultados");
-const { usuarioSchema, usuarioUpdateSchema, cambioContrasenaSchema } = require("../middlewares/validacion/usuarioSchemas");
+const { usuarioSchema, usuarioUpdateSchema, cambioContrasenaSchema } = require("../middlewares/validacion/usuarioSchema");
 
-// ───────────────────────────────────────────────
-// 🧾 Rutas protegidas — Gestión de usuarios
-// ───────────────────────────────────────────────
-
-/**
- * 📋 GET /usuarios
- * Obtener todos los usuarios activos (admin, soporte, etc.)
- */
+// 📋 GET /usuarios — Obtener todos los usuarios
 router.get(
   "/",
   verificarAutenticacion,
@@ -32,32 +18,23 @@ router.get(
   usuariosController.obtenerUsuarios
 );
 
-/**
- * 🔍 GET /usuarios/:id
- * Buscar usuario por ID
- */
+// 🔍 GET /usuarios/:id — Buscar usuario por ID
 router.get(
   "/:id",
   verificarAutenticacion,
   verificarPermiso("usuarios", "leer"),
-  usuariosController.buscarUsuarioPorId
+  usuariosController.obtenerUsuarioPorId
 );
 
-/**
- * 🔍 POST /usuarios/buscar-correo
- * Buscar usuario por correo electrónico (uso interno)
- */
+// 🔍 POST /usuarios/buscar-correo — Buscar usuario por correo electrónico
 router.post(
   "/buscar-correo",
   verificarAutenticacion,
   verificarPermiso("usuarios", "leer"),
-  usuariosController.buscarUsuarioPorCorreo
+  usuariosController.obtenerUsuarioPorCorreo
 );
 
-/**
- * ➕ POST /usuarios/registro
- * Registrar nuevo usuario (rol cliente por defecto)
- */
+// ➕ POST /usuarios/registro — Registrar nuevo usuario
 router.post(
   "/registro",
   verificarAutenticacion,
@@ -67,23 +44,17 @@ router.post(
   usuariosController.registrarUsuario
 );
 
-/**
- * ✏️ PUT /usuarios/:id
- * Actualizar perfil del usuario (nombre, dirección, etc.)
- */
+// ✏️ PUT /usuarios/:id — Actualizar perfil del usuario
 router.put(
   "/:id",
   verificarAutenticacion,
   verificarPermiso("usuarios", "modificar"),
   usuarioUpdateSchema,
   validarResultados,
-  usuariosController.actualizarUsuario
+  usuariosController.actualizarUsuario // ← ✅ Corrección aquí
 );
 
-/**
- * 🔐 PATCH /usuarios/:id/contrasena
- * Cambiar contraseña del usuario
- */
+// 🔐 PATCH /usuarios/:id/contrasena — Cambiar contraseña
 router.patch(
   "/:id/contrasena",
   verificarAutenticacion,
@@ -93,32 +64,23 @@ router.patch(
   usuariosController.cambiarContrasena
 );
 
-/**
- * ✅ PATCH /usuarios/:id/activar
- * Activar usuario (admin o sistema)
- */
+// ✅ PATCH /usuarios/:id/activar — Activar usuario
 router.patch(
   "/:id/activar",
   verificarAutenticacion,
   verificarPermiso("usuarios", "modificar"),
-  usuariosController.activarUsuario
+  usuariosController.habilitarUsuario
 );
 
-/**
- * 🔴 PATCH /usuarios/:id/desactivar
- * Desactivar usuario (baja lógica)
- */
+// 🔴 PATCH /usuarios/:id/desactivar — Desactivar usuario
 router.patch(
   "/:id/desactivar",
   verificarAutenticacion,
   verificarPermiso("usuarios", "modificar"),
-  usuariosController.desactivarUsuario
+  usuariosController.deshabilitarUsuario
 );
 
-/**
- * 🗑️ DELETE /usuarios/:id
- * Eliminar lógicamente al usuario (borrado_logico = 1)
- */
+// 🗑️ DELETE /usuarios/:id — Eliminar usuario lógicamente
 router.delete(
   "/:id",
   verificarAutenticacion,

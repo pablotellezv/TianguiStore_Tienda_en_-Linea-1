@@ -156,7 +156,7 @@ async function cambiarContrasena(id, nuevoHash) {
 // ─────────────────────────────────────────────
 // ✏️ Actualizar perfil (solo campos válidos enviados)
 // ─────────────────────────────────────────────
-async function actualizarPerfil(id, datos) {
+async function actualizarUsuario(id, datos) {
   const campos = [];
   const valores = [];
 
@@ -203,6 +203,6 @@ module.exports = {
   verificarUsuario,
   borrarUsuarioLogico,
   cambiarContrasena,
-  actualizarPerfil,
+  actualizarUsuario,
   registrarAuditoriaUsuario
 };

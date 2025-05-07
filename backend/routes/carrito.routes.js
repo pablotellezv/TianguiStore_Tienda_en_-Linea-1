@@ -7,9 +7,10 @@
 const express = require("express");
 const router = express.Router();
 
-const carritoModel = require("../models/carritoModel");
+// ✅ Importación corregida
+const carritoModel = require("../models/carrito.model");
 const { verificarAutenticacion } = require("../middlewares/authMiddleware");
-const sanitizarEntradas = require("../middlewares/sanitizeMiddleware");
+const sanitizarEntradas = require("../middlewares/sanitizeAndValidateMiddleware");
 
 // ───────────────────────────────────────────────
 // 🔐 Rutas protegidas (requieren JWT válido)
@@ -40,7 +41,7 @@ router.post("/", verificarAutenticacion, sanitizarEntradas, async (req, res) => 
     const usuario_id = req.usuario.id;
     const { producto_id, cantidad } = req.body;
 
-    if (!producto_id || !cantidad || cantidad <= 0) {
+    if (!producto_id || !Number.isInteger(cantidad) || cantidad <= 0) {
       return res.status(400).json({ mensaje: "Producto y cantidad válidos son requeridos." });
     }
 
