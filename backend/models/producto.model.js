@@ -1,9 +1,20 @@
+/**
+ * 📁 MODELO: producto.model.js
+ * 📦 TABLA: productos
+ *
+ * Este modelo gestiona todas las operaciones CRUD asociadas a productos
+ * dentro del sistema TianguiStore. Permite obtener productos publicados,
+ * insertar nuevos registros con estructura extendida, actualizar
+ * dinámicamente campos proporcionados y realizar eliminación física.
+ */
+
 const db = require("../db/connection");
 
-/**
- * 📦 Obtener todos los productos publicados, incluyendo marca y categoría.
- * @returns {Promise<Array>}
- */
+// ───────────────────────────────────────────────
+// 📋 OBTENER TODOS LOS PRODUCTOS PUBLICADOS
+// Incluye JOIN con marcas y categorías.
+// Solo productos con `publicado = TRUE` y `status = 'activo'`.
+// ───────────────────────────────────────────────
 async function obtenerProductosPublicados() {
   const [rows] = await db.query(`
     SELECT p.*, m.nombre_marca, c.nombre_categoria
@@ -15,11 +26,10 @@ async function obtenerProductosPublicados() {
   return rows;
 }
 
-/**
- * 🔍 Obtener un producto por ID.
- * @param {number} id
- * @returns {Promise<Object|null>}
- */
+// ───────────────────────────────────────────────
+// 🔍 OBTENER PRODUCTO POR ID
+// Devuelve un solo producto o `null` si no existe.
+// ───────────────────────────────────────────────
 async function obtenerProductoPorId(id) {
   const [rows] = await db.query(`
     SELECT * FROM productos WHERE producto_id = ?
@@ -27,47 +37,25 @@ async function obtenerProductoPorId(id) {
   return rows[0] || null;
 }
 
-/**
- * ➕ Insertar un nuevo producto (estructura extendida).
- * @param {Object} datos
- * @returns {Promise<void>}
- */
+// ───────────────────────────────────────────────
+// ➕ INSERTAR NUEVO PRODUCTO (con insertId)
+// Estructura extendida para productos físicos y digitales.
+// ───────────────────────────────────────────────
 async function insertarProducto(datos) {
   const {
-    nombre,
-    slug_producto,
-    descripcion,
-    especificaciones = "",
-    precio,
-    descuento = 0,
-    stock = 0,
-    categoria_id,
-    marca_id = null,
-    proveedor_id = null,
-    tipo_publicacion_id = null,
-    sku = null,
-    imagen_url = null,
-    video_url = null,
-    modelo_3d_url = null,
-    stock_ilimitado = false,
-    mostrar_sin_stock = false,
-    publicado = false,
-    destacado = false,
-    meses_sin_intereses = false,
-    tipo_pago = "efectivo",
-    estado_visible = "visible",
-    status = "activo",
-    peso_kg = null,
-    dimensiones_cm = null,
-    garantia_meses = null,
-    es_digital = false,
-    tipo_digital = null,
-    archivo_descarga_url = null,
-    clave_acceso = null,
-    duracion_dias = null
+    nombre, slug_producto, descripcion, especificaciones = "",
+    precio, descuento = 0, stock = 0,
+    categoria_id, marca_id = null, proveedor_id = null, tipo_publicacion_id = null, sku = null,
+    imagen_url = null, video_url = null, modelo_3d_url = null,
+    stock_ilimitado = false, mostrar_sin_stock = false,
+    publicado = false, destacado = false, meses_sin_intereses = false,
+    tipo_pago = "efectivo", estado_visible = "visible", status = "activo",
+    peso_kg = null, dimensiones_cm = null, garantia_meses = null,
+    es_digital = false, tipo_digital = null, archivo_descarga_url = null,
+    clave_acceso = null, duracion_dias = null
   } = datos;
 
-  await db.query(`
+  const [result] = await db.query(`
     INSERT INTO productos (
       nombre, slug_producto, descripcion, especificaciones,
       precio, descuento, stock,
@@ -88,9 +76,9 @@ async function insertarProducto(datos) {
     parseFloat(descuento),
     parseInt(stock),
     parseInt(categoria_id),
-    parseInt(marca_id),
-    parseInt(proveedor_id),
-    parseInt(tipo_publicacion_id),
+    marca_id ? parseInt(marca_id) : null,
+    proveedor_id ? parseInt(proveedor_id) : null,
+    tipo_publicacion_id ? parseInt(tipo_publicacion_id) : null,
     sku?.trim() || null,
     imagen_url?.trim() || null,
     video_url?.trim() || null,
@@ -112,14 +100,13 @@ async function insertarProducto(datos) {
     clave_acceso?.trim() || null,
     duracion_dias
   ]);
+
+  return result.insertId;
 }
 
-/**
- * ✏️ Actualizar un producto existente.
- * @param {number} id
- * @param {Object} datos
- * @returns {Promise<void>}
- */
+// ───────────────────────────────────────────────
+// ✏️ ACTUALIZAR PRODUCTO (dinámico por campos)
+// ───────────────────────────────────────────────
 async function actualizarProducto(id, datos) {
   const campos = [];
   const valores = [];
@@ -135,20 +122,22 @@ async function actualizarProducto(id, datos) {
 
   valores.push(parseInt(id));
   const sql = `UPDATE productos SET ${campos.join(", ")} WHERE producto_id = ?`;
-  await db.query(sql, valores);
+  return await db.query(sql, valores);
 }
 
-/**
- * ❌ Eliminar físicamente un producto (usar con cuidado).
- * @param {number} id
- * @returns {Promise<void>}
- */
+// ───────────────────────────────────────────────
+// 🗑️ ELIMINAR PRODUCTO (físico, no lógico)
+// Recomendado implementar borrado lógico más adelante.
+// ───────────────────────────────────────────────
 async function eliminarProducto(id) {
-  await db.query(`
+  return await db.query(`
     DELETE FROM productos WHERE producto_id = ?
   `, [parseInt(id)]);
 }
 
+// ───────────────────────────────────────────────
+// 📤 EXPORTACIÓN DE FUNCIONES
+// ───────────────────────────────────────────────
 module.exports = {
   obtenerProductosPublicados,
   obtenerProductoPorId,

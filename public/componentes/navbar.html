@@ -1,68 +1,61 @@
 <!-- componentes/navbar.html -->
-<nav class="navbar navbar-expand-lg navbar-dark gradient-bg shadow-sm">
-    <div class="container">
-      <!-- Logo -->
-      <a class="navbar-brand d-flex align-items-center" href="index.html">
-        <img src="./imagenes/logo.jpeg" alt="Logo" class="rounded-circle shadow" style="border: 2px solid #fff; width: 50px; height: 50px;">
-        <span class="fs-4 fw-bold ms-2"><i class="fas fa-store"></i> TianguiStore</span>
-      </a>
-  
-      <!-- Botón móvil -->
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#barraSoportada">
-        <span class="navbar-toggler-icon"></span>
+<nav class="bg-gray-900 text-gray-100 shadow-md" role="navigation" aria-label="Menú principal de TianguiStore">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+    <!-- LOGO + NOMBRE -->
+    <a href="index.html" class="flex items-center space-x-3" title="Ir al inicio">
+      <img src="./imagenes/logo.jpeg" alt="Logo TianguiStore" class="rounded-full w-10 h-10 border-2 border-white shadow">
+      <span class="text-lg font-semibold tracking-wide">TianguiStore</span>
+    </a>
+
+    <!-- ACCIONES DERECHA (hamburguesa + tema) -->
+    <div class="flex items-center gap-4">
+      <!-- Toggle Tema Global -->
+      <button id="toggleThemeBtn" title="Cambiar modo claro/oscuro" aria-label="Cambiar tema" class="text-yellow-400 hover:text-yellow-300 transition text-xl">
+        <i class="fas fa-moon"></i>
       </button>
-  
-      <!-- Menú -->
-      <div class="collapse navbar-collapse justify-content-end" id="barraSoportada">
-        <ul class="navbar-nav align-items-center">
-          <!-- Menú fijo -->
-          <li class="nav-item"><a class="nav-link" href="index.html"><i class="fas fa-home"></i> Inicio</a></li>
-          <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-users"></i> ¿Quiénes somos?</a></li>
-          <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-address-book"></i> Contacto</a></li>
-          <li class="nav-item">
-            <a class="nav-link" href="carrito.html">
-              <i class="fas fa-shopping-cart"></i> Carrito (<span id="contador-carrito">0</span>)
-            </a>
-          </li>
-  
-          <!-- 🔐 Menú dinámico según permisos -->
-          <li class="nav-item d-none" id="nav-panel">
-            <a class="nav-link" href="adminPanel.html"><i class="fas fa-tools"></i> Panel Admin</a>
-          </li>
-          <li class="nav-item d-none" id="nav-productos">
-            <a class="nav-link" href="#" onclick="mostrarSeccion('productos')"><i class="fas fa-boxes"></i> Catálogo</a>
-          </li>
-          <li class="nav-item d-none" id="nav-usuarios">
-            <a class="nav-link" href="#" onclick="mostrarSeccion('usuarios')"><i class="fas fa-users-cog"></i> Usuarios</a>
-          </li>
-          <li class="nav-item d-none" id="nav-pedidos">
-            <a class="nav-link" href="#" onclick="mostrarSeccion('pedidos')"><i class="fas fa-receipt"></i> Pedidos</a>
-          </li>
-          <li class="nav-item d-none" id="nav-configuracion">
-            <a class="nav-link" href="#" onclick="mostrarSeccion('configuracion')"><i class="fas fa-cogs"></i> Configuración</a>
-          </li>
-          <li class="nav-item d-none" id="nav-metricas">
-            <a class="nav-link" href="#" onclick="mostrarSeccion('metricas')"><i class="fas fa-chart-line"></i> Métricas</a>
-          </li>
-  
-          <!-- Cuenta -->
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="usuarioMenu" role="button" data-bs-toggle="dropdown">
-              <i class="fas fa-user"></i> <span id="usuario-info">Cuenta</span>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li id="menu-registro"><a class="dropdown-item" href="registro.html"><i class="fas fa-user-plus"></i> Registro</a></li>
-              <li id="menu-login"><a class="dropdown-item" href="login.html"><i class="fas fa-sign-in-alt"></i> Iniciar sesión</a></li>
-              <li id="menu-logout" class="d-none">
-                <button class="dropdown-item" id="btnCerrarSesion"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
-              </li>
-            </ul>
-          </li>
-        </ul>
+
+      <!-- Botón hamburguesa móvil -->
+      <button class="lg:hidden text-white" id="toggleNavbarBtn" aria-label="Abrir menú de navegación">
+        <i class="fas fa-bars text-2xl"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- MENÚ PRINCIPAL -->
+  <div id="navbarMenu" class="hidden lg:flex flex-col lg:flex-row lg:space-x-6 mt-4 lg:mt-0 items-start lg:items-center px-4 pb-4 lg:px-0 lg:pb-0 w-full lg:w-auto">
+    <!-- Navegación pública -->
+    <a href="index.html" class="text-sm hover:text-yellow-400" title="Página principal"><i class="fas fa-home mr-1"></i> Inicio</a>
+    <a href="#" class="text-sm hover:text-yellow-400" title="Sobre nosotros"><i class="fas fa-users mr-1"></i> ¿Quiénes somos?</a>
+    <a href="#" class="text-sm hover:text-yellow-400" title="Contáctanos"><i class="fas fa-address-book mr-1"></i> Contacto</a>
+    <a href="carrito.html" class="text-sm hover:text-yellow-400" title="Ver carrito de compras">
+      <i class="fas fa-shopping-cart mr-1"></i> Carrito (<span id="contador-carrito">0</span>)
+    </a>
+
+    <!-- Menú dinámico según rol -->
+    <a href="adminPanel.html" id="nav-panel" class="hidden text-sm hover:text-yellow-400"><i class="fas fa-tools mr-1"></i> Panel Admin</a>
+    <a href="#" id="nav-productos" class="hidden text-sm hover:text-yellow-400"><i class="fas fa-boxes mr-1"></i> Catálogo</a>
+    <a href="#" id="nav-usuarios" class="hidden text-sm hover:text-yellow-400"><i class="fas fa-users-cog mr-1"></i> Usuarios</a>
+    <a href="#" id="nav-pedidos" class="hidden text-sm hover:text-yellow-400"><i class="fas fa-receipt mr-1"></i> Pedidos</a>
+    <a href="#" id="nav-configuracion" class="hidden text-sm hover:text-yellow-400"><i class="fas fa-cogs mr-1"></i> Configuración</a>
+    <a href="#" id="nav-metricas" class="hidden text-sm hover:text-yellow-400"><i class="fas fa-chart-line mr-1"></i> Métricas</a>
+
+    <!-- Cuenta -->
+    <div class="relative group" aria-label="Menú de cuenta del usuario">
+      <button class="flex items-center gap-2 text-sm hover:text-yellow-400" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-user"></i>
+        <span id="usuario-info">Cuenta</span>
+        <i class="fas fa-caret-down text-xs"></i>
+      </button>
+      <div class="absolute hidden group-hover:block right-0 mt-2 bg-white text-gray-900 shadow-lg rounded-md w-48 z-50" role="menu">
+        <a id="menu-registro" href="registro.html" class="block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem"><i class="fas fa-user-plus"></i> Registro</a>
+        <a id="menu-login" href="login.html" class="block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem"><i class="fas fa-sign-in-alt"></i> Iniciar sesión</a>
+        <button id="menu-logout" class="hidden w-full text-left px-4 py-2 hover:bg-gray-100" role="menuitem">
+          <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+        </button>
       </div>
     </div>
-  </nav>
-  
-  <!-- Toasts -->
-  <div id="toast-container" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;"></div>
-  
+  </div>
+</nav>
+
+<!-- Toast container -->
+<div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2" aria-live="polite"></div>

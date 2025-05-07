@@ -1,73 +1,84 @@
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
+    cargarPedidosUsuario();
+});
+
+async function cargarPedidosUsuario() {
+    const tabla = document.getElementById("tabla-pedidos");
+    if (!tabla) return;
+
     try {
-        // Cargar pedidos del usuario
         const response = await fetch("/pedidos/mis", { credentials: "include" });
+        if (!response.ok) throw new Error("No se pudieron obtener los pedidos.");
+        
         const pedidos = await response.json();
 
-        // Obtener contenedor de pedidos
-        const tablaPedidos = document.getElementById("tabla-pedidos");
-
         if (pedidos.length === 0) {
-            tablaPedidos.innerHTML = "<tr><td colspan='6' class='text-center'>No tienes pedidos aún.</td></tr>";
+            tabla.innerHTML = `<tr><td colspan="6" class="text-center text-muted">🛒 No tienes pedidos aún.</td></tr>`;
             return;
         }
 
-        pedidos.forEach(async (pedido) => {
-            // Cargar productos del pedido
-            const productosResponse = await fetch(`/pedidos/${pedido.pedido_id}/productos`, { credentials: "include" });
-            const productos = await productosResponse.json();
+        for (const pedido of pedidos) {
+            const productosHTML = await obtenerProductosHTML(pedido.pedido_id);
+            const puedeCancelar = pedido.estado_id === 1 || pedido.estado_id === 2;
 
-            let productosHTML = "";
-            productos.forEach(producto => {
-                productosHTML += `<li>${producto.nombre} - ${producto.cantidad} unidades</li>`;
-            });
-
-            // Insertar fila en la tabla
             const filaHTML = `
                 <tr>
-                    <td>${pedido.pedido_id}</td>
+                    <td>#${pedido.pedido_id}</td>
                     <td>${new Date(pedido.fecha_pedido).toLocaleDateString()}</td>
                     <td>${pedido.estado_nombre}</td>
-                    <td>${pedido.notas || "N/A"}</td>
+                    <td>${pedido.notas || "Sin notas"}</td>
                     <td>
-                        <ul class="list-unstyled">
-                            ${productosHTML}
-                        </ul>
+                        <ul class="list-unstyled small">${productosHTML}</ul>
                     </td>
                     <td>
-                        ${pedido.estado_id === 1 || pedido.estado_id === 2 ? 
-                            `<button class="btn btn-danger btn-sm" onclick="cancelarPedido(${pedido.pedido_id})">Cancelar</button>` : 
-                            '<span class="text-muted">No se puede cancelar</span>'}
+                        ${puedeCancelar
+                            ? `<button class="btn btn-sm btn-danger" onclick="cancelarPedido(${pedido.pedido_id})">Cancelar</button>`
+                            : `<span class="text-muted">No cancelable</span>`
+                        }
                     </td>
-                </tr>
-            `;
-            tablaPedidos.innerHTML += filaHTML;
-        });
+                </tr>`;
+                
+            tabla.insertAdjacentHTML("beforeend", filaHTML);
+        }
     } catch (error) {
-        console.error("Error al cargar los pedidos:", error);
-        document.getElementById("tabla-pedidos").innerHTML = "<tr><td colspan='6' class='text-center text-danger'>Error al cargar los pedidos.</td></tr>";
+        console.error("❌ Error al cargar pedidos:", error);
+        tabla.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Error al cargar tus pedidos. Intenta más tarde.</td></tr>`;
     }
-});
+}
 
-// Función para cancelar un pedido
+async function obtenerProductosHTML(pedidoId) {
+    try {
+        const response = await fetch(`/pedidos/${pedidoId}/productos`, { credentials: "include" });
+        if (!response.ok) throw new Error("No se pudieron obtener los productos.");
+
+        const productos = await response.json();
+        return productos.map(p => `<li>${p.nombre} (${p.cantidad})</li>`).join("");
+    } catch (error) {
+        console.error(`❌ Error al obtener productos del pedido ${pedidoId}:`, error);
+        return `<li class="text-danger">Error al cargar productos</li>`;
+    }
+}
+
 async function cancelarPedido(pedidoId) {
-    if (!confirm("¿Estás seguro de que deseas cancelar este pedido?")) return;
+    const confirmar = confirm("¿Deseas cancelar este pedido?");
+    if (!confirmar) return;
 
     try {
         const response = await fetch(`/pedidos/${pedidoId}/cancelar`, {
             method: "PUT",
             credentials: "include"
         });
+
         const data = await response.json();
 
         if (response.ok) {
-            alert("✅ Pedido cancelado con éxito.");
+            alert("✅ Pedido cancelado correctamente.");
             location.reload();
         } else {
-            alert("❌ Error al cancelar el pedido: " + data.mensaje);
+            alert(`❌ No se pudo cancelar el pedido: ${data.mensaje}`);
         }
     } catch (error) {
-        console.error("Error al cancelar el pedido:", error);
-        alert("❌ Error inesperado al intentar cancelar el pedido.");
+        console.error("❌ Error al cancelar pedido:", error);
+        alert("Error inesperado al cancelar el pedido.");
     }
 }

@@ -1,107 +1,122 @@
-const db = require("../db/connection");
+/**
+ * 📁 CONTROLADOR: carritoController.js
+ * 📦 MÓDULO: Carrito de compras del usuario autenticado
+ *
+ * 🧩 Este controlador permite:
+ *   - Obtener el carrito actual
+ *   - Agregar productos o actualizar cantidades
+ *   - Eliminar un producto específico
+ *   - Vaciar completamente el carrito
+ *
+ * 🔐 Todas las funciones dependen del `req.usuario.usuario_id` (autenticado por JWT).
+ * 🧠 Usa `carritoModel.js` como modelo de acceso a datos.
+ */
+
 const validator = require("validator");
+const carritoModel = require("../models/carrito.model");
 
 /**
- * 📦 Obtener los productos del carrito del usuario autenticado.
+ * 📦 GET /carrito
+ * Obtener todos los productos del carrito del usuario autenticado.
+ * Requiere `usuario_id` desde el token JWT.
  */
 async function obtenerCarrito(req, res) {
   const usuario_id = req.usuario?.usuario_id;
-
-  if (!usuario_id) return res.status(403).json({ mensaje: "No autenticado." });
+  if (!usuario_id)
+    return res.status(403).json({ mensaje: "No autenticado." });
 
   try {
-    const [carrito] = await db.query(`
-      SELECT c.id, c.cantidad, p.nombre AS producto_nombre, p.precio AS producto_precio
-      FROM carrito c
-      JOIN productos p ON c.producto_id = p.producto_id
-      WHERE c.usuario_id = ?
-    `, [usuario_id]);
-
-    res.json(carrito);
+    const carrito = await carritoModel.obtenerCarritoPorUsuario(usuario_id);
+    return res.json(carrito);
   } catch (error) {
     console.error("❌ Error al obtener el carrito:", error);
-    res.status(500).json({ mensaje: "Error interno al obtener el carrito." });
+    return res.status(500).json({ mensaje: "Error interno al obtener el carrito." });
   }
 }
 
 /**
- * ➕ Agregar producto al carrito o actualizar cantidad si ya existe.
+ * ➕ POST /carrito
+ * Agregar un nuevo producto o incrementar cantidad si ya está en el carrito.
+ *
+ * Espera:
+ *   - producto_id: entero positivo
+ *   - cantidad: entero positivo
  */
 async function agregarAlCarrito(req, res) {
   const usuario_id = req.usuario?.usuario_id;
   const { producto_id, cantidad } = req.body;
 
-  if (!usuario_id) return res.status(403).json({ mensaje: "No autenticado." });
+  if (!usuario_id)
+    return res.status(403).json({ mensaje: "No autenticado." });
 
+  // Validaciones de entrada
   if (
     !producto_id || !cantidad ||
-    !validator.isInt(String(cantidad), { min: 1 }) ||
-    !validator.isInt(String(producto_id), { min: 1 })
+    !validator.isInt(String(producto_id), { min: 1 }) ||
+    !validator.isInt(String(cantidad), { min: 1 })
   ) {
     return res.status(400).json({ mensaje: "Producto y cantidad válidos son requeridos." });
   }
 
   try {
-    const [resultados] = await db.query(
-      "SELECT cantidad FROM carrito WHERE usuario_id = ? AND producto_id = ?",
-      [usuario_id, producto_id]
-    );
+    // Buscar si el producto ya existe en el carrito
+    const existente = await carritoModel.buscarProductoEnCarrito(usuario_id, producto_id);
 
-    if (resultados.length > 0) {
-      const nuevaCantidad = resultados[0].cantidad + Number(cantidad);
-      await db.query(
-        "UPDATE carrito SET cantidad = ? WHERE usuario_id = ? AND producto_id = ?",
-        [nuevaCantidad, usuario_id, producto_id]
-      );
+    if (existente) {
+      // Si ya está, actualiza la cantidad sumando
+      const nuevaCantidad = existente.cantidad + Number(cantidad);
+      await carritoModel.actualizarCantidad(usuario_id, producto_id, nuevaCantidad);
       return res.json({ mensaje: "Cantidad actualizada en el carrito." });
     } else {
-      await db.query(
-        "INSERT INTO carrito (usuario_id, producto_id, cantidad) VALUES (?, ?, ?)",
-        [usuario_id, producto_id, cantidad]
-      );
+      // Si no está, lo inserta
+      await carritoModel.agregarProducto(usuario_id, producto_id, cantidad);
       return res.status(201).json({ mensaje: "Producto agregado al carrito." });
     }
   } catch (error) {
     console.error("❌ Error al modificar el carrito:", error);
-    res.status(500).json({ mensaje: "Error interno al modificar el carrito." });
+    return res.status(500).json({ mensaje: "Error interno al modificar el carrito." });
   }
 }
 
 /**
- * 🗑️ Eliminar un producto específico del carrito.
+ * 🗑️ DELETE /carrito/:id
+ * Elimina un producto del carrito (por ID interno del registro en carrito).
  */
 async function eliminarDelCarrito(req, res) {
   const usuario_id = req.usuario?.usuario_id;
   const { id } = req.params;
 
-  if (!usuario_id) return res.status(403).json({ mensaje: "No autenticado." });
+  if (!usuario_id)
+    return res.status(403).json({ mensaje: "No autenticado." });
+
   if (!validator.isInt(id, { min: 1 })) {
     return res.status(400).json({ mensaje: "ID inválido para eliminar del carrito." });
   }
 
   try {
-    await db.query("DELETE FROM carrito WHERE id = ? AND usuario_id = ?", [id, usuario_id]);
-    res.json({ mensaje: "Producto eliminado del carrito." });
+    await carritoModel.eliminarProductoPorId(id, usuario_id);
+    return res.json({ mensaje: "Producto eliminado del carrito." });
   } catch (error) {
     console.error("❌ Error al eliminar del carrito:", error);
-    res.status(500).json({ mensaje: "Error interno al eliminar del carrito." });
+    return res.status(500).json({ mensaje: "Error interno al eliminar del carrito." });
   }
 }
 
 /**
- * 🧺 Vaciar por completo el carrito del usuario autenticado.
+ * 🧺 DELETE /carrito
+ * Elimina todos los productos del carrito del usuario.
  */
 async function vaciarCarrito(req, res) {
   const usuario_id = req.usuario?.usuario_id;
-
-  if (!usuario_id) return res.status(403).json({ mensaje: "No autenticado." });
+  if (!usuario_id)
+    return res.status(403).json({ mensaje: "No autenticado." });
 
   try {
-    await db.query("DELETE FROM carrito WHERE usuario_id = ?", [usuario_id]);
-    res.json({ mensaje: "Carrito vaciado correctamente." });
+    await carritoModel.vaciarCarritoPorUsuario(usuario_id);
+    return res.json({ mensaje: "Carrito vaciado correctamente." });
   } catch (error) {
     console.error("❌ Error al vaciar el carrito:", error);
-    res.status(500).json({ mensaje: "Error interno al vaciar el carrito." });
+    return res.status(500).json({ mensaje: "Error interno al vaciar el carrito." });
   }
 }
 
@@ -109,5 +124,5 @@ module.exports = {
   obtenerCarrito,
   agregarAlCarrito,
   eliminarDelCarrito,
-  vaciarCarrito,
+  vaciarCarrito
 };

@@ -1,10 +1,19 @@
+/**
+ * 📁 MODELO: galeria.model.js
+ * 📦 TABLA: galeria_productos
+ *
+ * Este modelo permite gestionar todos los elementos multimedia asociados
+ * a un producto: imágenes, videos, modelos 3D. Soporta inserción, obtención,
+ * edición de metadatos y eliminación por ID.
+ */
+
 const db = require("../db/connection");
 
-/**
- * 🔍 Obtener todos los elementos multimedia asociados a un producto.
- * @param {number} producto_id - ID del producto.
- * @returns {Promise<Array>}
- */
+// ───────────────────────────────────────────────
+// 🔍 OBTENER GALERÍA COMPLETA DE UN PRODUCTO
+// Incluye cualquier tipo ('imagen', 'video', 'modelo_3d')
+// Ordenado por orden_visual y fecha_subida
+// ───────────────────────────────────────────────
 async function obtenerGaleriaPorProducto(producto_id) {
   const [rows] = await db.query(`
     SELECT * FROM galeria_productos 
@@ -14,11 +23,10 @@ async function obtenerGaleriaPorProducto(producto_id) {
   return rows;
 }
 
-/**
- * 🖼️ Obtener solo las imágenes asociadas a un producto.
- * @param {number} producto_id
- * @returns {Promise<Array>}
- */
+// ───────────────────────────────────────────────
+// 🖼️ OBTENER SOLO LAS IMÁGENES
+// Filtra por tipo = 'imagen'
+// ───────────────────────────────────────────────
 async function obtenerImagenes(producto_id) {
   const [rows] = await db.query(`
     SELECT * FROM galeria_productos 
@@ -28,13 +36,13 @@ async function obtenerImagenes(producto_id) {
   return rows;
 }
 
-/**
- * 💾 Insertar un nuevo archivo multimedia en la galería de un producto.
- * @param {Object} datos - Objeto con los datos del nuevo elemento.
- */
+// ───────────────────────────────────────────────
+// 💾 INSERTAR NUEVO ELEMENTO MULTIMEDIA
+// El campo `tipo` debe ser: 'imagen', 'video', 'modelo_3d'
+// ───────────────────────────────────────────────
 async function insertarElemento({
   producto_id,
-  tipo = "imagen", // 'imagen', 'video', 'modelo_3d'
+  tipo = "imagen",
   url,
   alt_text = "",
   orden_visual = 0,
@@ -54,11 +62,10 @@ async function insertarElemento({
   ]);
 }
 
-/**
- * ✏️ Actualizar metadatos de un archivo multimedia por su ID.
- * @param {number} media_id
- * @param {Object} datos
- */
+// ───────────────────────────────────────────────
+// ✏️ ACTUALIZAR UN ELEMENTO MULTIMEDIA
+// Permite modificar campos dinámicamente.
+// ───────────────────────────────────────────────
 async function actualizarElemento(media_id, datos) {
   const campos = [];
   const valores = [];
@@ -70,23 +77,25 @@ async function actualizarElemento(media_id, datos) {
     }
   }
 
-  if (campos.length === 0) return;
+  if (campos.length === 0) return; // Nada que actualizar
 
   valores.push(parseInt(media_id));
   const sql = `UPDATE galeria_productos SET ${campos.join(", ")} WHERE media_id = ?`;
   await db.query(sql, valores);
 }
 
-/**
- * 🗑️ Eliminar un elemento multimedia por su ID.
- * @param {number} media_id
- */
+// ───────────────────────────────────────────────
+// 🗑️ ELIMINAR UN ELEMENTO MULTIMEDIA POR ID
+// ───────────────────────────────────────────────
 async function eliminarElemento(media_id) {
   await db.query(`
     DELETE FROM galeria_productos WHERE media_id = ?
   `, [parseInt(media_id)]);
 }
 
+// ───────────────────────────────────────────────
+// 📦 EXPORTACIÓN DEL MODELO
+// ───────────────────────────────────────────────
 module.exports = {
   obtenerGaleriaPorProducto,
   obtenerImagenes,

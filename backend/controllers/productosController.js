@@ -1,136 +1,162 @@
-const productosModel = require("../models/productosModel");
-const imagenesModel = require("../models/imagenesModel");
-const modelos3dModel = require("../models/modelos3dModel");
+/**
+ * 📁 CONTROLADOR: productosController.js
+ * 📦 Módulo: Gestión de productos (catálogo principal)
+ *
+ * 🔹 Funcionalidades:
+ *   - Obtener productos publicados (visibles)
+ *   - Consultar detalle completo por ID (con galería multimedia)
+ *   - Crear producto (JSON o archivos)
+ *   - Actualizar producto
+ *   - Eliminar producto
+ *
+ * 📂 Modelos utilizados:
+ *   - productosModel.js
+ *   - galeriaModel.js
+ */
 
-// 📦 Obtener todos los productos publicados
+const productosModel = require("../models/productosModel");
+const galeriaModel = require("../models/galeria.model");
+
+// ─────────────────────────────────────────────
+// 📥 GET /productos → Obtener todos los productos publicados
+// ─────────────────────────────────────────────
 exports.obtenerProductos = async (req, res) => {
   try {
-    const [productos] = await productosModel.obtenerPublicados();
-    res.json(productos);
+    const productos = await productosModel.obtenerProductosPublicados();
+    res.status(200).json(productos);
   } catch (error) {
     console.error("❌ Error al obtener productos:", error);
-    res.status(500).json({ mensaje: "Error al obtener productos" });
+    res.status(500).json({ mensaje: "Error interno al obtener productos." });
   }
 };
 
-// 🔍 Obtener un producto por su ID (con imágenes y modelo 3D)
+// ─────────────────────────────────────────────
+// 🔍 GET /productos/:id → Obtener detalle completo de producto
+// ─────────────────────────────────────────────
 exports.obtenerProductoPorId = async (req, res) => {
+  const { id } = req.params;
   try {
-    const { id } = req.params;
-    const [productos] = await productosModel.obtenerPorId(id);
+    const producto = await productosModel.obtenerProductoPorId(id);
+    if (!producto) return res.status(404).json({ mensaje: "Producto no encontrado." });
 
-    if (productos.length === 0) {
-      return res.status(404).json({ mensaje: "Producto no encontrado" });
-    }
+    const galeria = await galeriaModel.obtenerGaleriaPorProducto(id);
+    const imagenes = galeria.filter(e => e.tipo === "imagen").map(e => e.url);
+    const modelo3d = galeria.find(e => e.tipo === "modelo_3d")?.url || null;
 
-    const [imagenes] = await imagenesModel.obtenerPorProductoId(id);
-    const [modelos] = await modelos3dModel.obtenerPorProductoId(id);
-
-    res.json({
-      ...productos[0],
-      imagenes: imagenes.map(img => img.url),
-      modelo3d: modelos[0]?.ruta_modelo || null
-    });
+    res.status(200).json({ ...producto, imagenes, modelo3d });
   } catch (error) {
-    console.error(`❌ Error al obtener el producto con ID ${req.params.id}:`, error);
-    res.status(500).json({ mensaje: "Error al obtener el producto" });
+    console.error(`❌ Error al obtener producto ID ${id}:`, error);
+    res.status(500).json({ mensaje: "Error interno al obtener el producto." });
   }
 };
 
-// ➕ Agregar producto vía JSON (API tradicional)
+// ─────────────────────────────────────────────
+// ➕ POST /productos → Crear producto (JSON plano)
+// ─────────────────────────────────────────────
 exports.agregarProducto = async (req, res) => {
-  try {
-    const producto = req.body;
+  const producto = req.body;
+  const requeridos = ["nombre", "precio", "categoria_id", "proveedor_id"];
 
-    const campos = ["nombre", "precio", "categoria_id", "proveedor_id"];
-    for (const campo of campos) {
-      if (!producto[campo]) {
-        return res.status(400).json({ mensaje: `El campo '${campo}' es obligatorio` });
-      }
+  for (const campo of requeridos) {
+    if (!producto[campo]) {
+      return res.status(400).json({ mensaje: `El campo '${campo}' es obligatorio.` });
     }
+  }
 
-    const [resultado] = await productosModel.insertarProductoJSON(producto);
+  try {
+    const insertId = await productosModel.insertarProducto(producto);
     res.status(201).json({
-      mensaje: "Producto registrado correctamente. Aún no está publicado.",
-      id: resultado.insertId
+      mensaje: "Producto registrado correctamente.",
+      id: insertId
     });
   } catch (error) {
     console.error("❌ Error al agregar producto:", error);
-    res.status(500).json({ mensaje: "Error al agregar producto" });
+    res.status(500).json({ mensaje: "Error interno al agregar producto." });
   }
 };
 
-// 🆕 Agregar producto con imágenes y modelo 3D
+// ─────────────────────────────────────────────
+// 🖼️ POST /productos/archivos → Crear producto con archivos
+// ─────────────────────────────────────────────
 exports.agregarProductoConArchivos = async (req, res) => {
+  const datos = req.body;
+  const requeridos = ["nombre", "precio", "categoria_id", "tipo_pago"];
+
+  for (const campo of requeridos) {
+    if (!datos[campo]) {
+      return res.status(400).json({ mensaje: `El campo '${campo}' es obligatorio.` });
+    }
+  }
+
   try {
-    const datos = req.body;
-    const campos = ["nombre", "precio", "categoria_id", "tipo_pago"];
-    for (const campo of campos) {
-      if (!datos[campo]) {
-        return res.status(400).json({ mensaje: `El campo '${campo}' es obligatorio` });
-      }
+    const insertId = await productosModel.insertarProducto(datos);
+    const productoId = insertId;
+
+    // Subir imágenes
+    const imagenes = req.files?.imagenes || [];
+    for (const archivo of imagenes) {
+      await galeriaModel.insertarElemento({
+        producto_id: productoId,
+        tipo: "imagen",
+        url: `/uploads/imagenes/${archivo.filename}`,
+        alt_text: datos.nombre
+      });
     }
 
-    const [resultado] = await productosModel.insertar(datos);
-    const productoId = resultado.insertId;
-
-    if (req.files?.imagenes) {
-      for (const file of req.files.imagenes) {
-        const url = `/uploads/imagenes/${file.filename}`;
-        await imagenesModel.insertarImagen(productoId, url);
-      }
+    // Subir modelo 3D
+    const modelo3d = req.files?.modelo3d?.[0];
+    if (modelo3d) {
+      await galeriaModel.insertarElemento({
+        producto_id: productoId,
+        tipo: "modelo_3d",
+        url: `/uploads/modelos/${modelo3d.filename}`
+      });
     }
 
-    if (req.files?.modelo3d?.[0]) {
-      const ruta = `/uploads/modelos/${req.files.modelo3d[0].filename}`;
-      await modelos3dModel.insertarModelo(productoId, ruta);
-    }
-
-    res.status(201).json({ mensaje: "Producto creado correctamente con archivos", id: productoId });
+    res.status(201).json({
+      mensaje: "Producto creado correctamente con archivos.",
+      id: productoId
+    });
   } catch (error) {
     console.error("❌ Error al agregar producto con archivos:", error);
-    res.status(500).json({ mensaje: "Error al agregar producto con archivos" });
+    res.status(500).json({ mensaje: "Error interno al crear producto con archivos." });
   }
 };
 
-// ✏️ Actualizar producto existente
+// ─────────────────────────────────────────────
+// ✏️ PUT /productos/:id → Actualizar producto existente
+// ─────────────────────────────────────────────
 exports.actualizarProducto = async (req, res) => {
+  const { id } = req.params;
+  const datos = req.body;
+  const requeridos = ["nombre", "precio", "categoria_id"];
+
+  for (const campo of requeridos) {
+    if (!datos[campo]) {
+      return res.status(400).json({ mensaje: `El campo '${campo}' es obligatorio.` });
+    }
+  }
+
   try {
-    const { id } = req.params;
-    const datos = req.body;
-
-    const campos = ["nombre", "precio", "categoria_id"];
-    for (const campo of campos) {
-      if (!datos[campo]) {
-        return res.status(400).json({ mensaje: `El campo '${campo}' es obligatorio` });
-      }
-    }
-
-    const [resultado] = await productosModel.actualizar(id, datos);
-    if (resultado.affectedRows === 0) {
-      return res.status(404).json({ mensaje: "Producto no encontrado" });
-    }
-
-    res.json({ mensaje: "Producto actualizado correctamente" });
+    await productosModel.actualizarProducto(id, datos);
+    res.status(200).json({ mensaje: "Producto actualizado correctamente." });
   } catch (error) {
-    console.error(`❌ Error al actualizar el producto con ID ${req.params.id}:`, error);
-    res.status(500).json({ mensaje: "Error al actualizar el producto" });
+    console.error(`❌ Error al actualizar producto ID ${id}:`, error);
+    res.status(500).json({ mensaje: "Error interno al actualizar producto." });
   }
 };
 
-// 🗑️ Eliminar producto por ID
+// ─────────────────────────────────────────────
+// 🗑️ DELETE /productos/:id → Eliminar producto
+// ─────────────────────────────────────────────
 exports.eliminarProducto = async (req, res) => {
+  const { id } = req.params;
+
   try {
-    const { id } = req.params;
-    const [resultado] = await productosModel.eliminar(id);
-
-    if (resultado.affectedRows === 0) {
-      return res.status(404).json({ mensaje: "Producto no encontrado" });
-    }
-
-    res.json({ mensaje: "Producto eliminado correctamente" });
+    await productosModel.eliminarProducto(id);
+    res.status(200).json({ mensaje: "Producto eliminado correctamente." });
   } catch (error) {
-    console.error(`❌ Error al eliminar el producto con ID ${req.params.id}:`, error);
-    res.status(500).json({ mensaje: "Error al eliminar producto" });
+    console.error(`❌ Error al eliminar producto ID ${id}:`, error);
+    res.status(500).json({ mensaje: "Error interno al eliminar producto." });
   }
 };

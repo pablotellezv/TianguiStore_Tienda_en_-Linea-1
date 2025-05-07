@@ -1,151 +1,127 @@
+// 📦 loadComponent.js — Carga Navbar y Footer dinámicos, verifica sesión, muestra menús por rol
+
 document.addEventListener("DOMContentLoaded", async () => {
     try {
-        // 🌐 Cargar Navbar
-        const navbarContainer = document.getElementById("navbar-container");
-        if (navbarContainer) {
-            const navbarResponse = await fetch("./componentes/navbar.html");
-            navbarContainer.innerHTML = await navbarResponse.text();
-        }
-
-        // 📦 Cargar Footer
-        const footerContainer = document.getElementById("footer-container");
-        if (footerContainer) {
-            const footerResponse = await fetch("./componentes/footer.html");
-            footerContainer.innerHTML = await footerResponse.text();
-        }
-
-        // 🧮 Actualizar contador del carrito
-        actualizarContadorCarrito();
-
-        // 🔐 Verificar sesión desde localStorage/JWT
-        verificarSesion();
-
-        // 🛒 Agregar dinámicamente el menú de productos si el usuario tiene permisos
-        insertarMenuProductos();
+      // 🌐 Cargar Navbar
+      const navbarContainer = document.getElementById("navbar-container");
+      if (navbarContainer) {
+        const res = await fetch("./componentes/navbar.html");
+        if (!res.ok) throw new Error("Error al cargar navbar.html");
+        navbarContainer.innerHTML = await res.text();
+      }
+  
+      // 📦 Cargar Footer
+      const footerContainer = document.getElementById("footer-container");
+      if (footerContainer) {
+        const res = await fetch("./componentes/footer.html");
+        if (!res.ok) throw new Error("Error al cargar footer.html");
+        footerContainer.innerHTML = await res.text();
+      }
+  
+      // 🔁 Inicializaciones post-carga
+      iniciarNavbar();
+      actualizarContadorCarrito();
+      verificarSesion();
+      insertarMenusDinamicos();
     } catch (error) {
-        console.error("⚠️ Error al cargar componentes:", error);
+      console.error("⚠️ Error al cargar componentes compartidos:", error);
     }
-});
-
-// 📌 Actualizar contador de carrito
-function actualizarContadorCarrito() {
+  });
+  
+  // 🎛️ Navbar: toggle hamburguesa + tema claro/oscuro
+  function iniciarNavbar() {
+    const toggleBtn = document.getElementById("toggleNavbarBtn");
+    const navbarMenu = document.getElementById("navbarMenu");
+    if (toggleBtn && navbarMenu) {
+      toggleBtn.addEventListener("click", () => {
+        navbarMenu.classList.toggle("hidden");
+      });
+    }
+  
+    const themeBtn = document.getElementById("toggleThemeBtn");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        document.documentElement.classList.toggle("dark");
+        const icon = themeBtn.querySelector("i");
+        if (icon) {
+          icon.classList.toggle("fa-moon");
+          icon.classList.toggle("fa-sun");
+        }
+      });
+    }
+  }
+  
+  // 🧮 Actualizar contador del carrito globalmente
+  function actualizarContadorCarrito() {
     try {
-        const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-        const totalItems = carrito.reduce((total, item) => total + item.cantidad, 0);
-        document.querySelectorAll("#contador-carrito").forEach(el => el.textContent = totalItems);
-    } catch (error) {
-        console.error("⚠️ Error al actualizar el contador del carrito:", error);
+      const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+      const total = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+      document.querySelectorAll("#contador-carrito").forEach(el => el.textContent = total);
+    } catch (err) {
+      console.error("⚠️ Error al actualizar contador de carrito:", err);
     }
-}
-
-// 📌 Verificar sesión y ajustar opciones de cuenta
-function verificarSesion() {
+  }
+  
+  // 🔐 Verificar sesión y actualizar menú de cuenta
+  function verificarSesion() {
     const token = localStorage.getItem("token");
     const usuario = JSON.parse(localStorage.getItem("usuario"));
-
-    const usuarioInfo   = document.getElementById("usuario-info");
-    const menuLogin     = document.getElementById("menu-login");
-    const menuRegistro  = document.getElementById("menu-registro");
-    const menuLogout    = document.getElementById("menu-logout");
-    const btnCerrar     = document.getElementById("btnCerrarSesion");
-
-    if (!usuarioInfo || !menuLogin || !menuRegistro || !menuLogout || !btnCerrar) {
-        console.warn("⚠️ Elementos del navbar no encontrados.");
-        return;
+  
+    const usuarioInfo  = document.getElementById("usuario-info");
+    const menuLogin    = document.getElementById("menu-login");
+    const menuRegistro = document.getElementById("menu-registro");
+    const menuLogout   = document.getElementById("menu-logout");
+  
+    if (!usuarioInfo || !menuLogin || !menuRegistro || !menuLogout) {
+      console.warn("⚠️ Elementos de sesión no encontrados en navbar.");
+      return;
     }
-
+  
     if (token && usuario) {
-        console.log(`✅ Sesión activa para: ${usuario.correo}`);
-        usuarioInfo.textContent = usuario.correo;
-        menuLogin.classList.add("d-none");
-        menuRegistro.classList.add("d-none");
-        menuLogout.classList.remove("d-none");
-    } else {
-        console.log("🚫 No hay sesión activa.");
-        usuarioInfo.textContent = "Cuenta";
-        menuLogin.classList.remove("d-none");
-        menuRegistro.classList.remove("d-none");
-        menuLogout.classList.add("d-none");
-    }
-
-    // 🔓 Evento cerrar sesión
-    btnCerrar.addEventListener("click", () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("usuario");
-        localStorage.removeItem("carrito");
+      console.log(`✅ Sesión activa para: ${usuario.correo}`);
+      usuarioInfo.textContent = usuario.correo;
+      menuLogin.classList.add("hidden");
+      menuRegistro.classList.add("hidden");
+      menuLogout.classList.remove("hidden");
+  
+      menuLogout.addEventListener("click", () => {
+        localStorage.clear();
         alert("Sesión cerrada exitosamente.");
         window.location.href = "login.html";
-    });
-}
-//Menus dinámicos
-function insertarMenusDinamicos() {
+      });
+    } else {
+      console.log("🚫 Usuario no autenticado.");
+      usuarioInfo.textContent = "Cuenta";
+      menuLogin.classList.remove("hidden");
+      menuRegistro.classList.remove("hidden");
+      menuLogout.classList.add("hidden");
+    }
+  }
+  
+  // 📌 Mostrar secciones dinámicas según permisos
+  function insertarMenusDinamicos() {
     const usuario = JSON.parse(localStorage.getItem("usuario"));
     const permisos = usuario?.permisos || {};
     if (!usuario || !usuario.rol) return;
-
-    const navList = document.querySelector(".navbar-nav");
-    const menuSesion = document.querySelector("#usuarioMenu")?.parentElement;
-
-    if (!navList || !menuSesion) {
-        console.warn("⚠️ No se pudo encontrar el contenedor de navegación.");
-        return;
-    }
-
-    const crearMenu = (html) => {
-        const item = document.createElement("li");
-        item.className = "nav-item";
-        item.innerHTML = html;
-        navList.insertBefore(item, menuSesion);
+  
+    const mostrar = (id) => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove("hidden");
     };
-
-    const crearDropdown = (icono, titulo, items) => {
-        const dropdown = document.createElement("li");
-        dropdown.className = "nav-item dropdown";
-        dropdown.innerHTML = `
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                <i class="${icono}"></i> ${titulo}
-            </a>
-            <ul class="dropdown-menu">${items}</ul>
-        `;
-        navList.insertBefore(dropdown, menuSesion);
-    };
-
-    // 🛍️ Menú de productos
-    if (permisos.productos?.leer || permisos.productos?.crear) {
-        crearDropdown("fas fa-box-open", "Productos", `
-            ${permisos.productos?.leer ? '<li><a class="dropdown-item" href="productos.html"><i class="fas fa-eye"></i> Ver productos</a></li>' : ''}
-            ${permisos.productos?.crear ? '<li><a class="dropdown-item" href="agregarProducto.html"><i class="fas fa-plus-circle"></i> Agregar producto</a></li>' : ''}
-        `);
-    }
-
-    // 👥 Menú de usuarios
-    if (permisos.usuarios?.leer) {
-        crearMenu(`<a class="nav-link" href="#" onclick="mostrarSeccion('usuarios')"><i class="fas fa-users-cog"></i> Usuarios</a>`);
-    }
-
-    // 📦 Menú de pedidos
-    if (permisos.pedidos?.leer) {
-        crearMenu(`<a class="nav-link" href="#" onclick="mostrarSeccion('pedidos')"><i class="fas fa-receipt"></i> Pedidos</a>`);
-    }
-
-    // ⚙️ Configuración
-    if (permisos.configuracion?.leer) {
-        crearMenu(`<a class="nav-link" href="#" onclick="mostrarSeccion('configuracion')"><i class="fas fa-cogs"></i> Configuración</a>`);
-    }
-
-    // 📊 Métricas / reportes
-    if (permisos.reportes?.exportar) {
-        crearMenu(`<a class="nav-link" href="#" onclick="mostrarSeccion('metricas')"><i class="fas fa-chart-line"></i> Métricas</a>`);
-    }
-
-    // 🛠️ Acceso al panel general
+  
+    if (permisos.productos?.leer || permisos.productos?.crear) mostrar("nav-productos");
+    if (permisos.usuarios?.leer) mostrar("nav-usuarios");
+    if (permisos.pedidos?.leer) mostrar("nav-pedidos");
+    if (permisos.configuracion?.leer) mostrar("nav-configuracion");
+    if (permisos.reportes?.exportar) mostrar("nav-metricas");
+  
     if (
-        permisos.usuarios?.leer ||
-        permisos.productos?.leer ||
-        permisos.configuracion?.leer ||
-        permisos.reportes?.exportar
+      permisos.usuarios?.leer ||
+      permisos.productos?.leer ||
+      permisos.configuracion?.leer ||
+      permisos.reportes?.exportar
     ) {
-        crearMenu(`<a class="nav-link" href="adminPanel.html"><i class="fas fa-tools"></i> Panel Admin</a>`);
+      mostrar("nav-panel");
     }
-}
-
+  }
+  

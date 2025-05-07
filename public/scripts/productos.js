@@ -1,113 +1,113 @@
 document.addEventListener("DOMContentLoaded", async () => {
     await cargarProductos();
-    actualizarContadorCarrito(); // Asegurar que el contador del carrito se mantenga actualizado
+    actualizarContadorCarrito();
 });
 
-// 📌 Cargar productos desde el backend
+// 📦 Cargar productos desde la API
 async function cargarProductos() {
+    const contenedor = document.getElementById("productos-container");
+    if (!contenedor) return;
+
     try {
         const response = await fetch("/productos");
-        if (!response.ok) throw new Error("No se pudieron obtener los productos.");
+        if (!response.ok) throw new Error("No se pudo obtener el listado de productos.");
 
         const productos = await response.json();
-        const productosContainer = document.getElementById("productos-container");
-        productosContainer.innerHTML = "";
+        contenedor.innerHTML = "";
 
         productos.forEach(producto => {
             const id = producto.producto_id;
-            const nombre = producto.nombre || "Sin nombre";
-            const precioNumerico = parseFloat(producto.precio) || 0;
-            const existencias = producto.stock || 0;
+            const nombre = producto.nombre || "Producto sin nombre";
+            const precio = parseFloat(producto.precio) || 0;
+            const stock = producto.stock ?? 0;
 
-            // ✅ Normalizar URL de imagen
-            let imagenURL = (producto.imagen_url || "").replace(/\\/g, "/").replace(/^public/, "");
-            if (!imagenURL.startsWith("/")) imagenURL = "/" + imagenURL;
+            let imagen = (producto.imagen_url || "").replace(/\\/g, "/").replace(/^public/, "");
+            if (!imagen.startsWith("/")) imagen = "/" + imagen;
 
-            const productoHTML = `
+            const html = `
                 <div class="col">
                     <div class="card h-100 shadow-sm animate-fade-in">
-                        <img src="${imagenURL}" class="card-img-top" alt="${nombre}" onerror="this.src='/imagenes/default.png'">
+                        <img src="${imagen}" alt="${nombre}" class="card-img-top"
+                             onerror="this.onerror=null; this.src='/imagenes/default.png';">
                         <div class="card-body">
                             <h5 class="card-title">${nombre}</h5>
-                            <p class="card-text"><i class="fas fa-tag"></i> Precio: $${precioNumerico.toFixed(2)}</p>
-                            <p class="card-text"><i class="fas fa-warehouse"></i> Existencias: ${existencias}</p>
+                            <p class="card-text"><i class="fas fa-tag"></i> Precio: $${precio.toFixed(2)}</p>
+                            <p class="card-text"><i class="fas fa-warehouse"></i> Stock: ${stock}</p>
                         </div>
                         <div class="card-footer text-center">
                             <button class="btn btn-primary agregar-carrito"
                                 data-id="${id}"
                                 data-nombre="${nombre}"
-                                data-precio="${precioNumerico}"
-                                data-imagen="${imagenURL}">
+                                data-precio="${precio}"
+                                data-imagen="${imagen}">
                                 <i class="fas fa-cart-plus"></i> Agregar
                             </button>
                         </div>
                     </div>
                 </div>
             `;
-            productosContainer.innerHTML += productoHTML;
+
+            contenedor.insertAdjacentHTML("beforeend", html);
         });
 
         asignarEventosAgregar();
     } catch (error) {
-        console.error("⚠️ Error al cargar productos:", error);
-        document.getElementById("productos-container").innerHTML = "<p class='text-center text-danger'>❌ Error al cargar los productos.</p>";
+        console.error("❌ Error al cargar productos:", error);
+        contenedor.innerHTML = `<p class="text-danger text-center">No se pudieron cargar los productos.</p>`;
     }
 }
 
-// 📌 Asignar eventos a los botones "Agregar al carrito"
+// ➕ Agregar al carrito
 function asignarEventosAgregar() {
-    document.querySelectorAll(".agregar-carrito").forEach(boton => {
-        boton.addEventListener("click", (event) => {
-            const button = event.currentTarget;
-            const id = button.dataset.id;
-            const nombre = button.dataset.nombre;
-            const precio = parseFloat(button.dataset.precio);
-            const imagen_url = button.dataset.imagen; // ✅ Agregado
-
-            agregarAlCarrito(id, nombre, precio, imagen_url);
+    document.querySelectorAll(".agregar-carrito").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const { id, nombre, precio, imagen } = btn.dataset;
+            agregarAlCarrito(id, nombre, parseFloat(precio), imagen);
         });
     });
 }
 
-// 📌 Agregar producto al carrito (almacenado en localStorage)
+// 🛒 Agregar producto al carrito (localStorage)
 function agregarAlCarrito(id, nombre, precio, imagen_url) {
     let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
 
-    const productoExistente = carrito.find(p => p.id === id);
-    if (productoExistente) {
-        productoExistente.cantidad++;
+    const producto = carrito.find(p => p.id === id);
+    if (producto) {
+        producto.cantidad++;
     } else {
-        carrito.push({ id, nombre, precio, cantidad: 1, imagen_url }); // ✅ Guardar imagen_url
+        carrito.push({ id, nombre, precio, cantidad: 1, imagen_url });
     }
 
     localStorage.setItem("carrito", JSON.stringify(carrito));
     actualizarContadorCarrito();
-    mostrarToast(`🛒 ${nombre} agregado al carrito.`, "success");
+    mostrarToast(`🛒 ${nombre} agregado al carrito`, "success");
 }
 
-// 📌 Actualizar contador del carrito
+// 🔢 Actualiza el número en el icono del carrito
 function actualizarContadorCarrito() {
     const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-    const totalItems = carrito.reduce((total, item) => total + item.cantidad, 0);
-    document.querySelectorAll("#contador-carrito").forEach(el => el.textContent = totalItems);
+    const total = carrito.reduce((suma, p) => suma + p.cantidad, 0);
+    document.querySelectorAll("#contador-carrito").forEach(el => el.textContent = total);
 }
 
-// 📌 Mostrar toast visual
-function mostrarToast(mensaje, tipo) {
-    const toastContainer = document.getElementById("toast-container") || crearContenedorToasts();
+// 🔔 Toast personalizado
+function mostrarToast(mensaje, tipo = "success") {
+    const contenedor = document.getElementById("toast-container") || crearContenedorToasts();
+
     const toast = document.createElement("div");
-    toast.className = `toast align-items-center text-white bg-${tipo} border-0 show`;
+    toast.className = `toast align-items-center text-white bg-${tipo} border-0 show shadow mb-2`;
     toast.setAttribute("role", "alert");
     toast.innerHTML = `
         <div class="d-flex">
-            <div class="toast-body fw-bold">${mensaje}</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            <div class="toast-body">${mensaje}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
         </div>
     `;
-    toastContainer.appendChild(toast);
+    contenedor.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
 
+// 🧱 Contenedor de toasts (si no existe)
 function crearContenedorToasts() {
     const div = document.createElement("div");
     div.id = "toast-container";

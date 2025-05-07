@@ -1,217 +1,188 @@
-// backend/controllers/pedidoController.js
-const db = require("../db");
+/**
+ * 📁 CONTROLADOR: pedidoController.js
+ * 📦 Módulo: Gestión de pedidos en TianguiStore
+ *
+ * 🎯 Funcionalidades:
+ *   - Obtener todos los pedidos (admin/gerente)
+ *   - Obtener pedidos del usuario autenticado
+ *   - Crear pedido desde formulario
+ *   - Crear pedido desde carrito
+ *   - Cancelar pedido (condicional por estado)
+ *
+ * 🔐 Requiere autenticación JWT (req.usuario)
+ * 🧠 Basado en procedimiento almacenado: sp_crear_pedido_completo
+ */
 
-// Obtener todos los pedidos del admin o gerente
-exports.obtenerPedidos = (req, res) => {
-    db.query(`
-        SELECT p.*, u.usuario_correo AS cliente_correo, e.estado_nombre
-        FROM pedidos p
-        JOIN usuarios u ON p.cliente_id = u.usuario_id
-        JOIN estados_pedido e ON p.estado_id = e.estado_id
-    `, (err, resultados) => {
-        if (err) {
-            console.error("❌ Error al obtener pedidos:", err);
-            return res.status(500).json({ mensaje: "Error al obtener pedidos" });
-        }
-        res.json(resultados);
-    });
+const db = require("../db"); // Conexión MySQL con pool.promise()
+
+/**
+ * 🧾 GET /api/pedidos
+ * Obtener todos los pedidos del sistema (solo admin o gerente).
+ */
+exports.obtenerPedidos = async (req, res) => {
+  try {
+    const [resultados] = await db.promise().query(`
+      SELECT p.*, u.correo_electronico AS cliente_correo, e.estado_nombre
+      FROM pedidos p
+      JOIN usuarios u ON p.usuario_id = u.usuario_id
+      JOIN estados_pedido e ON p.estado_id = e.estado_id
+      WHERE p.borrado_logico = 0
+    `);
+
+    res.status(200).json(resultados);
+  } catch (err) {
+    console.error("❌ Error al obtener pedidos:", err);
+    res.status(500).json({ mensaje: "Error al obtener pedidos" });
+  }
 };
 
-// Obtener los pedidos del cliente autenticado
-exports.obtenerMisPedidos = (req, res) => {
-    const usuario = req.session?.usuario;
-    if (!usuario) {
-        return res.status(403).json({ mensaje: "No autenticado" });
-    }
+/**
+ * 🧾 GET /api/mis-pedidos
+ * Obtener pedidos del usuario autenticado.
+ */
+exports.obtenerMisPedidos = async (req, res) => {
+  const usuario = req.usuario;
 
-    db.query(`
-        SELECT p.*, e.estado_nombre
-        FROM pedidos p
-        JOIN estados_pedido e ON p.estado_id = e.estado_id
-        WHERE cliente_id = ?
-        ORDER BY fecha_pedido DESC
-    `, [usuario.id], (err, resultados) => {
-        if (err) {
-            console.error("❌ Error al obtener pedidos del cliente:", err);
-            return res.status(500).json({ mensaje: "Error al obtener pedidos" });
-        }
-        res.json(resultados);
-    });
+  if (!usuario) return res.status(403).json({ mensaje: "No autenticado" });
+
+  try {
+    const [resultados] = await db.promise().query(`
+      SELECT p.*, e.estado_nombre
+      FROM pedidos p
+      JOIN estados_pedido e ON p.estado_id = e.estado_id
+      WHERE p.usuario_id = ?
+      ORDER BY p.fecha_pedido DESC
+    `, [usuario.usuario_id]);
+
+    res.status(200).json(resultados);
+  } catch (err) {
+    console.error("❌ Error al obtener pedidos del cliente:", err);
+    res.status(500).json({ mensaje: "Error al obtener pedidos" });
+  }
 };
 
-// Crear un pedido desde productos proporcionados directamente
+/**
+ * ➕ POST /api/pedidos
+ * Crear pedido desde formulario manual (con parámetros individuales).
+ */
 exports.crearPedido = async (req, res) => {
-    const usuario = req.session?.usuario;
-    if (!usuario) return res.status(403).json({ mensaje: "No autenticado" });
+  const usuario = req.usuario;
+  if (!usuario) return res.status(403).json({ mensaje: "No autenticado" });
 
-    const { productos, notas } = req.body;
+  const { total, metodo_pago, cupon, direccion_envio, notas } = req.body;
 
-    if (!Array.isArray(productos) || productos.length === 0) {
-        return res.status(400).json({ mensaje: "Debes incluir productos en el pedido" });
+  if (!total || !metodo_pago || !direccion_envio) {
+    return res.status(400).json({ mensaje: "Faltan campos requeridos" });
+  }
+
+  try {
+    const [result] = await db.promise().query(`
+      CALL sp_crear_pedido_completo(?, ?, ?, ?, ?, ?)
+    `, [
+      usuario.usuario_id,
+      parseFloat(total),
+      metodo_pago,
+      cupon || null,
+      direccion_envio.trim(),
+      notas?.trim() || ""
+    ]);
+
+    const pedido_id = result?.[0]?.[0]?.pedido_id;
+
+    if (!pedido_id) {
+      return res.status(500).json({ mensaje: "Error al generar el pedido" });
     }
 
-    try {
-        // Validar stock disponible
-        const erroresStock = [];
-
-        for (const item of productos) {
-            const [producto] = await db.promise().query(
-                "SELECT nombre, stock FROM productos WHERE producto_id = ?",
-                [item.producto_id]
-            );
-
-            if (producto.length === 0) {
-                erroresStock.push(`Producto ID ${item.producto_id} no encontrado.`);
-            } else if (producto[0].stock < item.cantidad) {
-                erroresStock.push(`"${producto[0].nombre}" solo tiene ${producto[0].stock} en stock.`);
-            }
-        }
-
-        if (erroresStock.length > 0) {
-            return res.status(400).json({
-                mensaje: "Stock insuficiente en algunos productos",
-                errores: erroresStock
-            });
-        }
-
-        // Crear pedido
-        const [insertPedido] = await db.promise().query(`
-            INSERT INTO pedidos (cliente_id, estado_id, notas)
-            VALUES (?, 1, ?)
-        `, [usuario.id, notas || null]);
-
-        const pedido_id = insertPedido.insertId;
-
-        // Insertar detalle y actualizar stock
-        for (const item of productos) {
-            const [producto] = await db.promise().query(
-                "SELECT precio, stock FROM productos WHERE producto_id = ?",
-                [item.producto_id]
-            );
-
-            await db.promise().query(`
-                INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario)
-                VALUES (?, ?, ?, ?)
-            `, [pedido_id, item.producto_id, item.cantidad, producto[0].precio]);
-
-            const nuevoStock = producto[0].stock - item.cantidad;
-            await db.promise().query(
-                "UPDATE productos SET stock = ? WHERE producto_id = ?",
-                [nuevoStock, item.producto_id]
-            );
-        }
-
-        res.status(201).json({ mensaje: "Pedido creado correctamente", pedido_id });
-
-    } catch (error) {
-        console.error("❌ Error al crear pedido:", error);
-        res.status(500).json({ mensaje: "Error al crear el pedido" });
-    }
+    res.status(201).json({ mensaje: "Pedido creado correctamente", pedido_id });
+  } catch (error) {
+    console.error("❌ Error al crear pedido:", error);
+    res.status(500).json({ mensaje: "Error interno al crear el pedido" });
+  }
 };
 
-// Crear un pedido directamente desde el carrito
+/**
+ * 🛒 POST /api/pedidos/carrito
+ * Crear pedido a partir del carrito del usuario.
+ */
 exports.crearPedidoDesdeCarrito = async (req, res) => {
-    const usuario = req.session?.usuario;
-    if (!usuario) return res.status(403).json({ mensaje: "No autenticado" });
+  const usuario = req.usuario;
+  if (!usuario) return res.status(403).json({ mensaje: "No autenticado" });
 
-    try {
-        // Obtener productos del carrito
-        const [carrito] = await db.promise().query(
-            "SELECT * FROM carrito WHERE usuario_id = ?", [usuario.id]
-        );
+  try {
+    const [[{ total }]] = await db.promise().query(`
+      SELECT SUM(c.cantidad * p.precio) AS total
+      FROM carrito c
+      JOIN productos p ON c.producto_id = p.producto_id
+      WHERE c.usuario_id = ?
+    `, [usuario.usuario_id]);
 
-        if (carrito.length === 0) {
-            return res.status(400).json({ mensaje: "El carrito está vacío" });
-        }
-
-        // Verificar stock disponible
-        const erroresStock = [];
-
-        for (const item of carrito) {
-            const [producto] = await db.promise().query(
-                "SELECT nombre, stock FROM productos WHERE producto_id = ?",
-                [item.producto_id]
-            );
-
-            if (producto.length === 0) {
-                erroresStock.push(`Producto ID ${item.producto_id} no encontrado.`);
-            } else if (producto[0].stock < item.cantidad) {
-                erroresStock.push(`"${producto[0].nombre}" solo tiene ${producto[0].stock} en stock.`);
-            }
-        }
-
-        if (erroresStock.length > 0) {
-            return res.status(400).json({
-                mensaje: "Stock insuficiente en algunos productos",
-                errores: erroresStock
-            });
-        }
-
-        // Crear pedido
-        const [insert] = await db.promise().query(
-            "INSERT INTO pedidos (cliente_id, estado_id) VALUES (?, 1)",
-            [usuario.id]
-        );
-        const pedido_id = insert.insertId;
-
-        // Insertar detalle y actualizar stock
-        for (const item of carrito) {
-            const [producto] = await db.promise().query(
-                "SELECT precio, stock FROM productos WHERE producto_id = ?",
-                [item.producto_id]
-            );
-
-            await db.promise().query(`
-                INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario)
-                VALUES (?, ?, ?, ?)
-            `, [pedido_id, item.producto_id, item.cantidad, producto[0].precio]);
-
-            // Actualizar stock
-            const nuevoStock = producto[0].stock - item.cantidad;
-            await db.promise().query(
-                "UPDATE productos SET stock = ? WHERE producto_id = ?",
-                [nuevoStock, item.producto_id]
-            );
-        }
-
-        // Vaciar carrito
-        await db.promise().query("DELETE FROM carrito WHERE usuario_id = ?", [usuario.id]);
-
-        res.status(201).json({ mensaje: "Pedido generado correctamente", pedido_id });
-
-    } catch (error) {
-        console.error("❌ Error al generar pedido desde carrito:", error);
-        res.status(500).json({ mensaje: "Error al procesar el pedido desde carrito" });
+    if (!total || total <= 0) {
+      return res.status(400).json({ mensaje: "El carrito está vacío o sin totales válidos" });
     }
+
+    const { direccion_envio, metodo_pago, cupon = null, notas = "" } = req.body;
+
+    if (!direccion_envio?.trim() || !metodo_pago?.trim()) {
+      return res.status(400).json({ mensaje: "Faltan datos para procesar el pedido" });
+    }
+
+    const [result] = await db.promise().query(`
+      CALL sp_crear_pedido_completo(?, ?, ?, ?, ?, ?)
+    `, [
+      usuario.usuario_id,
+      parseFloat(total),
+      metodo_pago,
+      cupon,
+      direccion_envio.trim(),
+      notas.trim()
+    ]);
+
+    const pedido_id = result?.[0]?.[0]?.pedido_id;
+    if (!pedido_id) {
+      return res.status(500).json({ mensaje: "No se generó el pedido correctamente" });
+    }
+
+    // Limpiar el carrito tras generar el pedido
+    await db.promise().query(`DELETE FROM carrito WHERE usuario_id = ?`, [usuario.usuario_id]);
+
+    res.status(201).json({ mensaje: "Pedido generado correctamente", pedido_id });
+  } catch (error) {
+    console.error("❌ Error al generar pedido desde carrito:", error);
+    res.status(500).json({ mensaje: "Error al procesar el pedido desde carrito" });
+  }
 };
 
-// Cancelar un pedido si está pendiente
-exports.cancelarPedido = (req, res) => {
-    const usuario = req.session?.usuario;
-    const pedido_id = req.params.id;
+/**
+ * ❌ DELETE /api/pedidos/:id
+ * Cancelar un pedido (si es del usuario actual y aún está pendiente).
+ */
+exports.cancelarPedido = async (req, res) => {
+  const usuario = req.usuario;
+  const pedido_id = req.params.id;
 
-    if (!usuario) return res.status(403).json({ mensaje: "No autenticado" });
+  if (!usuario) return res.status(403).json({ mensaje: "No autenticado" });
 
-    db.query(
-        "SELECT * FROM pedidos WHERE pedido_id = ? AND cliente_id = ?",
-        [pedido_id, usuario.id],
-        (err, resultados) => {
-            if (err || resultados.length === 0) {
-                return res.status(404).json({ mensaje: "Pedido no encontrado o no autorizado" });
-            }
+  try {
+    const [[pedido]] = await db.promise().query(`
+      SELECT * FROM pedidos
+      WHERE pedido_id = ? AND usuario_id = ? AND borrado_logico = 0
+    `, [pedido_id, usuario.usuario_id]);
 
-            const pedido = resultados[0];
-            if (![1, 2].includes(pedido.estado_id)) {
-                return res.status(400).json({ mensaje: "El pedido ya no puede cancelarse" });
-            }
+    if (!pedido) {
+      return res.status(404).json({ mensaje: "Pedido no encontrado o no autorizado" });
+    }
 
-            db.query("UPDATE pedidos SET estado_id = 6 WHERE pedido_id = ?", [pedido_id], (error) => {
-                if (error) {
-                    console.error("❌ Error al cancelar pedido:", error);
-                    return res.status(500).json({ mensaje: "Error al cancelar pedido" });
-                }
-                res.json({ mensaje: "Pedido cancelado correctamente" });
-            });
-        }
-    );
+    if (![1, 2].includes(pedido.estado_id)) {
+      return res.status(400).json({ mensaje: "El pedido ya no puede cancelarse" });
+    }
+
+    await db.promise().query(`
+      UPDATE pedidos SET estado_id = 6 WHERE pedido_id = ?
+    `, [pedido_id]);
+
+    res.status(200).json({ mensaje: "Pedido cancelado correctamente" });
+  } catch (error) {
+    console.error("❌ Error al cancelar pedido:", error);
+    res.status(500).json({ mensaje: "Error al cancelar pedido" });
+  }
 };

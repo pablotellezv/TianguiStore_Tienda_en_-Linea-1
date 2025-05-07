@@ -1,19 +1,16 @@
-document.addEventListener("DOMContentLoaded", async () => {
-  const usuario = JSON.parse(localStorage.getItem("usuario"));
-  if (!usuario || !["admin", "vendedor"].includes(usuario.rol)) {
-    window.location.href = "/index.html";
-    return;
-  }
-
-  await cargarSelects();
+document.addEventListener("DOMContentLoaded", () => {
+  cargarCategorias();
+  cargarMarcas();
+  configurarVistaPreviaImagenes();
+  configurarVistaPreviaModelo3D();
 
   const form = document.getElementById("form-agregar-producto");
-  const submitBtn = form.querySelector('button[type="submit"]');
-
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const formData = new FormData();
+
+    // 📦 Campos simples
     formData.append("nombre", document.getElementById("nombre").value.trim());
     formData.append("descripcion", document.getElementById("descripcion").value.trim());
     formData.append("precio", document.getElementById("precio").value);
@@ -24,160 +21,136 @@ document.addEventListener("DOMContentLoaded", async () => {
     formData.append("publicado", document.getElementById("publicado").checked);
     formData.append("meses_sin_intereses", document.getElementById("meses_sin_intereses").checked);
 
-    // Imágenes
+    // 🖼️ Imágenes múltiples
     const imagenes = document.getElementById("imagenes").files;
-    if (imagenes.length === 0) {
-      mostrarToast("⚠️ Debes seleccionar al menos una imagen del producto.", "warning");
-      return;
-    }
-
     for (let i = 0; i < imagenes.length; i++) {
-      const archivo = imagenes[i];
-      if (!archivo.type.startsWith("image/")) {
-        mostrarToast("❌ Solo se permiten archivos de imagen.", "danger");
-        return;
-      }
-      formData.append("imagenes", archivo);
+      formData.append("imagenes", imagenes[i]);
     }
 
-    // Modelo 3D (opcional)
+    // 🧩 Modelo 3D (opcional)
     const modelo3d = document.getElementById("modelo3d").files[0];
     if (modelo3d) {
       formData.append("modelo3d", modelo3d);
     }
 
-    bloquearFormulario(true, submitBtn);
-
     try {
-      const res = await fetch("/productos/agregar", {
+      const res = await fetch("/productos", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${usuario.token}`,
-        },
         body: formData,
       });
 
-      const respuesta = await res.json();
+      const data = await res.json();
 
-      if (res.ok) {
-        mostrarToast("✅ Producto agregado correctamente.", "success");
-        form.reset();
-        document.getElementById("preview-imagenes").innerHTML = "";
-        document.getElementById("preview-modelo3d").innerHTML = "";
-      } else {
-        mostrarToast(`❌ ${respuesta.message || "Error al agregar producto."}`, "danger");
+      if (!res.ok) {
+        mostrarToast("❌ Error: " + (data.message || "No se pudo guardar el producto."), "danger");
+        return;
       }
-    } catch (err) {
-      console.error("Error al guardar:", err);
-      mostrarToast("❌ Error de red o del servidor.", "danger");
-    } finally {
-      bloquearFormulario(false, submitBtn);
-    }
-  });
 
-  // Previsualizar imágenes seleccionadas
-  document.getElementById("imagenes").addEventListener("change", () => {
-    const preview = document.getElementById("preview-imagenes");
-    preview.innerHTML = "";
-    const archivos = [...document.getElementById("imagenes").files];
+      mostrarToast("✅ Producto guardado exitosamente.", "success");
+      form.reset();
+      document.getElementById("preview-imagenes").innerHTML = "";
+      document.getElementById("preview-modelo3d").innerHTML = "";
 
-    archivos.forEach(file => {
-      if (!file.type.startsWith("image/")) return;
-
-      const reader = new FileReader();
-      reader.onload = e => {
-        const img = document.createElement("img");
-        img.src = e.target.result;
-        img.style.width = "80px";
-        img.style.height = "80px";
-        img.classList.add("rounded", "border");
-        preview.appendChild(img);
-      };
-      reader.readAsDataURL(file);
-    });
-  });
-
-  // Previsualizar modelo 3D
-  document.getElementById("modelo3d").addEventListener("change", () => {
-    const file = document.getElementById("modelo3d").files[0];
-    const preview = document.getElementById("preview-modelo3d");
-    preview.innerHTML = "";
-
-    if (file && /\.(glb|gltf)$/i.test(file.name)) {
-      const url = URL.createObjectURL(file);
-      preview.innerHTML = `
-        <model-viewer src="${url}" alt="Modelo 3D" camera-controls auto-rotate ar style="width: 300px; height: 300px;"></model-viewer>
-      `;
-    } else if (file) {
-      preview.textContent = "⚠️ Este formato no se puede previsualizar aquí. Usa .glb o .gltf si deseas vista previa.";
+    } catch (error) {
+      console.error("Error al guardar producto:", error);
+      mostrarToast("❌ Error de red o servidor.", "danger");
     }
   });
 });
 
-// 🔒 Bloquear/desbloquear todos los campos del formulario
-function bloquearFormulario(bloquear, btn) {
-  const inputs = document.querySelectorAll("#form-agregar-producto input, textarea, select, button");
-  inputs.forEach(el => el.disabled = bloquear);
-  btn.innerHTML = bloquear
-    ? `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Guardando...`
-    : `<i class="fas fa-save me-2"></i>Guardar Producto`;
-}
-
-// 🔄 Cargar select de categorías y marcas
-async function cargarSelects() {
+// 🔄 Cargar categorías desde API
+async function cargarCategorias() {
   try {
-    const [resCategorias, resMarcas] = await Promise.all([
-      fetch("/categorias"),
-      fetch("/marcas"),
-    ]);
-
-    const categorias = await resCategorias.json();
-    const marcas = await resMarcas.json();
-
-    const catSelect = document.getElementById("categoria_id");
-    const marcaSelect = document.getElementById("marca_id");
-
-    catSelect.innerHTML = '<option value="" disabled selected>Selecciona una categoría</option>';
-    categorias.sort((a, b) => a.nombre_categoria.localeCompare(b.nombre_categoria)).forEach(c =>
-      catSelect.innerHTML += `<option value="${c.categoria_id}">${c.nombre_categoria}</option>`
-    );
-
-    marcaSelect.innerHTML = '<option value="" disabled selected>Selecciona una marca</option>';
-    marcas.sort((a, b) => a.nombre_marca.localeCompare(b.nombre_marca)).forEach(m =>
-      marcaSelect.innerHTML += `<option value="${m.marca_id}">${m.nombre_marca}</option>`
-    );
-
-  } catch (error) {
-    console.error("Error al cargar categorías o marcas:", error);
-    mostrarToast("⚠️ Error al cargar categorías o marcas.", "warning");
+    const res = await fetch("/categorias");
+    const categorias = await res.json();
+    const select = document.getElementById("categoria_id");
+    select.innerHTML = '<option value="">Selecciona una categoría</option>';
+    categorias.forEach(c => {
+      const option = document.createElement("option");
+      option.value = c.categoria_id;
+      option.textContent = c.nombre;
+      select.appendChild(option);
+    });
+  } catch {
+    mostrarToast("⚠️ Error al cargar categorías.", "warning");
   }
 }
 
-// 🔔 Mostrar toast mejorado con animación
-function mostrarToast(mensaje, tipo = "info") {
+// 🔄 Cargar marcas desde API
+async function cargarMarcas() {
+  try {
+    const res = await fetch("/marcas");
+    const marcas = await res.json();
+    const select = document.getElementById("marca_id");
+    select.innerHTML = '<option value="">Selecciona una marca</option>';
+    marcas.forEach(m => {
+      const option = document.createElement("option");
+      option.value = m.marca_id;
+      option.textContent = m.nombre;
+      select.appendChild(option);
+    });
+  } catch {
+    mostrarToast("⚠️ Error al cargar marcas.", "warning");
+  }
+}
+
+// 🖼️ Vista previa de imágenes
+function configurarVistaPreviaImagenes() {
+  const input = document.getElementById("imagenes");
+  const preview = document.getElementById("preview-imagenes");
+
+  input.addEventListener("change", () => {
+    preview.innerHTML = "";
+    const archivos = input.files;
+    for (let i = 0; i < archivos.length; i++) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = document.createElement("img");
+        img.src = e.target.result;
+        img.className = "img-thumbnail";
+        img.style.height = "80px";
+        img.style.marginRight = "10px";
+        preview.appendChild(img);
+      };
+      reader.readAsDataURL(archivos[i]);
+    }
+  });
+}
+
+// 🔍 Vista previa de modelo 3D
+function configurarVistaPreviaModelo3D() {
+  const input = document.getElementById("modelo3d");
+  const preview = document.getElementById("preview-modelo3d");
+
+  input.addEventListener("change", () => {
+    preview.innerHTML = "";
+    const archivo = input.files[0];
+    if (archivo && /\.(glb|gltf)$/i.test(archivo.name)) {
+      const url = URL.createObjectURL(archivo);
+      const modelViewer = document.createElement("model-viewer");
+      modelViewer.setAttribute("src", url);
+      modelViewer.setAttribute("camera-controls", "");
+      modelViewer.setAttribute("auto-rotate", "");
+      modelViewer.setAttribute("style", "width: 100%; height: 300px;");
+      preview.appendChild(modelViewer);
+    } else {
+      preview.innerHTML = "<small class='text-muted'>Modelo no compatible para vista previa.</small>";
+    }
+  });
+}
+
+// 🔔 Toast visual reutilizable
+function mostrarToast(mensaje, tipo = "success") {
   const toastContainer = document.getElementById("toast-container");
-  const tipoClase = {
-    success: "bg-success",
-    danger: "bg-danger",
-    warning: "bg-warning text-dark",
-    info: "bg-dark",
-  }[tipo] || "bg-dark";
-
-  const toastId = `toast-${Date.now()}`;
-
-  const toastHTML = `
-    <div id="${toastId}" class="toast align-items-center ${tipoClase} text-white border-0 fade show mb-2" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="d-flex">
-        <div class="toast-body">${mensaje}</div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
-      </div>
+  const toast = document.createElement("div");
+  toast.className = `toast align-items-center text-white bg-${tipo} border-0 show shadow`;
+  toast.setAttribute("role", "alert");
+  toast.innerHTML = `
+    <div class="d-flex">
+      <div class="toast-body fw-bold">${mensaje}</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
     </div>
   `;
-
-  toastContainer.insertAdjacentHTML("beforeend", toastHTML);
-
-  setTimeout(() => {
-    const toast = document.getElementById(toastId);
-    if (toast) toast.classList.remove("show");
-  }, 3500);
+  toastContainer.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
 }

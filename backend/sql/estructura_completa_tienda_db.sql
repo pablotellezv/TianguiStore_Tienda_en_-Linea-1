@@ -86,6 +86,25 @@ CREATE TABLE IF NOT EXISTS pedidos (
   INDEX idx_cupon (cupon)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Tabla: carrito
+CREATE TABLE carrito (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  usuario_id INT NOT NULL,
+  producto_id INT NOT NULL,
+  cantidad INT NOT NULL CHECK (cantidad > 0),
+  fecha_agregado TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT fk_carrito_usuario FOREIGN KEY (usuario_id)
+    REFERENCES usuarios(usuario_id)
+    ON DELETE CASCADE,
+
+  CONSTRAINT fk_carrito_producto FOREIGN KEY (producto_id)
+    REFERENCES productos(producto_id)
+    ON DELETE CASCADE,
+
+  CONSTRAINT uq_carrito UNIQUE (usuario_id, producto_id)
+);
+
 
 CREATE TABLE IF NOT EXISTS detalle_pedido (
   detalle_id INT AUTO_INCREMENT PRIMARY KEY,

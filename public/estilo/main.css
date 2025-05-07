@@ -1,0 +1,209 @@
+/* 🌐 Fuentes modernas */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
+
+/* =====================================================
+   🎨 Estilos globales
+===================================================== */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #111827; /* gris oscuro Tailwind */
+  color: #e5e7eb; /* text-gray-200 */
+  font-family: 'Poppins', 'Orbitron', sans-serif;
+  margin: 0;
+  padding: 0;
+  transition: background 0.3s ease-in-out;
+}
+
+/* =====================================================
+   🌙 Modo oscuro manual para fallback
+===================================================== */
+.dark body {
+  background-color: #0f172a;
+  color: #f1f5f9;
+}
+
+/* =====================================================
+   🧭 Navbar
+===================================================== */
+.navbar {
+  padding: 1rem 0;
+  background: linear-gradient(to right, #1e3a8a, #9333ea); /* azul a violeta */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* =====================================================
+   🛒 Carrito
+===================================================== */
+#lista-carrito {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 10px;
+  border-radius: 10px;
+  background: #1f2937;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+#total_etiqueta {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #38bdf8;
+}
+#vaciar-carrito:hover {
+  background-color: #dc2626;
+  transform: scale(1.05);
+}
+
+/* =====================================================
+   🛍 Tarjetas de productos
+===================================================== */
+.card {
+  border: none;
+  border-radius: 15px;
+  overflow: hidden;
+  background: #1e293b;
+  color: white;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+.card-img-top {
+  height: 200px;
+  object-fit: cover;
+}
+.card-footer {
+  background-color: #111827;
+  border-top: 1px solid #374151;
+}
+.agregar-carrito:hover {
+  background-color: #10b981;
+  transform: scale(1.05);
+}
+
+/* =====================================================
+   📝 Formularios
+===================================================== */
+.card-form {
+  max-width: 420px;
+  background: #1f2937;
+  color: #f3f4f6;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+  margin: auto;
+}
+.card-form:hover {
+  transform: scale(1.01);
+}
+input, select, textarea {
+  background-color: #111827;
+  border: 1px solid #4b5563;
+  color: white;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: #60a5fa;
+  outline: none;
+}
+
+/* =====================================================
+   🧼 Botones
+===================================================== */
+button,
+.btn-primary {
+  transition: all 0.3s ease-in-out;
+  background-color: #3b82f6;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+}
+button:hover,
+.btn-primary:hover {
+  background-color: #2563eb;
+  transform: scale(1.05);
+}
+
+/* =====================================================
+   ✅ Alertas
+===================================================== */
+.alert {
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+.alert-success {
+  background-color: #22c55e;
+  color: #f0fdf4;
+}
+.alert-danger {
+  background-color: #ef4444;
+  color: #fef2f2;
+}
+
+/* =====================================================
+   🔔 Toasts
+===================================================== */
+#toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1050;
+}
+.toast {
+  background-color: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-top: 0.5rem;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.toast.hide {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+/* =====================================================
+   🎭 Animaciones
+===================================================== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+.scale-in {
+  animation: scaleIn 0.3s ease-in-out;
+}
+
+/* =====================================================
+   🦶 Footer
+===================================================== */
+footer {
+  background: #1f2937;
+  color: #d1d5db;
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 0.875rem;
+  border-top: 1px solid #374151;
+}
+footer a {
+  transition: color 0.2s ease;
+}
+footer a:hover {
+  color: #facc15;
+}

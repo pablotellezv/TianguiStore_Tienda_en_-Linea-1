@@ -1,8 +1,9 @@
-const db = require("../db/connection");
+const db = require("../db/connection"); // Conexión al pool de MySQL
 
 /**
- * 📋 Obtener todas las marcas activas, ordenadas por prioridad visual.
- * @returns {Promise<Array>}
+ * 📋 Obtener todas las marcas activas ordenadas por prioridad visual.
+ * Esta función devuelve solo marcas cuyo estado sea 'activo'.
+ * @returns {Promise<Array>} Lista de marcas activas
  */
 async function obtenerMarcasActivas() {
   const [rows] = await db.query(`
@@ -14,20 +15,22 @@ async function obtenerMarcasActivas() {
 }
 
 /**
- * 🔍 Obtener una marca por su ID.
- * @param {number} id
- * @returns {Promise<Object|null>}
+ * 🔍 Obtener una marca específica por su ID.
+ * @param {number} id - ID de la marca
+ * @returns {Promise<Object|null>} Objeto marca o null si no se encuentra
  */
 async function obtenerMarcaPorId(id) {
   const [rows] = await db.query(`
-    SELECT * FROM marcas WHERE marca_id = ?
+    SELECT * FROM marcas
+    WHERE marca_id = ?
   `, [parseInt(id)]);
   return rows[0] || null;
 }
 
 /**
- * ➕ Insertar una nueva marca.
- * @param {Object} datos
+ * ➕ Insertar una nueva marca en el sistema.
+ * Todos los campos de texto son limpiados (trim).
+ * @param {Object} datos - Datos de la nueva marca
  * @returns {Promise<void>}
  */
 async function insertarMarca({
@@ -59,9 +62,10 @@ async function insertarMarca({
 }
 
 /**
- * ✏️ Actualizar los datos de una marca.
- * @param {number} id
- * @param {Object} datos
+ * ✏️ Actualizar una marca existente.
+ * Solo actualiza campos que estén presentes en el objeto `datos`.
+ * @param {number} id - ID de la marca a actualizar
+ * @param {Object} datos - Campos a modificar
  * @returns {Promise<void>}
  */
 async function actualizarMarca(id, datos) {
@@ -75,7 +79,7 @@ async function actualizarMarca(id, datos) {
     }
   }
 
-  if (campos.length === 0) return;
+  if (campos.length === 0) return; // No hay nada que actualizar
 
   valores.push(parseInt(id));
   const sql = `UPDATE marcas SET ${campos.join(", ")} WHERE marca_id = ?`;
@@ -83,13 +87,16 @@ async function actualizarMarca(id, datos) {
 }
 
 /**
- * 🗑️ Desactivar (soft delete) una marca.
- * @param {number} id
+ * 🗑️ Desactivar una marca (soft delete).
+ * Cambia el campo `estado` a 'inactivo' sin eliminar el registro físicamente.
+ * @param {number} id - ID de la marca
  * @returns {Promise<void>}
  */
 async function desactivarMarca(id) {
   await db.query(`
-    UPDATE marcas SET estado = 'inactivo' WHERE marca_id = ?
+    UPDATE marcas
+    SET estado = 'inactivo'
+    WHERE marca_id = ?
   `, [parseInt(id)]);
 }
 
