@@ -7,12 +7,12 @@ const path = require("path");
 const dotenv = require("dotenv");
 const express = require("express");
 const cors = require("cors");
-const pool = require("./db"); // Pool de conexiones a la base de datos
+const pool = require("./db/connection"); // Pool de conexiones a la base de datos
 const Gauge = require("gauge"); // Indicadores visuales para operaciones críticas
 const helmet = require("helmet"); // Protege con cabeceras HTTP seguras
 const rateLimit = require("express-rate-limit"); // Limita solicitudes para prevenir DoS
 const hpp = require("hpp"); // Previene contaminación de parámetros HTTP
-const updateNotifier = require("update-notifier"); // Notifica sobre actualizaciones de dependencias
+const updateNotifier = require("update-notifier").default; // Notifica sobre actualizaciones de dependencias
 const { execSync } = require("child_process");
 
 // Instanciar Gauge para monitorizar las operaciones críticas durante el arranque 🔍
@@ -24,7 +24,7 @@ dotenv.config({ path: path.resolve(__dirname, ".env") });
 // Gestión de dependencias:
 // Se notifica al desarrollador si hay actualizaciones disponibles. En entornos de desarrollo,
 // y activado mediante AUTO_AUDIT=true, se ejecuta "npm audit fix" para corregir vulnerabilidades.
-const pkg = require("./package.json");
+const pkg = require(path.resolve(__dirname, '..', 'package.json'));
 updateNotifier({ pkg }).notify();
 if (process.env.AUTO_AUDIT === "true" && process.env.NODE_ENV !== "production") {
   try {
@@ -108,7 +108,7 @@ app.use(express.static(PUBLIC_DIR));
 // ─────────────────────────────────────────────────────────────
 // Se importan las rutas para la API y se configura la entrega de archivos HTML.
 // Para prevenir path injection se utiliza una lista blanca de páginas permitidas.
-const authRoutes = require("./routes/authRoutes");
+const authRoutes = require("./routes/auth.routes");
 const productosRoutes = require("./routes/productosRoutes");
 const carritoRoutes = require("./routes/carritoRoutes");
 const pedidoRoutes = require("./routes/pedidoRoutes");
