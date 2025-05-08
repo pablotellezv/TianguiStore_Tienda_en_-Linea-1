@@ -1,95 +1,177 @@
-/* Usamos Tailwind CSS y las utilidades que permite la librería */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Estilos personalizados adicionales */
-
-/* Definición de fondo y color de texto */
-body {
-  @apply bg-gray-900 text-gray-300; /* Fondo oscuro y texto claro */
-  font-family: 'Poppins', sans-serif; /* Fuente para todo el cuerpo */
+/* =======================================================
+   Archivo: main.less
+   Descripción:
+   Este archivo contiene los estilos principales de la tienda en línea TianguiStore. 
+   Utiliza el preprocesador **Less** para facilitar la creación de estilos reutilizables, 
+   la gestión de variables, mixins y un enfoque más organizado del CSS.
+   
+   Autor: I.S.C. Erick Renato Vega Ceron
+   Fecha de Creación: Mayo 2025
+   ======================================================= */
+/* =======================================================
+   VARIABLES
+   ======================================================= */
+/* Acento para hover y botones */
+/* Radio de bordes */
+/* =======================================================
+      BODY ESTILOS
+      ======================================================= */
+/* Estilo para el cuerpo en modo oscuro */
+body.dark-mode {
+  background-color: #121212;
+  color: #e0e0e0;
+  transition: background-color 0.3s, color 0.3s;
 }
-
-/* Animación personalizada de fade-in */
-.fade-in {
-  animation: fadeIn 1s ease-in-out;
+/* Estilo para el cuerpo en modo claro */
+body.light-mode {
+  background-color: #f4f4f4;
+  color: #333333;
+  transition: background-color 0.3s, color 0.3s;
 }
-
+/* =======================================================
+      NAVBAR (Barra de navegación)
+      ======================================================= */
+/* Barra de navegación en modo oscuro */
+nav.dark-mode {
+  background-color: #1c1c1c;
+  color: #e0e0e0;
+}
+/* Barra de navegación en modo claro */
+nav.light-mode {
+  background-color: #ffffff;
+  color: #333333;
+}
+/* =======================================================
+      ENLACES DE NAVEGACIÓN
+      ======================================================= */
+nav a {
+  color: white;
+  text-decoration: none;
+  padding: 12px 20px;
+  display: inline-block;
+  font-size: 16px;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 1px;
+  transition: background-color 0.3s;
+}
+nav a:hover {
+  background-color: #FF8C00;
+}
+/* =======================================================
+      BOTÓN DE HAMBURGUESA (MÓVIL)
+      ======================================================= */
+.sidenav-trigger {
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+body.light-mode .sidenav-trigger {
+  color: #333333;
+}
+/* =======================================================
+      MENÚ LATERAL (SIDENAV)
+      ======================================================= */
+/* Estilo del menú lateral en modo oscuro */
+.sidenav.dark-mode {
+  background-color: #1c1c1c;
+  padding-top: 20px;
+}
+.sidenav.dark-mode li {
+  padding: 10px 0;
+}
+.sidenav.dark-mode a {
+  color: #e0e0e0;
+  text-decoration: none;
+  padding-left: 20px;
+  transition: background-color 0.3s;
+}
+.sidenav.dark-mode a:hover {
+  background-color: #FF8C00;
+}
+/* Estilo del menú lateral en modo claro */
+.sidenav.light-mode {
+  background-color: #ffffff;
+  padding-top: 20px;
+}
+.sidenav.light-mode li {
+  padding: 10px 0;
+}
+.sidenav.light-mode a {
+  color: #333333;
+  text-decoration: none;
+  padding-left: 20px;
+  transition: background-color 0.3s;
+}
+.sidenav.light-mode a:hover {
+  background-color: #FF8C00;
+}
+/* =======================================================
+      BOTÓN DE CAMBIO DE TEMA
+      ======================================================= */
+#toggleThemeBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: white;
+  font-size: 18px;
+  transition: color 0.3s;
+}
+body.light-mode #toggleThemeBtn {
+  color: #333333;
+}
+/* =======================================================
+      OTROS COMPONENTES
+      ======================================================= */
+/* Estilo para el texto en general */
+p,
+span,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Roboto', sans-serif;
+  line-height: 1.5;
+  transition: color 0.3s;
+}
+body.dark-mode p,
+body.dark-mode span {
+  color: #e0e0e0;
+}
+body.light-mode p,
+body.light-mode span {
+  color: #333333;
+}
+/* =======================================================
+      MIXINS RECOMENDADOS
+      ======================================================= */
+/* Mixin para bordes redondeados */
+/* Mixin para sombra suave */
+/* Mixin para transición suave */
+/* Mixin para animación de desvanecimiento */
 @keyframes fadeIn {
-  from {
+  0% {
     opacity: 0;
   }
-  to {
+  100% {
     opacity: 1;
   }
 }
-
-/* Estilos para el encabezado */
-header {
-  @apply text-center mb-10; /* Centrado de texto y margen inferior */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
 }
-
-header h1 {
-  @apply text-4xl font-bold mb-2; /* Tamaño de texto grande, negrita y margen abajo */
-}
-
-header p {
-  @apply text-lg text-gray-400; /* Subtítulo con texto gris */
-}
-
-/* Estilos para la sección de productos */
-section#titulo-productos {
-  @apply text-3xl font-semibold mb-6; /* Título grande y negrita, con margen abajo */
-}
-
-#productos-container {
-  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6; /* Responsividad de productos con Tailwind */
-}
-
-/* Contenedor de toasts (notificaciones) */
-#toast-container {
-  @apply fixed bottom-0 right-0 p-3 space-y-2 z-50; /* Posición fija en la parte inferior derecha */
-}
-
-/* Responsividad y espaciado en los componentes */
-@media (max-width: 640px) {
-  /* En móviles pequeños, reducimos el tamaño de algunos textos */
-  header h1 {
-    @apply text-3xl;
+/* Mixin para animación de desplazamiento suave */
+@keyframes slideIn {
+  0% {
+    transform: translateX(-100%);
   }
-  section#titulo-productos {
-    @apply text-2xl;
+  100% {
+    transform: translateX(0);
   }
 }
-
-/* Estilos adicionales para los botones y enlaces */
-button, a {
-  @apply px-6 py-2 rounded-lg font-semibold transition-all duration-300;
-}
-
-/* Hover en enlaces y botones */
-a:hover, button:hover {
-  @apply text-yellow-400; /* Cambiar color al pasar el ratón */
-}
-
-/* Estilo para iconos de FontAwesome */
-.fas, .fab {
-  @apply text-xl;
-}
-
-/* Añadimos un fondo oscuro con opacidad para overlays (por ejemplo, modales) */
-.bg-dark-overlay {
-  background-color: rgba(31, 41, 55, 0.8); /* Fondo oscuro con algo de opacidad */
-}
-
-/* Tema oscuro para preferencia del usuario */
-@media (prefers-color-scheme: dark) {
-  body {
-    @apply bg-gray-900 text-gray-100; /* Fondo y texto ajustados al modo oscuro */
-  }
-
-  .bg-dark-overlay {
-    background-color: rgba(17, 24, 39, 0.9); /* Fondo más oscuro con más opacidad */
-  }
+.slide-in {
+  animation: slideIn 0.3s ease-in-out;
 }

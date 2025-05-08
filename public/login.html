@@ -1,3 +1,5 @@
+<!-- 📁 login.html - Página de inicio de sesión de TianguiStore -->
+
 <!DOCTYPE html>
 <html lang="es-MX">
 <head>
@@ -5,57 +7,57 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Iniciar Sesión | TianguiStore</title>
 
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <!-- FontAwesome -->
+  <!-- MaterializeCSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet" />
+  
+  <!-- FontAwesome para íconos -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  
   <!-- Estilos personalizados -->
   <link rel="stylesheet" href="estilo/estilos.css" />
 </head>
 
 <body class="bg-light">
 
-  <!-- Navbar modular -->
+  <!-- Navbar modular: se carga dinámicamente -->
   <div id="navbar-container"></div>
 
   <!-- Contenido principal -->
   <main class="container d-flex justify-content-center align-items-center min-vh-100">
     <section class="card p-4 shadow rounded-4 w-100" style="max-width: 420px;">
       <div class="card-body">
+        <!-- Título de la página -->
         <h1 class="text-center mb-4 fw-bold">
           <i class="fas fa-sign-in-alt me-2"></i> Iniciar Sesión
         </h1>
 
+        <!-- Formulario de inicio de sesión -->
         <form id="loginForm" novalidate>
-          <!-- Correo -->
-          <div class="mb-3">
-            <label for="email" class="form-label">Correo Electrónico</label>
-            <div class="input-group has-validation">
-              <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-              <input type="email" class="form-control" id="email" placeholder="usuario@correo.com" required autocomplete="email" />
-              <div class="invalid-feedback">Correo electrónico inválido.</div>
-            </div>
+          <!-- Correo electrónico -->
+          <div class="input-field mb-3">
+            <i class="fas fa-envelope prefix"></i>
+            <input type="email" id="email" class="validate" placeholder="usuario@correo.com" required autocomplete="email" />
+            <label for="email">Correo Electrónico</label>
+            <span class="helper-text" data-error="Correo electrónico inválido"></span>
           </div>
 
           <!-- Contraseña -->
-          <div class="mb-3">
-            <label for="password" class="form-label">Contraseña</label>
-            <div class="input-group has-validation">
-              <span class="input-group-text"><i class="fas fa-lock"></i></span>
-              <input type="password" class="form-control" id="password" placeholder="********" required autocomplete="current-password" />
-              <button type="button" class="btn btn-outline-secondary" id="togglePassword" tabindex="-1" title="Mostrar u ocultar contraseña">
-                <i class="fas fa-eye-slash"></i>
-              </button>
-              <div class="invalid-feedback">
-                La contraseña debe tener al menos 8 caracteres, una mayúscula y un número.
-              </div>
-            </div>
+          <div class="input-field mb-3">
+            <i class="fas fa-lock prefix"></i>
+            <input type="password" id="password" class="validate" placeholder="********" required autocomplete="current-password" />
+            <button type="button" class="btn-flat" id="togglePassword" tabindex="-1" title="Mostrar u ocultar contraseña">
+              <i class="fas fa-eye-slash"></i>
+            </button>
+            <label for="password">Contraseña</label>
+            <span class="helper-text" data-error="La contraseña debe tener al menos 8 caracteres, una mayúscula y un número"></span>
           </div>
 
           <!-- Recordarme -->
           <div class="form-check mb-3">
-            <input type="checkbox" class="form-check-input" id="remember" />
-            <label class="form-check-label" for="remember">Recordarme</label>
+            <label>
+              <input type="checkbox" class="filled-in" id="remember" />
+              <span>Recordarme</span>
+            </label>
           </div>
 
           <!-- Botón principal -->
@@ -79,18 +81,4 @@
         <div id="mensajeExito" class="alert alert-success mt-3 d-none" role="status"></div>
       </div>
     </section>
-  </main>
-
-  <!-- Footer modular -->
-  <div id="footer-container"></div>
-
-  <!-- Toasts -->
-  <div id="toast-container" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;"></div>
-
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script defer src="scripts/loadComponent.js"></script>
-  <script defer src="scripts/login.js"></script>
-  <script defer src="scripts/togglePassword.js"></script>
-</body>
-</html>
+  </

@@ -16,7 +16,7 @@
  */
 
 require("dotenv").config();
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const validator = require("validator");
 
 const usuarioModel = require("../models/usuarios.model");

@@ -1,0 +1,209 @@
+/* =======================================================
+   Archivo: main.less
+   Descripción:
+   Este archivo contiene los estilos principales de la tienda en línea TianguiStore. 
+   Utiliza el preprocesador **Less** para facilitar la creación de estilos reutilizables, 
+   la gestión de variables, mixins y un enfoque más organizado del CSS.
+   
+   Autor: I.S.C. Erick Renato Vega Ceron
+   Fecha de Creación: Mayo 2025
+   ======================================================= */
+
+/* =======================================================
+   VARIABLES
+   ======================================================= */
+   @dark-background: #121212;
+   @light-background: #f4f4f4;
+   @dark-text: #e0e0e0;
+   @light-text: #333333;
+   @primary-accent: #FF8C00; /* Acento para hover y botones */
+   @navbar-dark: #1c1c1c;
+   @navbar-light: #ffffff;
+   @transition-time: 0.3s;
+   @border-radius: 1rem; /* Radio de bordes */
+   
+   /* =======================================================
+      BODY ESTILOS
+      ======================================================= */
+   body {
+     font-family: 'Roboto', sans-serif;
+     line-height: 1.5;
+     transition: background-color @transition-time, color @transition-time;
+   }
+   
+   body.dark-mode {
+     background-color: @dark-background;
+     color: @dark-text;
+   }
+   
+   body.light-mode {
+     background-color: @light-background;
+     color: @light-text;
+   }
+   
+   /* =======================================================
+      NAVBAR (Barra de navegación)
+      ======================================================= */
+   nav {
+     transition: background-color @transition-time, color @transition-time;
+   }
+   
+   nav.dark-mode {
+     background-color: @navbar-dark;
+     color: @dark-text;
+   }
+   
+   nav.light-mode {
+     background-color: @navbar-light;
+     color: @light-text;
+   }
+   
+   /* =======================================================
+      ENLACES DE NAVEGACIÓN
+      ======================================================= */
+   nav a {
+     color: white;
+     text-decoration: none;
+     padding: 12px 20px;
+     display: inline-block;
+     font-size: 16px;
+     text-transform: uppercase;
+     font-weight: bold;
+     letter-spacing: 1px;
+     transition: background-color @transition-time;
+   }
+   
+   nav a:hover {
+     background-color: @primary-accent;
+   }
+   
+   /* =======================================================
+      BOTÓN DE HAMBURGUESA (MÓVIL)
+      ======================================================= */
+   .sidenav-trigger {
+     color: white;
+     font-size: 24px;
+     cursor: pointer;
+     transition: color @transition-time;
+   }
+   
+   body.light-mode .sidenav-trigger {
+     color: @light-text;
+   }
+   
+   /* =======================================================
+      MENÚ LATERAL (SIDENAV)
+      ======================================================= */
+   .sidenav {
+     padding-top: 20px;
+   }
+   
+   .sidenav.dark-mode {
+     background-color: @navbar-dark;
+   }
+   
+   .sidenav.light-mode {
+     background-color: @navbar-light;
+   }
+   
+   .sidenav li {
+     padding: 10px 0;
+   }
+   
+   .sidenav a {
+     padding-left: 20px;
+     transition: background-color @transition-time;
+   }
+   
+   .sidenav a:hover {
+     background-color: @primary-accent;
+     color: white;
+   }
+   
+   /* =======================================================
+      BOTÓN DE CAMBIO DE TEMA
+      ======================================================= */
+   #toggleThemeBtn {
+     background: none;
+     border: none;
+     cursor: pointer;
+     color: white;
+     font-size: 18px;
+     transition: color @transition-time;
+   }
+   
+   body.light-mode #toggleThemeBtn {
+     color: @light-text;
+   }
+   
+   /* =======================================================
+      OTROS COMPONENTES
+      ======================================================= */
+   p,
+   span,
+   h1,
+   h2,
+   h3,
+   h4,
+   h5,
+   h6 {
+     transition: color @transition-time;
+   }
+   
+   body.dark-mode p,
+   body.dark-mode span {
+     color: @dark-text;
+   }
+   
+   body.light-mode p,
+   body.light-mode span {
+     color: @light-text;
+   }
+   
+   /* =======================================================
+      MIXINS RECOMENDADOS
+      ======================================================= */
+   
+   /* Mixin para bordes redondeados */
+   .rounded-border(@radius: @border-radius) {
+     border-radius: @radius;
+   }
+   
+   /* Mixin para sombra suave */
+   .soft-shadow(@shadow-color: rgba(0, 0, 0, 0.1)) {
+     box-shadow: 0 4px 6px @shadow-color;
+   }
+   
+   /* Mixin para transición suave */
+   .smooth-transition(@property: all, @speed: @transition-time) {
+     transition: @property @speed ease-in-out;
+   }
+   
+   /* Mixin para animación de desvanecimiento */
+   @keyframes fadeIn {
+     0% {
+       opacity: 0;
+     }
+     100% {
+       opacity: 1;
+     }
+   }
+   
+   .fade-in {
+     animation: fadeIn @transition-time ease-in-out;
+   }
+   
+   /* Mixin para animación de desplazamiento suave */
+   @keyframes slideIn {
+     0% {
+       transform: translateX(-100%);
+     }
+     100% {
+       transform: translateX(0);
+     }
+   }
+   
+   .slide-in {
+     animation: slideIn @transition-time ease-in-out;
+   }
+   

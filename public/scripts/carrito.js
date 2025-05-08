@@ -1,7 +1,24 @@
-// 📦 carrito.js (modo invitado + autenticado con verificación + imágenes seguras)
+/**
+ * 📦 carrito.js
+ * 
+ * Descripción:
+ * Este archivo contiene la lógica para manejar el carrito de compras en TianguiStore. 
+ * Permite mostrar los productos del carrito, modificar las cantidades, eliminar productos, 
+ * vaciar el carrito y realizar el pedido. Además, gestiona la validación del stock y la 
+ * visualización de toasts para notificaciones.
+ * 
+ * Funciones:
+ * - Mostrar carrito
+ * - Modificar cantidades y eliminar productos
+ * - Realizar pedido con verificación de stock
+ * - Manejo de toasts flotantes para notificaciones
+ * 
+ * Autor: I.S.C. Erick Renato Vega Ceron
+ * Fecha de Creación: Mayo 2025
+ */
 
-const BASE_URL = window.location.origin;
-const token = localStorage.getItem("token");
+const BASE_URL = window.location.origin; // URL base del sitio
+const token = localStorage.getItem("token"); // Obtener token de autenticación
 
 document.addEventListener("DOMContentLoaded", () => {
   mostrarCarrito();
@@ -89,6 +106,7 @@ function mostrarCarrito() {
 
   totalLabel.textContent = `Total: $${total.toFixed(2)}`;
 
+  // Asignar eventos para aumentar/disminuir cantidades y eliminar productos
   document.querySelectorAll(".aumentar-cantidad").forEach(btn =>
     btn.addEventListener("click", e => modificarCantidad(e.currentTarget.dataset.id, 1)));
 
@@ -105,7 +123,7 @@ function modificarCantidad(id, cambio) {
   const index = carrito.findIndex(p => p.id === id);
   if (index !== -1) {
     carrito[index].cantidad += cambio;
-    if (carrito[index].cantidad <= 0) carrito.splice(index, 1);
+    if (carrito[index].cantidad <= 0) carrito.splice(index, 1); // Eliminar producto si cantidad <= 0
     localStorage.setItem("carrito", JSON.stringify(carrito));
     mostrarCarrito();
     actualizarContadorCarrito();
@@ -115,7 +133,7 @@ function modificarCantidad(id, cambio) {
 // ❌ Eliminar producto del carrito
 function eliminarProducto(id) {
   let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-  carrito = carrito.filter(p => p.id !== id);
+  carrito = carrito.filter(p => p.id !== id); // Filtrar el producto a eliminar
   localStorage.setItem("carrito", JSON.stringify(carrito));
   mostrarCarrito();
   actualizarContadorCarrito();
@@ -125,7 +143,7 @@ function eliminarProducto(id) {
 // 🔢 Contador visual del total de productos
 function actualizarContadorCarrito() {
   const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-  const total = carrito.reduce((sum, p) => sum + p.cantidad, 0);
+  const total = carrito.reduce((sum, p) => sum + p.cantidad, 0); // Calcular el total de productos
   document.querySelectorAll("#contador-carrito").forEach(el => el.textContent = total);
 }
 
@@ -145,6 +163,7 @@ function mostrarToast(mensaje, tipo = "success") {
   setTimeout(() => toast.remove(), 3500);
 }
 
+// Crear contenedor para los toasts si no existe
 function crearContenedorToasts() {
   const div = document.createElement("div");
   div.id = "toast-container";
@@ -159,6 +178,7 @@ async function realizarPedidoDesdeLocalStorage() {
   const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
   const errores = [];
 
+  // Verificar que el stock de cada producto sea suficiente
   for (const item of carrito) {
     try {
       const res = await fetch(`${BASE_URL}/productos/${item.id}`);
@@ -173,11 +193,13 @@ async function realizarPedidoDesdeLocalStorage() {
     }
   }
 
+  // Si hay errores, mostrar alerta y no continuar
   if (errores.length > 0) {
     alert("❌ No se puede procesar el pedido:\n\n" + errores.join("\n"));
     return;
   }
 
+  // Crear el pedido con los productos del carrito
   const payload = {
     productos: carrito.map(p => ({
       producto_id: p.id,
@@ -199,7 +221,7 @@ async function realizarPedidoDesdeLocalStorage() {
     const data = await res.json();
 
     if (res.ok) {
-      localStorage.removeItem("carrito");
+      localStorage.removeItem("carrito"); // Vaciar carrito tras el pedido
       mostrarCarrito();
       actualizarContadorCarrito();
       alert("✅ Pedido generado correctamente.");

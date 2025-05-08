@@ -4,13 +4,17 @@
   "description": "Sistema modular monolítico mexicano de tienda en línea para pequeñas y medianas empresas (PyMEs), desarrollado como proyecto académico profesional.",
   "main": "backend/server.js",
   "scripts": {
-    "start": "node backend/server.js",
+    "start": "nodemon backend/server.js",
     "dev": "nodemon backend/server.js",
-    "build:css": "postcss src/styles.css -o public/styles.css",
+    "build:css": "lessc public/estilo/main.less public/estilo/main.css",
+    "install:materialize": "npm install -D materialize-css less",
+    "setup": "npm install && npm run install:materialize && npm run build:css && npm run watch:css",
+    "watch:css": "nodemon --watch public/estilo/main.less --exec lessc public/estilo/main.less public/estilo/main.css",
     "update:check": "npm outdated",
     "update:all": "npm update",
     "format": "prettier --write .",
-    "lint": "eslint . --fix"
+    "lint": "eslint . --fix",
+    "install:progress": "node install-with-progress.js"
   },
   "keywords": [
     "node",
@@ -26,7 +30,8 @@
   "author": "I.S.C. Erick Renato Vega Ceron",
   "license": "UNLICENSED-COMMERCIAL-DUAL",
   "dependencies": {
-    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
+    "chalk": "^4.1.2",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
@@ -37,16 +42,15 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.2",
     "mysql2": "^3.14.1",
-    "validator": "^13.15.0",
-    "tailwindcss": "^4.1.5",
-    "postcss": "^8.5.3",
-    "autoprefixer": "^10.4.21",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "progress": "^2.0.3",
+    "validator": "^13.15.0"
   },
   "devDependencies": {
-    "prettier": "^3.5.3",
     "eslint": "^9.26.0",
     "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-prettier": "^4.0.0"
+    "eslint-plugin-prettier": "^4.0.0",
+    "less": "^4.3.0",
+    "prettier": "^3.5.3"
   }
 }

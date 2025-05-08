@@ -1,3 +1,5 @@
+<!-- 📁 index.html - Página de inicio de TianguiStore -->
+
 <!DOCTYPE html>
 <html lang="es-MX">
 <head>
@@ -5,16 +7,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Inicio | TianguiStore</title>
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- FontAwesome (para íconos) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <!-- MaterializeCSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet" />
+  
+  <!-- FontAwesome para íconos -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
 </head>
 
 <body class="bg-gray-900 text-gray-300 font-sans">
 
-  <!-- Navbar modular -->
+  <!-- Navbar modular: se carga dinámicamente -->
   <div id="navbar-container"></div>
 
   <!-- Contenido principal -->
@@ -32,7 +34,7 @@
       <h2 id="titulo-productos" class="text-3xl font-semibold mb-6 text-white">
         <i class="fas fa-box mr-2"></i> Nuestros Productos
       </h2>
-      <div id="productos-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div id="productos-container" class="row">
         <!-- Productos cargados dinámicamente -->
       </div>
     </section>
@@ -41,7 +43,7 @@
   <!-- Toasts de notificación -->
   <div id="toast-container" class="fixed bottom-0 right-0 p-3 space-y-2 z-50"></div>
 
-  <!-- Footer modular -->
+  <!-- Footer modular: se carga dinámicamente -->
   <div id="footer-container"></div>
 
   <!-- Scripts -->
@@ -49,5 +51,7 @@
   <script src="scripts/productos.js" defer></script>
   <script src="scripts/carrito.js" defer></script>
 
+  <!-- Materialize JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 </body>
 </html>

@@ -1,16 +1,31 @@
+/**
+ * Archivo: agregarProducto.js
+ * Descripción:
+ * Este archivo contiene la lógica para la adición de productos a la tienda en línea TianguiStore.
+ * Permite agregar un nuevo producto a través de un formulario, manejar las categorías y marcas desde la API, 
+ * y visualizar vistas previas de las imágenes y modelos 3D.
+ * 
+ * Autor: I.S.C. Erick Renato Vega Ceron
+ * Fecha de Creación: Mayo 2025
+ */
+
 document.addEventListener("DOMContentLoaded", () => {
+  // Cargar categorías, marcas y configurar vistas previas de imágenes y modelos 3D
   cargarCategorias();
   cargarMarcas();
   configurarVistaPreviaImagenes();
   configurarVistaPreviaModelo3D();
 
+  // Obtener el formulario de agregar producto
   const form = document.getElementById("form-agregar-producto");
+
+  // Manejo del evento de envío del formulario
   form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevenir el comportamiento por defecto (recarga de la página)
 
     const formData = new FormData();
 
-    // 📦 Campos simples
+    // 📦 Campos simples: recoger los valores del formulario y agregarlos al FormData
     formData.append("nombre", document.getElementById("nombre").value.trim());
     formData.append("descripcion", document.getElementById("descripcion").value.trim());
     formData.append("precio", document.getElementById("precio").value);
@@ -21,18 +36,19 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append("publicado", document.getElementById("publicado").checked);
     formData.append("meses_sin_intereses", document.getElementById("meses_sin_intereses").checked);
 
-    // 🖼️ Imágenes múltiples
+    // 🖼️ Imágenes múltiples: Agregar todas las imágenes seleccionadas al FormData
     const imagenes = document.getElementById("imagenes").files;
     for (let i = 0; i < imagenes.length; i++) {
       formData.append("imagenes", imagenes[i]);
     }
 
-    // 🧩 Modelo 3D (opcional)
+    // 🧩 Modelo 3D (opcional): Agregar el archivo del modelo 3D si está presente
     const modelo3d = document.getElementById("modelo3d").files[0];
     if (modelo3d) {
       formData.append("modelo3d", modelo3d);
     }
 
+    // Enviar los datos al servidor
     try {
       const res = await fetch("/productos", {
         method: "POST",
@@ -41,12 +57,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const data = await res.json();
 
+      // Manejo de respuesta exitosa o error
       if (!res.ok) {
         mostrarToast("❌ Error: " + (data.message || "No se pudo guardar el producto."), "danger");
         return;
       }
 
       mostrarToast("✅ Producto guardado exitosamente.", "success");
+
+      // Limpiar el formulario y las vistas previas
       form.reset();
       document.getElementById("preview-imagenes").innerHTML = "";
       document.getElementById("preview-modelo3d").innerHTML = "";
@@ -94,13 +113,13 @@ async function cargarMarcas() {
   }
 }
 
-// 🖼️ Vista previa de imágenes
+// 🖼️ Vista previa de imágenes seleccionadas
 function configurarVistaPreviaImagenes() {
   const input = document.getElementById("imagenes");
   const preview = document.getElementById("preview-imagenes");
 
   input.addEventListener("change", () => {
-    preview.innerHTML = "";
+    preview.innerHTML = ""; // Limpiar cualquier vista previa previa
     const archivos = input.files;
     for (let i = 0; i < archivos.length; i++) {
       const reader = new FileReader();
@@ -117,13 +136,13 @@ function configurarVistaPreviaImagenes() {
   });
 }
 
-// 🔍 Vista previa de modelo 3D
+// 🔍 Vista previa del modelo 3D (si se carga un archivo .glb o .gltf)
 function configurarVistaPreviaModelo3D() {
   const input = document.getElementById("modelo3d");
   const preview = document.getElementById("preview-modelo3d");
 
   input.addEventListener("change", () => {
-    preview.innerHTML = "";
+    preview.innerHTML = ""; // Limpiar la vista previa previa
     const archivo = input.files[0];
     if (archivo && /\.(glb|gltf)$/i.test(archivo.name)) {
       const url = URL.createObjectURL(archivo);
@@ -139,7 +158,7 @@ function configurarVistaPreviaModelo3D() {
   });
 }
 
-// 🔔 Toast visual reutilizable
+// 🔔 Función para mostrar notificaciones (toast) en la interfaz
 function mostrarToast(mensaje, tipo = "success") {
   const toastContainer = document.getElementById("toast-container");
   const toast = document.createElement("div");
@@ -152,5 +171,5 @@ function mostrarToast(mensaje, tipo = "success") {
     </div>
   `;
   toastContainer.appendChild(toast);
-  setTimeout(() => toast.remove(), 4000);
+  setTimeout(() => toast.remove(), 4000); // Remover el toast después de 4 segundos
 }

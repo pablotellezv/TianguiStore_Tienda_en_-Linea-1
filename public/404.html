@@ -1,3 +1,5 @@
+<!-- 📁 404.html - Página de error 404 (Página no encontrada) -->
+
 <!DOCTYPE html>
 <html lang="es-MX">
 <head>
@@ -5,60 +7,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>404 - Página no encontrada</title>
 
-  <!-- Bootstrap -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- MaterializeCSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet" />
   <!-- FontAwesome -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
-
-  <style>
-    body {
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: #f8f9fa;
-    }
-
-    .container {
-      text-align: center;
-      padding: 3rem;
-      background-color: #ffffff;
-      border-radius: 1rem;
-      box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
-    }
-
-    h1 {
-      font-size: 6rem;
-      color: #dc3545;
-    }
-
-    h2 {
-      font-size: 1.75rem;
-      margin-bottom: 1rem;
-    }
-
-    p {
-      color: #6c757d;
-    }
-
-    .btn-primary i {
-      margin-right: 0.5rem;
-    }
-  </style>
+  <!-- Enlace al archivo CSS externo -->
+  <link href="path/to/main.css" rel="stylesheet" />
 </head>
 <body>
 
   <main class="container" role="main" aria-labelledby="error-title">
+    <!-- Título de la página de error -->
     <h1><i class="fas fa-exclamation-triangle" aria-hidden="true"></i> 404</h1>
     <h2 id="error-title">Página no encontrada</h2>
-    <p>Lo sentimos, la página que buscas no existe o fue movida.</p>
-    <a href="index.html" class="btn btn-primary">
+
+    <!-- Mensaje descriptivo de error -->
+    <p>Lo sentimos, la página que buscas no existe o fue movida. Intenta buscar en otras secciones del sitio.</p>
+
+    <!-- Botón para volver al inicio -->
+    <a href="index.html" class="btn btn-primary waves-effect waves-light" role="button" aria-label="Volver al inicio">
       <i class="fas fa-arrow-left"></i> Volver al inicio
     </a>
   </main>
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Materialize JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
 </body>
 </html>

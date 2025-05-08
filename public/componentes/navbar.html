@@ -1,42 +1,44 @@
-<nav class="bg-gray-900 text-gray-100 shadow-md" role="navigation" aria-label="Menú principal de TianguiStore">
-  <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+<nav class="nav-extended bg-primary darken-2" role="navigation" aria-label="Menú principal de TianguiStore">
+  <div class="nav-wrapper container">
     <!-- LOGO + NOMBRE -->
-    <a href="index.html" class="flex items-center space-x-3" title="Ir al inicio">
-      <img src="./imagenes/logo.jpeg" alt="Logo TianguiStore" class="rounded-full w-12 h-12 object-contain border-2 border-white shadow-lg">
-      <span class="text-lg font-semibold tracking-wide text-white">TianguiStore</span>
+    <a href="index.html" class="brand-logo left" title="Ir al inicio">
+      <img src="./imagenes/logo.jpeg" alt="Logo TianguiStore" class="circle responsive-img" style="width: 48px; height: 48px;">
+      <span class="hide-on-small-only">TianguiStore</span>
     </a>
 
     <!-- ACCIONES DERECHA (hamburguesa + tema) -->
-    <div class="flex items-center gap-4">
+    <ul class="right hide-on-med-and-down">
       <!-- Toggle Tema Global -->
-      <button id="toggleThemeBtn" title="Cambiar modo claro/oscuro" aria-label="Cambiar tema" class="text-yellow-400 hover:text-yellow-300 transition duration-200 text-xl">
-        <i class="fas fa-moon"></i>
-      </button>
+      <li>
+        <button id="toggleThemeBtn" class="btn-flat white-text" title="Cambiar modo claro/oscuro" aria-label="Cambiar tema">
+          <i class="fas fa-moon"></i>
+        </button>
+      </li>
 
       <!-- Botón hamburguesa móvil -->
-      <button class="lg:hidden text-white" id="toggleNavbarBtn" aria-label="Abrir menú de navegación">
-        <i class="fas fa-bars text-2xl"></i>
-      </button>
-    </div>
+      <li>
+        <a href="#" id="toggleNavbarBtn" class="sidenav-trigger" aria-label="Abrir menú de navegación">
+          <i class="fas fa-bars"></i>
+        </a>
+      </li>
+    </ul>
   </div>
 
   <!-- MENÚ PRINCIPAL -->
-  <div id="navbarMenu" class="hidden lg:flex flex-col lg:flex-row lg:space-x-6 mt-4 lg:mt-0 items-start lg:items-center px-4 pb-4 lg:px-0 lg:pb-0 w-full lg:w-auto">
+  <ul id="navbarMenu" class="sidenav" aria-labelledby="toggleNavbarBtn">
     <!-- Navegación pública -->
-    <a href="index.html" class="text-sm hover:text-yellow-400 transition duration-200" title="Página principal"><i class="fas fa-home mr-1"></i> Inicio</a>
-    <a href="#" class="text-sm hover:text-yellow-400 transition duration-200" title="Sobre nosotros"><i class="fas fa-users mr-1"></i> ¿Quiénes somos?</a>
-    <a href="#" class="text-sm hover:text-yellow-400 transition duration-200" title="Contáctanos"><i class="fas fa-address-book mr-1"></i> Contacto</a>
-    <a href="carrito.html" class="text-sm hover:text-yellow-400 transition duration-200" title="Ver carrito de compras">
-      <i class="fas fa-shopping-cart mr-1"></i> Carrito (<span id="contador-carrito">0</span>)
-    </a>
+    <li><a href="index.html" title="Página principal"><i class="fas fa-home mr-1"></i> Inicio</a></li>
+    <li><a href="#" title="Sobre nosotros"><i class="fas fa-users mr-1"></i> ¿Quiénes somos?</a></li>
+    <li><a href="#" title="Contáctanos"><i class="fas fa-address-book mr-1"></i> Contacto</a></li>
+    <li><a href="carrito.html" title="Ver carrito de compras"><i class="fas fa-shopping-cart mr-1"></i> Carrito (<span id="contador-carrito">0</span>)</a></li>
 
     <!-- Menú dinámico según rol -->
-    <a href="adminPanel.html" id="nav-panel" class="hidden text-sm hover:text-yellow-400 transition duration-200"><i class="fas fa-tools mr-1"></i> Panel Admin</a>
-    <a href="#" id="nav-productos" class="hidden text-sm hover:text-yellow-400 transition duration-200"><i class="fas fa-boxes mr-1"></i> Catálogo</a>
-    <a href="#" id="nav-usuarios" class="hidden text-sm hover:text-yellow-400 transition duration-200"><i class="fas fa-users-cog mr-1"></i> Usuarios</a>
-    <a href="#" id="nav-pedidos" class="hidden text-sm hover:text-yellow-400 transition duration-200"><i class="fas fa-receipt mr-1"></i> Pedidos</a>
-    <a href="#" id="nav-configuracion" class="hidden text-sm hover:text-yellow-400 transition duration-200"><i class="fas fa-cogs mr-1"></i> Configuración</a>
-    <a href="#" id="nav-metricas" class="hidden text-sm hover:text-yellow-400 transition duration-200"><i class="fas fa-chart-line mr-1"></i> Métricas</a>
+    <li><a href="adminPanel.html" id="nav-panel" class="hidden"><i class="fas fa-tools mr-1"></i> Panel Admin</a></li>
+    <li><a href="#" id="nav-productos" class="hidden"><i class="fas fa-boxes mr-1"></i> Catálogo</a></li>
+    <li><a href="#" id="nav-usuarios" class="hidden"><i class="fas fa-users-cog mr-1"></i> Usuarios</a></li>
+    <li><a href="#" id="nav-pedidos" class="hidden"><i class="fas fa-receipt mr-1"></i> Pedidos</a></li>
+    <li><a href="#" id="nav-configuracion" class="hidden"><i class="fas fa-cogs mr-1"></i> Configuración</a></li>
+    <li><a href="#" id="nav-metricas" class="hidden"><i class="fas fa-chart-line mr-1"></i> Métricas</a></li>
 
     <!-- Cuenta -->
     <div class="relative group" aria-label="Menú de cuenta del usuario">
@@ -46,14 +48,18 @@
         <i class="fas fa-caret-down text-xs"></i>
       </button>
       <div class="absolute hidden group-hover:block right-0 mt-2 bg-white text-gray-900 shadow-lg rounded-md w-48 z-50" role="menu">
-        <a id="menu-registro" href="registro.html" class="block px-4 py-2 text-sm hover:bg-gray-100 transition duration-200" role="menuitem"><i class="fas fa-user-plus"></i> Registro</a>
-        <a id="menu-login" href="login.html" class="block px-4 py-2 text-sm hover:bg-gray-100 transition duration-200" role="menuitem"><i class="fas fa-sign-in-alt"></i> Iniciar sesión</a>
+        <a id="menu-registro" href="registro.html" class="block px-4 py-2 text-sm hover:bg-gray-100 transition duration-200" role="menuitem">
+          <i class="fas fa-user-plus"></i> Registro
+        </a>
+        <a id="menu-login" href="login.html" class="block px-4 py-2 text-sm hover:bg-gray-100 transition duration-200" role="menuitem">
+          <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+        </a>
         <button id="menu-logout" class="hidden w-full text-left px-4 py-2 hover:bg-gray-100 transition duration-200" role="menuitem">
           <i class="fas fa-sign-out-alt"></i> Cerrar sesión
         </button>
       </div>
     </div>
-  </div>
+  </ul>
 </nav>
 
 <!-- Toast container -->
