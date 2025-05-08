@@ -1,177 +1,91 @@
 /* =======================================================
    Archivo: main.less
    Descripción:
-   Este archivo contiene los estilos principales de la tienda en línea TianguiStore. 
-   Utiliza el preprocesador **Less** para facilitar la creación de estilos reutilizables, 
-   la gestión de variables, mixins y un enfoque más organizado del CSS.
-   
-   Autor: I.S.C. Erick Renato Vega Ceron
-   Fecha de Creación: Mayo 2025
+   Estilos principales de TianguiStore con tema oscuro y
+   acentos en ámbar. Usa Less para facilitar reutilización.
    ======================================================= */
 /* =======================================================
    VARIABLES
    ======================================================= */
-/* Acento para hover y botones */
-/* Radio de bordes */
 /* =======================================================
-      BODY ESTILOS
+      BODY Y ESTRUCTURA GENERAL
       ======================================================= */
-/* Estilo para el cuerpo en modo oscuro */
-body.dark-mode {
+body {
   background-color: #121212;
   color: #e0e0e0;
-  transition: background-color 0.3s, color 0.3s;
-}
-/* Estilo para el cuerpo en modo claro */
-body.light-mode {
-  background-color: #f4f4f4;
-  color: #333333;
-  transition: background-color 0.3s, color 0.3s;
+  font-family: 'Roboto', sans-serif;
+  line-height: 1.6;
 }
 /* =======================================================
-      NAVBAR (Barra de navegación)
+      TIPOGRAFÍA Y ENCABEZADOS
       ======================================================= */
-/* Barra de navegación en modo oscuro */
-nav.dark-mode {
-  background-color: #1c1c1c;
-  color: #e0e0e0;
-}
-/* Barra de navegación en modo claro */
-nav.light-mode {
-  background-color: #ffffff;
-  color: #333333;
-}
-/* =======================================================
-      ENLACES DE NAVEGACIÓN
-      ======================================================= */
-nav a {
-  color: white;
-  text-decoration: none;
-  padding: 12px 20px;
-  display: inline-block;
-  font-size: 16px;
-  text-transform: uppercase;
-  font-weight: bold;
-  letter-spacing: 1px;
-  transition: background-color 0.3s;
-}
-nav a:hover {
-  background-color: #FF8C00;
-}
-/* =======================================================
-      BOTÓN DE HAMBURGUESA (MÓVIL)
-      ======================================================= */
-.sidenav-trigger {
-  color: white;
-  font-size: 24px;
-  cursor: pointer;
-  transition: color 0.3s;
-}
-body.light-mode .sidenav-trigger {
-  color: #333333;
-}
-/* =======================================================
-      MENÚ LATERAL (SIDENAV)
-      ======================================================= */
-/* Estilo del menú lateral en modo oscuro */
-.sidenav.dark-mode {
-  background-color: #1c1c1c;
-  padding-top: 20px;
-}
-.sidenav.dark-mode li {
-  padding: 10px 0;
-}
-.sidenav.dark-mode a {
-  color: #e0e0e0;
-  text-decoration: none;
-  padding-left: 20px;
-  transition: background-color 0.3s;
-}
-.sidenav.dark-mode a:hover {
-  background-color: #FF8C00;
-}
-/* Estilo del menú lateral en modo claro */
-.sidenav.light-mode {
-  background-color: #ffffff;
-  padding-top: 20px;
-}
-.sidenav.light-mode li {
-  padding: 10px 0;
-}
-.sidenav.light-mode a {
-  color: #333333;
-  text-decoration: none;
-  padding-left: 20px;
-  transition: background-color 0.3s;
-}
-.sidenav.light-mode a:hover {
-  background-color: #FF8C00;
-}
-/* =======================================================
-      BOTÓN DE CAMBIO DE TEMA
-      ======================================================= */
-#toggleThemeBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: white;
-  font-size: 18px;
-  transition: color 0.3s;
-}
-body.light-mode #toggleThemeBtn {
-  color: #333333;
-}
-/* =======================================================
-      OTROS COMPONENTES
-      ======================================================= */
-/* Estilo para el texto en general */
-p,
-span,
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
-  font-family: 'Roboto', sans-serif;
-  line-height: 1.5;
-  transition: color 0.3s;
+  color: white;
+  font-weight: 600;
+  margin-bottom: 1rem;
 }
-body.dark-mode p,
-body.dark-mode span {
-  color: #e0e0e0;
-}
-body.light-mode p,
-body.light-mode span {
-  color: #333333;
+p {
+  color: #fafafa;
 }
 /* =======================================================
-      MIXINS RECOMENDADOS
+      NAVBAR Y FOOTER
       ======================================================= */
-/* Mixin para bordes redondeados */
-/* Mixin para sombra suave */
-/* Mixin para transición suave */
-/* Mixin para animación de desvanecimiento */
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
+nav {
+  background-color: #1c1c1c !important;
 }
-.fade-in {
-  animation: fadeIn 0.3s ease-in-out;
+footer.page-footer {
+  background-color: #1a1a1a !important;
+  color: #e0e0e0;
 }
-/* Mixin para animación de desplazamiento suave */
-@keyframes slideIn {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(0);
-  }
+/* =======================================================
+      SECCIONES
+      ======================================================= */
+.section {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
 }
-.slide-in {
-  animation: slideIn 0.3s ease-in-out;
+/* =======================================================
+      PRODUCTOS
+      ======================================================= */
+#productos-container .card {
+  background-color: #1e1e1e;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease;
+}
+#productos-container .card:hover {
+  transform: translateY(-5px);
+}
+#productos-container .card .card-content {
+  color: #e0e0e0;
+}
+#productos-container .card .card-title {
+  color: #fafafa;
+  font-weight: bold;
+}
+#productos-container .card .btn {
+  background-color: #FFC107;
+  color: #333333;
+}
+#productos-container .card .btn:hover {
+  background-color: #d39e00;
+}
+/* =======================================================
+      TOASTS Y NOTIFICACIONES
+      ======================================================= */
+#toast-container {
+  z-index: 10000;
+  bottom: 1rem;
+  right: 1rem;
+}
+#toast-container .toast {
+  background-color: #FFC107;
+  color: black;
+  border-radius: 12px;
+  padding: 1rem;
 }
