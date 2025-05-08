@@ -1,147 +1,165 @@
 /**
  * 📦 loadComponent.js
- * 
- * Descripción:
- * Este archivo maneja la carga dinámica de los componentes compartidos (Navbar y Footer) en las páginas,
- * la verificación de la sesión del usuario y la actualización de los menús basados en el rol y los permisos 
- * del usuario. Además, incluye la funcionalidad de alternar entre temas (claro/oscuro) y actualizar el contador 
- * del carrito globalmente.
- * 
- * Funciones:
- * - Cargar y mostrar dinámicamente el Navbar y Footer desde archivos HTML.
- * - Verificar la sesión del usuario (autenticado o no).
- * - Insertar los menús de navegación dinámicamente según los permisos del usuario.
- * - Actualizar el contador global del carrito.
- * 
+ * Carga dinámica de Navbar/Footer, gestión de tema, sesión y permisos.
+ * Compatible con MaterializeCSS y vista responsive.
+ *
  * Autor: I.S.C. Erick Renato Vega Ceron
- * Fecha de Creación: Mayo 2025
+ * Última actualización: Mayo 2025
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
   try {
-    // 🌐 Cargar Navbar dinámicamente
+    aplicarTemaDesdePreferencias();
+
+    // 🔼 Navbar
     const navbarContainer = document.getElementById("navbar-container");
     if (navbarContainer) {
       const res = await fetch("./componentes/navbar.html");
-      if (!res.ok) throw new Error("Error al cargar navbar.html");
+      if (!res.ok) throw new Error("No se pudo cargar navbar.html");
       navbarContainer.innerHTML = await res.text();
+
+      inicializarComponentesMaterialize();
+      sincronizarTemaToggle();
+      actualizarContadorCarrito();
+      aplicarVisibilidadMenus();
     }
 
-    // 📦 Cargar Footer dinámicamente
+    // 🔽 Footer
     const footerContainer = document.getElementById("footer-container");
     if (footerContainer) {
       const res = await fetch("./componentes/footer.html");
-      if (!res.ok) throw new Error("Error al cargar footer.html");
+      if (!res.ok) throw new Error("No se pudo cargar footer.html");
       footerContainer.innerHTML = await res.text();
     }
 
-    // 🔁 Inicializaciones post-carga
-    iniciarNavbar();
-    actualizarContadorCarrito();
-    verificarSesion();
-    insertarMenusDinamicos();
   } catch (error) {
-    console.error("⚠️ Error al cargar componentes compartidos:", error);
+    console.error("⚠️ Error al cargar componentes:", error);
   }
 });
 
-// 🎛️ Función para inicializar el Navbar, incluyendo la alternancia del tema y el menú hamburguesa
-function iniciarNavbar() {
-  const toggleBtn = document.getElementById("toggleNavbarBtn");
-  const navbarMenu = document.getElementById("navbarMenu");
-  if (toggleBtn && navbarMenu) {
-    toggleBtn.addEventListener("click", () => {
-      navbarMenu.classList.toggle("hidden");
-    });
-  }
-
-  const themeBtn = document.getElementById("toggleThemeBtn");
-  if (themeBtn) {
-    themeBtn.addEventListener("click", () => {
-      document.documentElement.classList.toggle("dark");
-      const icon = themeBtn.querySelector("i");
-      if (icon) {
-        icon.classList.toggle("fa-moon");
-        icon.classList.toggle("fa-sun");
-      }
-    });
-  }
+// 🌓 Aplicar tema almacenado
+function aplicarTemaDesdePreferencias() {
+  const tema = localStorage.getItem("tema");
+  const esOscuro = !tema || tema === "oscuro";
+  document.documentElement.classList.toggle("dark", esOscuro);
 }
 
-// 🧮 Función para actualizar el contador global del carrito
+// ⚙️ Inicializar componentes Materialize
+function inicializarComponentesMaterialize() {
+  M.Sidenav.init(document.querySelectorAll(".sidenav"));
+  M.Tooltip.init(document.querySelectorAll(".tooltipped"));
+  M.Dropdown.init(document.querySelectorAll(".dropdown-trigger"), {
+    constrainWidth: false,
+    coverTrigger: false,
+    alignment: "right"
+  });
+}
+
+// 🌓 Alternar tema e ícono
+function sincronizarTemaToggle() {
+  const toggleBtn = document.getElementById("toggleThemeBtn");
+  const icon = toggleBtn?.querySelector("i");
+  if (!toggleBtn || !icon) return;
+
+  const temaActual = localStorage.getItem("tema") || "oscuro";
+  icon.classList.replace("fa-moon", temaActual === "oscuro" ? "fa-sun" : "fa-moon");
+
+  toggleBtn.addEventListener("click", () => {
+    const isDark = document.documentElement.classList.toggle("dark");
+    localStorage.setItem("tema", isDark ? "oscuro" : "claro");
+    icon.classList.toggle("fa-sun", isDark);
+    icon.classList.toggle("fa-moon", !isDark);
+  });
+}
+
+// 🛒 Actualizar número del carrito
 function actualizarContadorCarrito() {
   try {
     const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
     const total = carrito.reduce((sum, item) => sum + item.cantidad, 0);
-    document.querySelectorAll("#contador-carrito").forEach(el => el.textContent = total);
-  } catch (err) {
-    console.error("⚠️ Error al actualizar contador de carrito:", err);
+    document.querySelectorAll("#contador-carrito").forEach(el => {
+      el.textContent = total;
+    });
+  } catch (error) {
+    console.error("❌ Error al procesar carrito:", error);
   }
 }
 
-// 🔐 Función para verificar la sesión del usuario y actualizar el menú de cuenta
-function verificarSesion() {
+// 🔐 Mostrar u ocultar elementos según sesión y permisos
+function aplicarVisibilidadMenus() {
   const token = localStorage.getItem("token");
   const usuario = JSON.parse(localStorage.getItem("usuario"));
-
+  const permisos = usuario?.permisos || {};
   const usuarioInfo = document.getElementById("usuario-info");
-  const menuLogin = document.getElementById("menu-login");
-  const menuRegistro = document.getElementById("menu-registro");
-  const menuLogout = document.getElementById("menu-logout");
 
-  if (!usuarioInfo || !menuLogin || !menuRegistro || !menuLogout) {
-    console.warn("⚠️ Elementos de sesión no encontrados en navbar.");
+  const mostrar = (ids, visible = true) => {
+    [].concat(ids).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = visible ? "block" : "none";
+    });
+  };
+
+  // 🔓 No autenticado
+  if (!token || !usuario) {
+    console.log("🔒 Usuario no autenticado");
+    if (usuarioInfo) usuarioInfo.textContent = "Cuenta";
+
+    mostrar(["menu-login", "menu-registro", "menu-login-desktop", "menu-registro-desktop", "menu-login-mobile", "menu-registro-mobile"], true);
+    mostrar(["menu-logout", "menu-logout-desktop", "menu-logout-mobile"], false);
+    ocultarMenusPrivados();
     return;
   }
 
-  if (token && usuario) {
-    console.log(`✅ Sesión activa para: ${usuario.correo}`);
-    usuarioInfo.textContent = usuario.correo;
-    menuLogin.classList.add("hidden");
-    menuRegistro.classList.add("hidden");
-    menuLogout.classList.remove("hidden");
+  // ✅ Autenticado
+  console.log(`🔑 Usuario autenticado: ${usuario.correo}`);
+  if (usuarioInfo) usuarioInfo.textContent = usuario.correo;
 
-    // Funcionalidad para cerrar sesión
-    menuLogout.addEventListener("click", () => {
-      localStorage.clear();
-      alert("Sesión cerrada exitosamente.");
-      window.location.href = "login.html";
-    });
-  } else {
-    console.log("🚫 Usuario no autenticado.");
-    usuarioInfo.textContent = "Cuenta";
-    menuLogin.classList.remove("hidden");
-    menuRegistro.classList.remove("hidden");
-    menuLogout.classList.add("hidden");
-  }
+  mostrar(["menu-login", "menu-registro", "menu-login-desktop", "menu-registro-desktop", "menu-login-mobile", "menu-registro-mobile"], false);
+  mostrar(["menu-logout", "menu-logout-desktop", "menu-logout-mobile"], true);
+
+  asignarLogout(["menu-logout", "menu-logout-desktop", "menu-logout-mobile"]);
+
+  const visibilidad = [
+    { keys: ["nav-productos", "nav-productos-mobile"], visible: permisos.productos?.leer || permisos.productos?.crear },
+    { keys: ["nav-categorias", "nav-categorias-mobile"], visible: permisos.categorias?.leer },
+    { keys: ["nav-usuarios", "nav-usuarios-mobile"], visible: permisos.usuarios?.leer },
+    { keys: ["nav-pedidos", "nav-pedidos-mobile"], visible: permisos.pedidos?.leer },
+    { keys: ["nav-configuracion"], visible: permisos.configuracion?.leer },
+    { keys: ["nav-metricas"], visible: permisos.reportes?.exportar },
+    {
+      keys: ["nav-panel"],
+      visible: permisos.usuarios?.leer || permisos.productos?.leer || permisos.configuracion?.leer || permisos.reportes?.exportar
+    }
+  ];
+
+  visibilidad.forEach(({ keys, visible }) => mostrar(keys, visible));
 }
 
-// 📌 Función para mostrar secciones del menú dinámicamente según los permisos del usuario
-function insertarMenusDinamicos() {
-  const usuario = JSON.parse(localStorage.getItem("usuario"));
-  const permisos = usuario?.permisos || {};
-  if (!usuario || !usuario.rol) return;
-
-  // Función para mostrar un elemento del menú
-  const mostrar = (id) => {
-    const el = document.getElementById(id);
-    if (el) el.classList.remove("hidden");
+// 🚪 Asignar eventos de logout
+function asignarLogout(ids) {
+  const logout = () => {
+    localStorage.clear();
+    M.toast({ html: "Sesión cerrada exitosamente", classes: "rounded amber darken-3" });
+    window.location.href = "login.html";
   };
 
-  // Mostrar elementos según permisos del usuario
-  if (permisos.productos?.leer || permisos.productos?.crear) mostrar("nav-productos");
-  if (permisos.usuarios?.leer) mostrar("nav-usuarios");
-  if (permisos.pedidos?.leer) mostrar("nav-pedidos");
-  if (permisos.configuracion?.leer) mostrar("nav-configuracion");
-  if (permisos.reportes?.exportar) mostrar("nav-metricas");
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.onclick = logout;
+  });
+}
 
-  // Mostrar panel de administración si tiene acceso
-  if (
-    permisos.usuarios?.leer ||
-    permisos.productos?.leer ||
-    permisos.configuracion?.leer ||
-    permisos.reportes?.exportar
-  ) {
-    mostrar("nav-panel");
-  }
+// 🛑 Ocultar todos los menús privados
+function ocultarMenusPrivados() {
+  const privados = [
+    "nav-productos", "nav-productos-mobile",
+    "nav-categorias", "nav-categorias-mobile",
+    "nav-usuarios", "nav-usuarios-mobile",
+    "nav-pedidos", "nav-pedidos-mobile",
+    "nav-configuracion", "nav-metricas", "nav-panel"
+  ];
+  privados.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = "none";
+  });
 }

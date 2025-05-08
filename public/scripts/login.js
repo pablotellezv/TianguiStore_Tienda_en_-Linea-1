@@ -1,19 +1,6 @@
 /**
  * 🔐 login.js — Maneja inicio de sesión con validaciones y control de sesión
- * 
- * Descripción:
- * Este archivo maneja la lógica del inicio de sesión en TianguiStore, incluyendo la validación de los campos 
- * del formulario, el envío de las credenciales al backend y el control de la sesión del usuario.
- * Además, gestiona la visualización de mensajes de error y éxito, así como la redirección según el rol del usuario.
- * 
- * Funciones:
- * - Validación del correo y la contraseña.
- * - Autenticación del usuario a través de la API de backend.
- * - Manejo de mensajes de error y éxito.
- * - Redirección del usuario según el rol.
- * 
- * Autor: I.S.C. Erick Renato Vega Ceron
- * Fecha de Creación: Mayo 2025
+ * Autor: I.S.C. Erick Renato Vega Ceron — Adaptado a MaterializeCSS
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -24,16 +11,32 @@ document.addEventListener("DOMContentLoaded", () => {
   const mensajeError = document.getElementById("mensajeError");
   const mensajeExito = document.getElementById("mensajeExito");
 
+  // Mostrar/ocultar contraseña
+  const togglePasswordBtn = document.getElementById("togglePassword");
+  if (togglePasswordBtn) {
+    togglePasswordBtn.addEventListener("click", () => {
+      const input = passwordInput;
+      const icon = togglePasswordBtn.querySelector("i");
+      if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove("fa-eye-slash");
+        icon.classList.add("fa-eye");
+      } else {
+        input.type = "password";
+        icon.classList.remove("fa-eye");
+        icon.classList.add("fa-eye-slash");
+      }
+    });
+  }
+
   // Manejo del envío del formulario
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    ocultarMensajes(); // Ocultar mensajes previos
+    ocultarMensajes();
 
     const email = emailInput.value.trim();
     const password = passwordInput.value.trim();
-    const recordar = rememberInput.checked;
 
-    // Validación del formulario
     if (!validarFormulario(email, password)) return;
 
     try {
@@ -48,77 +51,75 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const data = await res.json();
 
-      // Manejo de errores en caso de que las credenciales sean incorrectas
       if (!res.ok) {
         mostrarError(data.message || "❌ Credenciales incorrectas.");
         return;
       }
 
-      // Guardar token y usuario en localStorage para la sesión
+      // Guardar sesión
       localStorage.setItem("token", data.token);
       localStorage.setItem("usuario", JSON.stringify(data.usuario));
 
       mostrarExito("Inicio de sesión exitoso ✅");
 
-      // Redireccionar según el rol del usuario
-      const rol = data.usuario.rol;
       setTimeout(() => {
+        const rol = data.usuario.rol;
         window.location.href = (rol === "admin" || rol === "vendedor")
           ? "adminPanel.html"
           : "index.html";
-      }, 1200);
+      }, 1500);
     } catch (error) {
       console.error("❌ Error en login:", error);
       mostrarError("No se pudo conectar con el servidor.");
     }
   });
 
-  // 📌 Función para validar el formulario de inicio de sesión
+  // ✅ Validación básica con expresiones regulares
   function validarFormulario(correo, contrasena) {
-    const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Expresión regular para correo
-    const regexPassword = /^(?=.*[A-Z])(?=.*\d).{8,}$/; // Expresión regular para contraseña
+    const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const regexPassword = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
     let valido = true;
 
-    // Validación de correo electrónico
     if (!regexCorreo.test(correo)) {
       mostrarError("⚠️ Correo electrónico inválido.");
-      emailInput.classList.add("is-invalid");
+      emailInput.classList.add("invalid");
       valido = false;
-    } else {
-      emailInput.classList.remove("is-invalid");
     }
 
-    // Validación de contraseña
     if (!regexPassword.test(contrasena)) {
       mostrarError("⚠️ La contraseña debe tener al menos 8 caracteres, una mayúscula y un número.");
-      passwordInput.classList.add("is-invalid");
+      passwordInput.classList.add("invalid");
       valido = false;
-    } else {
-      passwordInput.classList.remove("is-invalid");
     }
 
     return valido;
   }
 
-  // Función para mostrar un mensaje de error
+  // Mensajes
   function mostrarError(msg) {
     mensajeError.textContent = msg;
-    mensajeError.classList.remove("d-none");
-    mensajeExito.classList.add("d-none");
+    mensajeError.style.display = "block";
+    mensajeExito.style.display = "none";
+
+    setTimeout(() => {
+      mensajeError.style.display = "none";
+    }, 4000);
   }
 
-  // Función para mostrar un mensaje de éxito
   function mostrarExito(msg) {
     mensajeExito.textContent = msg;
-    mensajeExito.classList.remove("d-none");
-    mensajeError.classList.add("d-none");
+    mensajeExito.style.display = "block";
+    mensajeError.style.display = "none";
+
+    setTimeout(() => {
+      mensajeExito.style.display = "none";
+    }, 3000);
   }
 
-  // Función para ocultar mensajes de error y éxito
   function ocultarMensajes() {
-    mensajeError.classList.add("d-none");
-    mensajeExito.classList.add("d-none");
-    emailInput.classList.remove("is-invalid");
-    passwordInput.classList.remove("is-invalid");
+    mensajeError.style.display = "none";
+    mensajeExito.style.display = "none";
+    emailInput.classList.remove("invalid");
+    passwordInput.classList.remove("invalid");
   }
 });

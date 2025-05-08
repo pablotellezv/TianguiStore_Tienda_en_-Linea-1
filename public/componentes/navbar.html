@@ -1,53 +1,86 @@
-<!-- 📁 navbar.html - Menú principal TianguiStore (MaterializeCSS) -->
+<!-- 📁 navbar.html - Navegación principal TianguiStore -->
 
-<nav class="nav-extended grey darken-4 z-depth-2" role="navigation" aria-label="Menú principal de TianguiStore">
+<!-- NAVBAR DESKTOP -->
+<nav class="nav-extended grey darken-4 z-depth-2">
   <div class="nav-wrapper container">
-    <!-- LOGO + NOMBRE -->
-    <a href="index.html" class="brand-logo left" title="Ir al inicio" style="display: flex; align-items: center;">
-      <img src="./imagenes/logo.jpeg" alt="Logo TianguiStore" class="circle responsive-img" style="width: 42px; height: 42px; margin-right: 10px;">
+
+    <!-- LOGO + TEXTO -->
+    <a href="index.html" class="brand-logo" style="display: flex; align-items: center;">
+      <img src="./imagenes/logo.jpeg" alt="Logo TianguiStore" class="circle" style="width: 42px; height: 42px; margin-right: 10px;" />
       <span class="hide-on-small-only">TianguiStore</span>
     </a>
 
-    <!-- ACCIONES DERECHA -->
+    <!-- Menú hamburguesa (MÓVIL) -->
+    <a href="#" data-target="sidenav-mobile" class="sidenav-trigger right"><i class="fas fa-bars"></i></a>
+
+    <!-- MENÚ DESKTOP -->
     <ul class="right hide-on-med-and-down">
-      <!-- Cambiar Tema -->
+
+      <!-- Públicos -->
+      <li><a href="index.html"><i class="fas fa-home left"></i>Inicio</a></li>
+      <li><a href="carrito.html"><i class="fas fa-shopping-cart left"></i>Carrito (<span id="contador-carrito">0</span>)</a></li>
+
+      <!-- Privados -->
+      <li id="nav-productos" style="display: none;"><a href="#"><i class="fas fa-box-open left"></i>Productos</a></li>
+      <li id="nav-categorias" style="display: none;"><a href="#"><i class="fas fa-tags left"></i>Categorías</a></li>
+      <li id="nav-usuarios" style="display: none;"><a href="#"><i class="fas fa-users-cog left"></i>Usuarios</a></li>
+      <li id="nav-pedidos" style="display: none;"><a href="#"><i class="fas fa-receipt left"></i>Pedidos</a></li>
+
+      <!-- Cuenta (Dropdown activador) -->
       <li>
-        <a id="toggleThemeBtn" class="tooltipped" data-position="bottom" data-tooltip="Cambiar tema claro/oscuro">
-          <i class="fas fa-moon"></i>
+        <a class="dropdown-trigger" href="#!" data-target="cuentaDropdown">
+          <i class="fas fa-user-circle left"></i>
+          <span id="usuario-info">Cuenta</span>
+          <i class="fas fa-caret-down right"></i>
         </a>
       </li>
 
-      <!-- Menú móvil -->
+      <!-- Tema -->
       <li>
-        <a href="#" data-target="navbarMenu" class="sidenav-trigger" aria-label="Abrir menú móvil">
-          <i class="fas fa-bars"></i>
+        <a id="toggleThemeBtn" class="tooltipped" data-tooltip="Cambiar tema claro/oscuro">
+          <i class="fas fa-moon"></i>
         </a>
       </li>
     </ul>
   </div>
 </nav>
 
-<!-- MENÚ LATERAL RESPONSIVE -->
-<ul class="sidenav grey darken-4 white-text" id="navbarMenu">
-  <li><a href="index.html" class="white-text"><i class="fas fa-home left"></i> Inicio</a></li>
-  <li><a href="#" class="white-text"><i class="fas fa-users left"></i> ¿Quiénes somos?</a></li>
-  <li><a href="#" class="white-text"><i class="fas fa-address-book left"></i> Contacto</a></li>
-  <li><a href="carrito.html" class="white-text">
-    <i class="fas fa-shopping-cart left"></i> Carrito (<span id="contador-carrito">0</span>)
-  </a></li>
+<!-- DROPDOWN DE CUENTA (ESCRITORIO) -->
+<ul id="cuentaDropdown" class="dropdown-content grey darken-4 z-depth-2">
+  <li id="menu-registro-desktop"><a href="registro.html" class="white-text"><i class="fas fa-user-plus left"></i> Registrarse</a></li>
+  <li id="menu-login-desktop"><a href="login.html" class="white-text"><i class="fas fa-sign-in-alt left"></i> Iniciar sesión</a></li>
+  <li id="menu-logout-desktop" style="display: none;"><a href="#" class="white-text"><i class="fas fa-sign-out-alt left"></i> Cerrar sesión</a></li>
+</ul>
 
-  <!-- Ítems dinámicos -->
-  <li><a href="adminPanel.html" id="nav-panel" class="white-text hidden"><i class="fas fa-tools left"></i> Panel Admin</a></li>
-  <li><a href="#" id="nav-productos" class="white-text hidden"><i class="fas fa-boxes left"></i> Catálogo</a></li>
-  <li><a href="#" id="nav-usuarios" class="white-text hidden"><i class="fas fa-users-cog left"></i> Usuarios</a></li>
-  <li><a href="#" id="nav-pedidos" class="white-text hidden"><i class="fas fa-receipt left"></i> Pedidos</a></li>
-  <li><a href="#" id="nav-configuracion" class="white-text hidden"><i class="fas fa-cogs left"></i> Configuración</a></li>
-  <li><a href="#" id="nav-metricas" class="white-text hidden"><i class="fas fa-chart-line left"></i> Métricas</a></li>
+<!-- NAVBAR MÓVIL (SIDENAV) -->
+<ul id="sidenav-mobile" class="sidenav grey darken-4">
+  <!-- Públicos -->
+  <li><a href="index.html" class="white-text"><i class="fas fa-home left"></i>Inicio</a></li>
+  <li><a href="carrito.html" class="white-text"><i class="fas fa-shopping-cart left"></i>Carrito (<span id="contador-carrito">0</span>)</a></li>
+
+  <!-- Privados -->
+  <li id="nav-productos-mobile" style="display: none;"><a href="#" class="white-text"><i class="fas fa-box-open left"></i>Productos</a></li>
+  <li id="nav-categorias-mobile" style="display: none;"><a href="#" class="white-text"><i class="fas fa-tags left"></i>Categorías</a></li>
+  <li id="nav-usuarios-mobile" style="display: none;"><a href="#" class="white-text"><i class="fas fa-users-cog left"></i>Usuarios</a></li>
+  <li id="nav-pedidos-mobile" style="display: none;"><a href="#" class="white-text"><i class="fas fa-receipt left"></i>Pedidos</a></li>
 
   <li class="divider"></li>
 
   <!-- Cuenta -->
-  <li><a href="registro.html" id="menu-registro" class="white-text"><i class="fas fa-user-plus left"></i> Registro</a></li>
-  <li><a href="login.html" id="menu-login" class="white-text"><i class="fas fa-sign-in-alt left"></i> Iniciar sesión</a></li>
-  <li><a href="#" id="menu-logout" class="white-text hidden"><i class="fas fa-sign-out-alt left"></i> Cerrar sesión</a></li>
+  <li><a href="registro.html" id="menu-registro-mobile" class="white-text"><i class="fas fa-user-plus left"></i> Registrarse</a></li>
+  <li><a href="login.html" id="menu-login-mobile" class="white-text"><i class="fas fa-sign-in-alt left"></i> Iniciar sesión</a></li>
+  <li><a href="#" id="menu-logout-mobile" class="white-text" style="display: none;"><i class="fas fa-sign-out-alt left"></i> Cerrar sesión</a></li>
 </ul>
+
+<!-- 🔧 Inicialización (colocar en tu HTML principal si no está) -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    M.Sidenav.init(document.querySelectorAll('.sidenav'));
+    M.Dropdown.init(document.querySelectorAll('.dropdown-trigger'), {
+      constrainWidth: false,
+      coverTrigger: false,
+      alignment: 'right'
+    });
+    M.Tooltip.init(document.querySelectorAll('.tooltipped'));
+  });
+</script>

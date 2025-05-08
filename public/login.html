@@ -9,76 +9,89 @@
 
   <!-- MaterializeCSS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet" />
-  
-  <!-- FontAwesome para íconos -->
+
+  <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  
+
   <!-- Estilos personalizados -->
-  <link rel="stylesheet" href="estilo/estilos.css" />
+  <link rel="stylesheet" href="estilo/main.css" />
 </head>
 
-<body class="bg-light">
+<body class="grey darken-4 white-text">
 
-  <!-- Navbar modular: se carga dinámicamente -->
+  <!-- Navbar modular -->
   <div id="navbar-container"></div>
 
   <!-- Contenido principal -->
-  <main class="container d-flex justify-content-center align-items-center min-vh-100">
-    <section class="card p-4 shadow rounded-4 w-100" style="max-width: 420px;">
-      <div class="card-body">
-        <!-- Título de la página -->
-        <h1 class="text-center mb-4 fw-bold">
-          <i class="fas fa-sign-in-alt me-2"></i> Iniciar Sesión
-        </h1>
+  <main class="container center-align" style="margin-top: 6vh;">
+    <div class="card grey darken-3 z-depth-4 animate__animated animate__fadeIn" style="max-width: 420px; margin: 0 auto;">
+      <div class="card-content white-text">
+        <!-- Título -->
+        <h4 class="center-align" style="margin-bottom: 1.5rem;">
+          <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+        </h4>
 
-        <!-- Formulario de inicio de sesión -->
+        <!-- Formulario -->
         <form id="loginForm" novalidate>
-          <!-- Correo electrónico -->
-          <div class="input-field mb-3">
+          <!-- Email -->
+          <div class="input-field">
             <i class="fas fa-envelope prefix"></i>
-            <input type="email" id="email" class="validate" placeholder="usuario@correo.com" required autocomplete="email" />
+            <input type="email" id="email" class="validate white-text" required autocomplete="email" />
             <label for="email">Correo Electrónico</label>
-            <span class="helper-text" data-error="Correo electrónico inválido"></span>
+            <span class="helper-text" data-error="Correo inválido"></span>
           </div>
 
           <!-- Contraseña -->
-          <div class="input-field mb-3">
+          <div class="input-field" style="position: relative;">
             <i class="fas fa-lock prefix"></i>
-            <input type="password" id="password" class="validate" placeholder="********" required autocomplete="current-password" />
-            <button type="button" class="btn-flat" id="togglePassword" tabindex="-1" title="Mostrar u ocultar contraseña">
-              <i class="fas fa-eye-slash"></i>
-            </button>
+            <input type="password" id="password" class="validate white-text" required autocomplete="current-password" />
             <label for="password">Contraseña</label>
-            <span class="helper-text" data-error="La contraseña debe tener al menos 8 caracteres, una mayúscula y un número"></span>
+            <span class="helper-text" data-error="Mínimo 8 caracteres, una mayúscula y un número"></span>
+            <a id="togglePassword" title="Mostrar/Ocultar contraseña" style="position: absolute; right: 10px; top: 18px; color: #bbb;">
+              <i class="fas fa-eye-slash"></i>
+            </a>
           </div>
 
           <!-- Recordarme -->
-          <div class="form-check mb-3">
+          <p class="left-align">
             <label>
-              <input type="checkbox" class="filled-in" id="remember" />
+              <input type="checkbox" id="remember" class="filled-in" />
               <span>Recordarme</span>
             </label>
-          </div>
+          </p>
 
           <!-- Botón principal -->
-          <button type="submit" class="btn btn-primary w-100">
-            <i class="fas fa-sign-in-alt me-2"></i> Entrar
-          </button>
+          <div class="center-align" style="margin-top: 2rem;">
+            <button type="submit" class="btn-large amber darken-3 waves-effect waves-light" style="width: 100%;">
+              <i class="fas fa-sign-in-alt left"></i> Entrar
+            </button>
+          </div>
 
-          <!-- Acciones secundarias -->
-          <div class="d-flex justify-content-between align-items-center mt-3">
-            <a href="recuperar.html" class="text-decoration-none small">
-              <i class="fas fa-question-circle me-1"></i> ¿Olvidaste tu contraseña?
+          <!-- Enlaces secundarios -->
+          <div class="section center-align" style="margin-top: 2rem;">
+            <a href="recuperar.html" class="grey-text text-lighten-2">
+              <i class="fas fa-question-circle left"></i> ¿Olvidaste tu contraseña?
             </a>
-            <a href="registro.html" class="btn btn-outline-primary btn-sm">
-              <i class="fas fa-user-plus me-1"></i> Crear cuenta
+            <br /><br />
+            <a href="registro.html" class="btn-flat amber-text text-lighten-1">
+              <i class="fas fa-user-plus left"></i> Crear cuenta
             </a>
           </div>
-        </form>
 
-        <!-- Mensajes de validación -->
-        <div id="mensajeError" class="alert alert-danger mt-3 d-none" role="alert"></div>
-        <div id="mensajeExito" class="alert alert-success mt-3 d-none" role="status"></div>
+          <!-- Mensajes -->
+          <div id="mensajeError" class="card-panel red darken-2 white-text" style="display: none;"></div>
+          <div id="mensajeExito" class="card-panel green darken-2 white-text" style="display: none;"></div>
+        </form>
       </div>
-    </section>
-  </
+    </div>
+  </main>
+
+  <!-- Footer modular -->
+  <div id="footer-container"></div>
+
+  <!-- Scripts -->
+  <script src="scripts/loadComponent.js" defer></script>
+  <script src="scripts/login.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js" defer></script>
+</body>
+</html>

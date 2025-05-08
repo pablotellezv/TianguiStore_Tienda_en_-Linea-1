@@ -1,4 +1,4 @@
-// admin/index.js
+// 📁 admin/index.js
 import { obtenerUsuarioAutenticado } from "./auth.js";
 import { mostrarDashboard } from "./dashboard.js";
 import { mostrarUsuarios } from "./usuarios.js";
@@ -6,7 +6,7 @@ import { mostrarProductos } from "./productos.js";
 import { mostrarPedidos } from "./pedidos.js";
 import { mostrarConfiguracion } from "./configuracion.js";
 
-// 📌 Secciones disponibles y sus permisos necesarios
+// 📌 Definición de secciones y permisos
 const secciones = {
   dashboard: { mostrar: mostrarDashboard, permiso: true },
   usuarios: { mostrar: mostrarUsuarios, permisoKey: "usuarios" },
@@ -15,7 +15,9 @@ const secciones = {
   configuracion: { mostrar: mostrarConfiguracion, permisoKey: "configuracion" }
 };
 
-// 🔐 Validar sesión y mostrar dashboard por defecto
+let seccionActual = "";
+
+// 🔐 Validar sesión al cargar
 document.addEventListener("DOMContentLoaded", () => {
   const usuario = obtenerUsuarioAutenticado();
 
@@ -25,13 +27,17 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  document.getElementById("usuarioNombre").textContent =
-    usuario.nombre || "Administrador";
+  // Mostrar nombre en navbar
+  const nombre = usuario.nombre || "Administrador";
+  const spanNombre = document.getElementById("usuario-info");
+  if (spanNombre) spanNombre.textContent = nombre;
 
-  mostrarSeccion("dashboard");
+  // Determinar sección inicial
+  const hashInicial = location.hash.replace("#", "") || "dashboard";
+  mostrarSeccion(hashInicial);
 });
 
-// 🚪 Cerrar sesión y limpiar datos
+// 🚪 Cerrar sesión
 export function cerrarSesion() {
   localStorage.removeItem("usuario");
   localStorage.removeItem("token");
@@ -39,33 +45,44 @@ export function cerrarSesion() {
   window.location.href = "/login.html";
 }
 
-// 🔄 Cambiar entre secciones
+// 🔄 Mostrar sección con control de permisos
 export async function mostrarSeccion(nombreSeccion) {
+  if (nombreSeccion === seccionActual) return;
+  seccionActual = nombreSeccion;
+  location.hash = nombreSeccion;
+
   const contenedor = document.getElementById("seccion-principal");
   const usuario = obtenerUsuarioAutenticado();
   const permisos = usuario?.permisos || {};
 
-  if (!contenedor || !secciones[nombreSeccion]) {
-    console.warn(`❌ Sección "${nombreSeccion}" no válida.`);
+  const seccion = secciones[nombreSeccion];
+  if (!contenedor || !seccion) {
+    console.warn(`❌ Sección "${nombreSeccion}" inválida.`);
     return;
   }
 
-  const seccion = secciones[nombreSeccion];
-  const tienePermiso =
-    seccion.permiso === true || permisos[seccion.permisoKey]?.leer;
-
+  // 🔁 Spinner de carga
   contenedor.innerHTML = `
-    <div class="text-center my-8">
-      <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-yellow-400 border-opacity-75 mx-auto"></div>
-      <p class="mt-4 text-sm text-gray-400">Cargando sección <strong>${nombreSeccion}</strong>...</p>
+    <div class="center-align" style="margin-top: 4rem;">
+      <div class="preloader-wrapper active">
+        <div class="spinner-layer spinner-amber-only">
+          <div class="circle-clipper left"><div class="circle"></div></div>
+          <div class="gap-patch"><div class="circle"></div></div>
+          <div class="circle-clipper right"><div class="circle"></div></div>
+        </div>
+      </div>
+      <p class="grey-text text-lighten-1 mt-3">Cargando sección <strong>${nombreSeccion}</strong>...</p>
     </div>
   `;
 
+  // 🔐 Verificación de permiso
+  const tienePermiso = seccion.permiso === true || permisos[seccion.permisoKey]?.leer;
+
   if (!tienePermiso) {
     contenedor.innerHTML = `
-      <div class="text-center text-yellow-300 mt-10">
-        <i class="fas fa-exclamation-triangle text-3xl mb-2"></i>
-        <p class="font-semibold">No tienes permiso para acceder a esta sección.</p>
+      <div class="center-align amber-text text-lighten-2" style="margin-top: 5rem;">
+        <i class="fas fa-lock fa-2x mb-2"></i>
+        <p>No tienes permiso para acceder a esta sección.</p>
       </div>
     `;
     return;
@@ -73,13 +90,30 @@ export async function mostrarSeccion(nombreSeccion) {
 
   try {
     await seccion.mostrar(contenedor);
+    resaltarMenuActivo(nombreSeccion);
   } catch (error) {
-    console.error(`⚠️ Error al mostrar sección "${nombreSeccion}":`, error);
+    console.error(`⚠️ Error en sección "${nombreSeccion}":`, error);
     contenedor.innerHTML = `
-      <div class="text-center text-red-500 mt-10">
-        <i class="fas fa-bug text-3xl mb-2"></i>
-        <p>Ocurrió un error al cargar la sección. Intenta nuevamente.</p>
+      <div class="center-align red-text text-lighten-2" style="margin-top: 5rem;">
+        <i class="fas fa-bug fa-2x mb-2"></i>
+        <p>Ocurrió un error al cargar la sección. Intenta de nuevo.</p>
       </div>
     `;
   }
 }
+
+// 🧭 Resaltar menú activo
+function resaltarMenuActivo(nombre) {
+  document.querySelectorAll(".sidenav a").forEach(el =>
+    el.classList.remove("active", "amber-text")
+  );
+
+  const activo = document.querySelector(`.sidenav a[data-seccion="${nombre}"]`);
+  if (activo) activo.classList.add("active", "amber-text");
+}
+
+// 🧩 Navegación por hash
+window.addEventListener("hashchange", () => {
+  const nueva = location.hash.replace("#", "");
+  if (secciones[nueva]) mostrarSeccion(nueva);
+});

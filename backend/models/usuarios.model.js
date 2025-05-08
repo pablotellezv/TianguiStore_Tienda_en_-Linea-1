@@ -95,8 +95,8 @@ async function crearUsuario({
       correo_electronico, contrasena_hash, nombre,
       apellido_paterno, apellido_materno,
       telefono, direccion, genero,
-      rol_id, activo, verificado, borrado_logico, fecha_creacion
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+      rol_id, activo, verificado, borrado_logico
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `, [
     correo_electronico?.trim(),
     contrasena_hash,

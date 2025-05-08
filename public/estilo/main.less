@@ -1,85 +1,117 @@
 /* =======================================================
    Archivo: main.less
    Descripción:
-   Estilos principales de TianguiStore con tema oscuro y
-   acentos en ámbar. Usa Less para facilitar reutilización.
+   Estilos principales de TianguiStore con tema oscuro elegante,
+   glassmorphism, acentos en ámbar, animaciones modernas y
+   estructura modular basada en Less.
    ======================================================= */
 
 /* =======================================================
    VARIABLES
    ======================================================= */
-   @dark-background: #121212;
-   @light-background: #f4f4f4;
+   @dark-bg: #121212;
+   @light-bg: #f4f4f4;
    @dark-text: #e0e0e0;
    @light-text: #333333;
-   @primary-accent: #FFC107; // Amber
+   
+   @primary-accent: #FFC107; // Ámbar
    @secondary-accent: #FF8C00; // Naranja oscuro
-   @navbar-bg: #1c1c1c;
-   @footer-bg: #1a1a1a;
-   @border-radius: 12px;
+   
+   @glass-bg: rgba(28, 28, 28, 0.7);
+   @glass-blur: 10px;
+   @glass-border: rgba(255, 255, 255, 0.1);
+   
+   @border-radius: 1.2rem;
    @transition-time: 0.3s;
-   @card-bg: #1e1e1e;
-   @shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+   @card-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
    
    /* =======================================================
       BODY Y ESTRUCTURA GENERAL
       ======================================================= */
    body {
-     background-color: @dark-background;
+     background-color: @dark-bg;
      color: @dark-text;
      font-family: 'Roboto', sans-serif;
      line-height: 1.6;
+     margin: 0;
+     padding: 0;
+     animation: fadeIn 0.6s ease-in-out;
    }
    
    /* =======================================================
-      TIPOGRAFÍA Y ENCABEZADOS
+      TIPOGRAFÍA
       ======================================================= */
    h1, h2, h3, h4, h5, h6 {
      color: white;
      font-weight: 600;
      margin-bottom: 1rem;
+     letter-spacing: 0.5px;
    }
    
-   p {
+   p, span, label {
      color: lighten(@dark-text, 10%);
    }
    
    /* =======================================================
-      NAVBAR Y FOOTER
+      NAVBAR (Estilo Cristal)
       ======================================================= */
    nav {
-     background-color: @navbar-bg !important;
-   }
-   
-   footer.page-footer {
-     background-color: @footer-bg !important;
-     color: @dark-text;
+     background-color: @glass-bg !important;
+     backdrop-filter: blur(@glass-blur);
+     -webkit-backdrop-filter: blur(@glass-blur);
+     border-bottom: 1px solid @glass-border;
+     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+     transition: background-color @transition-time ease;
    }
    
    /* =======================================================
-      SECCIONES
+      FOOTER (Estilo Cristal)
+      ======================================================= */
+   footer.page-footer {
+     background-color: @glass-bg !important;
+     backdrop-filter: blur(@glass-blur);
+     -webkit-backdrop-filter: blur(@glass-blur);
+     border-top: 1px solid @glass-border;
+     color: @dark-text;
+     padding: 2rem 0;
+     text-align: center;
+   }
+   
+   /* =======================================================
+      SECCIONES GENERALES
       ======================================================= */
    .section {
-     padding-top: 4rem;
-     padding-bottom: 4rem;
+     padding: 4rem 2rem;
+     animation: fadeUp 0.6s ease;
    }
    
    /* =======================================================
       PRODUCTOS
       ======================================================= */
    #productos-container {
+     display: flex;
+     flex-wrap: wrap;
+     gap: 2rem;
+     justify-content: center;
+   
      .card {
-       background-color: @card-bg;
+       background-color: @glass-bg;
+       backdrop-filter: blur(@glass-blur);
        border-radius: @border-radius;
-       box-shadow: @shadow;
-       transition: transform @transition-time ease;
+       box-shadow: @card-shadow;
+       padding: 1rem;
+       width: 300px;
+       animation: scaleIn 0.4s ease;
+       transition: transform @transition-time ease, box-shadow @transition-time ease;
    
        &:hover {
-         transform: translateY(-5px);
+         transform: translateY(-10px) scale(1.03);
+         box-shadow: 0 12px 32px rgba(255, 193, 7, 0.3);
        }
    
        .card-content {
          color: @dark-text;
+         padding: 0.5rem 0;
        }
    
        .card-title {
@@ -90,10 +122,56 @@
        .btn {
          background-color: @primary-accent;
          color: @light-text;
+         border-radius: @border-radius;
+         transition: background-color @transition-time ease, transform 0.2s ease;
    
          &:hover {
            background-color: darken(@primary-accent, 10%);
+           transform: scale(1.05);
          }
+       }
+     }
+   }
+   
+   /* =======================================================
+      TARJETAS DE MENÚ PRINCIPAL
+      ======================================================= */
+   .menu-tarjeta {
+     background: rgba(28, 28, 28, 0.65);
+     backdrop-filter: blur(12px);
+     -webkit-backdrop-filter: blur(12px);
+     border: 1px solid @glass-border;
+     border-radius: @border-radius;
+     box-shadow: @card-shadow;
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     justify-content: center;
+     text-align: center;
+     padding: 2.5rem 1.5rem;
+     color: @dark-text;
+     margin: 1rem 0;
+     transition: transform 0.3s ease, background 0.3s ease;
+     animation: fadeUp 0.6s ease;
+   
+     i {
+       margin-bottom: 1rem;
+       color: @primary-accent;
+       font-size: 2.8rem;
+       transition: color 0.3s ease;
+     }
+   
+     span {
+       font-size: 1.2rem;
+       font-weight: 600;
+     }
+   
+     &:hover {
+       transform: scale(1.04) translateY(-6px);
+       background: rgba(255, 193, 7, 0.08);
+   
+       i {
+         color: lighten(@primary-accent, 10%);
        }
      }
    }
@@ -111,6 +189,44 @@
        color: black;
        border-radius: @border-radius;
        padding: 1rem;
+       box-shadow: @card-shadow;
+       animation: fadeInDown 0.5s ease forwards;
+     }
+   }
+   
+   /* =======================================================
+      ANIMACIONES PERSONALIZADAS
+      ======================================================= */
+   @keyframes fadeIn {
+     0% { opacity: 0; }
+     100% { opacity: 1; }
+   }
+   
+   @keyframes fadeInDown {
+     0% { opacity: 0; transform: translateY(-20px); }
+     100% { opacity: 1; transform: translateY(0); }
+   }
+   
+   @keyframes fadeUp {
+     0% { opacity: 0; transform: translateY(20px); }
+     100% { opacity: 1; transform: translateY(0); }
+   }
+   
+   @keyframes scaleIn {
+     0% { transform: scale(0.95); opacity: 0; }
+     100% { transform: scale(1); opacity: 1; }
+   }
+   
+   /* Responsive mejoras para tarjetas */
+   @media screen and (max-width: 600px) {
+     .menu-tarjeta {
+       padding: 2rem 1rem;
+       i {
+         font-size: 2.4rem;
+       }
+       span {
+         font-size: 1rem;
+       }
      }
    }
    

@@ -1,5 +1,4 @@
-<!-- 📁 adminPanel.html - Panel de Administración de TianguiStore -->
-
+<!-- 📁 adminPanel.html - Panel de Administración TianguiStore -->
 <!DOCTYPE html>
 <html lang="es-MX">
 <head>
@@ -9,214 +8,115 @@
 
   <!-- MaterializeCSS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet" />
-  
-  <!-- FontAwesome para íconos -->
+  <!-- FontAwesome -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
-  
   <!-- Estilos personalizados -->
-  <link rel="stylesheet" href="estilo/estilos.css" />
-
-  <!-- Scripts -->
-  <script defer src="scripts/loadComponent.js"></script>
-  <script defer src="scripts/adminPanel.js"></script>
+  <link rel="stylesheet" href="estilo/main.css" />
 </head>
 
-<body class="bg-dark text-light">
+<body class="grey darken-4 white-text">
 
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-black shadow-sm">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="#"><i class="fas fa-store"></i> TianguiStore Admin</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarAdmin" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarAdmin">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item me-3">
-            <span class="nav-link disabled" id="usuarioNombre">Administrador</span>
-          </li>
-          <li class="nav-item">
-            <button class="btn btn-outline-light btn-sm" onclick="cerrarSesion()">
-              <i class="fas fa-sign-out-alt"></i> Cerrar sesión
-            </button>
-          </li>
-        </ul>
-      </div>
+  <!-- 🔝 Navbar superior -->
+  <nav class="grey darken-3 z-depth-1">
+    <div class="nav-wrapper container">
+      <a href="index.html" class="brand-logo" style="display: flex; align-items: center;">
+        <i class="fas fa-store"></i>&nbsp;TianguiStore
+      </a>
+      <ul class="right">
+        <li>
+          <a id="toggleThemeBtn" class="tooltipped" data-tooltip="Tema claro/oscuro">
+            <i class="fas fa-moon"></i>
+          </a>
+        </li>
+        <li>
+          <a class="dropdown-trigger" href="#!" data-target="dropdownCuenta">
+            <i class="fas fa-user-circle left"></i><span id="usuario-info">Administrador</span><i class="fas fa-caret-down right"></i>
+          </a>
+        </li>
+      </ul>
     </div>
   </nav>
 
-  <!-- Contenido principal -->
-  <div class="container-fluid">
-    <div class="row">
-      <!-- Sidebar (Menú de administración) -->
-      <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar p-3" role="navigation" aria-label="Menú de administración">
-        <ul class="nav flex-column">
-          <li class="nav-item">
-            <a class="nav-link active text-white" href="#" onclick="mostrarSeccion('dashboard')">
-              <i class="fas fa-tachometer-alt"></i> Dashboard
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link text-white" href="#" onclick="mostrarSeccion('usuarios')">
-              <i class="fas fa-users"></i> Usuarios
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link text-white" href="#" onclick="mostrarSeccion('productos')">
-              <i class="fas fa-boxes"></i> Productos
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link text-white" href="#" onclick="mostrarSeccion('pedidos')">
-              <i class="fas fa-receipt"></i> Pedidos
-            </a>
-          </li>
-        </ul>
-      </nav>
+  <!-- 🔽 Menú desplegable cuenta -->
+  <ul id="dropdownCuenta" class="dropdown-content grey darken-4">
+    <li><a href="#" id="menu-logout" class="white-text"><i class="fas fa-sign-out-alt left"></i> Cerrar sesión</a></li>
+  </ul>
 
-      <!-- Sección principal del panel (Contenido dinámico) -->
-      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4" id="seccion-principal" role="main">
-        <h2>Bienvenido al Panel de Administración</h2>
-        <p class="lead">Selecciona una opción del menú para comenzar.</p>
-      </main>
-    </div>
-  </div>
+  <!-- 🧠 Menú principal como tarjetas -->
+  <main class="section" id="seccion-principal">
+    <div class="container">
+      <h4 class="center-align">Panel de Administración</h4>
+      <p class="grey-text text-lighten-2 center-align">Selecciona una sección para comenzar</p>
 
-  <!-- Modales globales (al final del body para evitar problemas de carga) -->
-  
-  <!-- Modal Confirmación -->
-  <div class="modal fade" id="modalConfirmacion" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content bg-dark text-white">
-        <div class="modal-header">
-          <h5 class="modal-title">Confirmar acción</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      <div class="row">
+
+        <div class="col s12 m6 l4">
+          <a href="#dashboard" class="menu-tarjeta z-depth-3">
+            <i class="fas fa-chart-line fa-2x"></i>
+            <span>Dashboard</span>
+          </a>
         </div>
-        <div class="modal-body" id="modalConfirmacionMensaje">
-          ¿Estás seguro de que deseas realizar esta acción?
+
+        <div class="col s12 m6 l4">
+          <a href="#usuarios" class="menu-tarjeta z-depth-3">
+            <i class="fas fa-users fa-2x"></i>
+            <span>Usuarios</span>
+          </a>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-danger" id="modalConfirmarBtn">Confirmar</button>
+
+        <div class="col s12 m6 l4">
+          <a href="#productos" class="menu-tarjeta z-depth-3">
+            <i class="fas fa-boxes fa-2x"></i>
+            <span>Productos</span>
+          </a>
         </div>
+
+        <div class="col s12 m6 l4">
+          <a href="#pedidos" class="menu-tarjeta z-depth-3">
+            <i class="fas fa-receipt fa-2x"></i>
+            <span>Pedidos</span>
+          </a>
+        </div>
+
+        <div class="col s12 m6 l4">
+          <a href="#configuracion" class="menu-tarjeta z-depth-3">
+            <i class="fas fa-cogs fa-2x"></i>
+            <span>Configuración</span>
+          </a>
+        </div>
+
+        <div class="col s12 m6 l4">
+          <a href="#reportes" class="menu-tarjeta z-depth-3">
+            <i class="fas fa-chart-pie fa-2x"></i>
+            <span>Reportes</span>
+          </a>
+        </div>
+
       </div>
     </div>
-  </div>
+  </main>
 
-  <!-- Modal Editar Configuración -->
-  <div class="modal fade" id="modalEditarConfig" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content bg-dark text-light">
-        <div class="modal-header">
-          <h5 class="modal-title">Editar Configuración</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-        </div>
-        <div class="modal-body">
-          <form id="formEditarConfig">
-            <input type="hidden" id="configClave">
-            <div class="mb-3">
-              <label id="configLabel" class="form-label fw-bold"></label>
-              <small id="configDescripcion" class="d-block text-secondary mb-2"></small>
-              <div id="configCampoDinamico"></div>
-            </div>
-            <div class="text-end">
-              <button type="submit" class="btn btn-primary">Guardar</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- 🔻 Footer -->
+  <div id="footer-container"></div>
 
-  <!-- Modal Editar Producto -->
-  <div class="modal fade" id="modalEditarProducto" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content bg-dark text-light">
-        <div class="modal-header">
-          <h5 class="modal-title">Editar Producto</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-        </div>
-        <div class="modal-body">
-          <form id="formEditarProducto">
-            <input type="hidden" id="editProductoId" />
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="editNombre" class="form-label">Nombre</label>
-                <input type="text" class="form-control" id="editNombre" required />
-              </div>
-              <div class="col-md-6 mb-3">
-                <label for="editPrecio" class="form-label">Precio</label>
-                <input type="number" class="form-control" id="editPrecio" step="0.01" required />
-              </div>
-            </div>
+  <!-- 📦 Scripts -->
+  <script src="scripts/loadComponent.js" defer></script>
+  <script type="module" src="scripts/admin/index.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js" defer></script>
 
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="editDescuento" class="form-label">Descuento (%)</label>
-                <input type="number" class="form-control" id="editDescuento" step="0.01" min="0" max="100" />
-              </div>
-              <div class="col-md-6 mb-3">
-                <label for="editStock" class="form-label">Stock</label>
-                <input type="number" class="form-control" id="editStock" min="0" />
-              </div>
-            </div>
+  <!-- Inicialización -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const tooltipElems = document.querySelectorAll('.tooltipped');
+      const dropdownElems = document.querySelectorAll('.dropdown-trigger');
 
-            <div class="mb-3">
-              <label for="editDescripcion" class="form-label">Descripción</label>
-              <textarea class="form-control" id="editDescripcion" rows="3"></textarea>
-            </div>
-
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label for="editCategoria" class="form-label">Categoría</label>
-                <select class="form-select" id="editCategoria"></select>
-              </div>
-              <div class="col-md-6">
-                <label for="editMarca" class="form-label">Marca</label>
-                <select class="form-select" id="editMarca"></select>
-              </div>
-            </div>
-
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label for="editTipoPago" class="form-label">Tipo de Pago</label>
-                <select class="form-select" id="editTipoPago" required>
-                  <option value="efectivo">Efectivo</option>
-                  <option value="crédito">Crédito</option>
-                  <option value="débito">Débito</option>
-                  <option value="transferencia">Transferencia</option>
-                </select>
-              </div>
-              <div class="col-md-6">
-                <label for="editStatus" class="form-label">Estado</label>
-                <select class="form-select" id="editStatus" required>
-                  <option value="activo">Activo</option>
-                  <option value="inactivo">Inactivo</option>
-                  <option value="demo">Demo</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-check form-switch mb-3">
-              <input class="form-check-input" type="checkbox" id="editPublicado" />
-              <label class="form-check-label" for="editPublicado">Publicado</label>
-            </div>
-
-            <div class="form-check form-switch mb-3">
-              <input class="form-check-input" type="checkbox" id="editMSI" />
-              <label class="form-check-label" for="editMSI">Meses sin Intereses</label>
-            </div>
-
-            <div class="text-end">
-              <button type="submit" class="btn btn-primary">Guardar cambios</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Materialize JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+      M.Tooltip.init(tooltipElems);
+      M.Dropdown.init(dropdownElems, {
+        constrainWidth: false,
+        alignment: 'right',
+        coverTrigger: false
+      });
+    });
+  </script>
 </body>
 </html>

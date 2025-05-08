@@ -3311,60 +3311,122 @@ DELIMITER ;
 -- ================================================================
 -- 👥 NUEVOS TIPOS DE USUARIOS Y EVENTOS POR ROL
 -- ================================================================
-
 -- ================================================================
--- 👤 Roles necesarios para el sistema TianguiStore
--- Se evita duplicado y se actualiza la descripción si el rol ya existe.
+-- 👤 Roles necesarios para el sistema TianguiStore (versión corregida)
+-- Estructura estandarizada para permisos_json por módulo y acción
 -- ================================================================
 INSERT INTO roles (rol_nombre, descripcion, permisos_json)
 VALUES 
+-- 👑 ADMIN
 ('admin', 'Administrador general con acceso total.',
- JSON_OBJECT('usuarios', true, 'productos', true, 'pedidos', true, 'config', true, 'cupones', true, 'roles', true)),
+ JSON_OBJECT(
+   'usuarios', JSON_OBJECT('leer', true, 'crear', true, 'modificar', true),
+   'productos', JSON_OBJECT('leer', true, 'crear', true, 'modificar', true),
+   'pedidos', JSON_OBJECT('leer', true, 'modificar', true),
+   'categorias', JSON_OBJECT('leer', true, 'crear', true),
+   'config', JSON_OBJECT('modificar', true),
+   'cupones', JSON_OBJECT('crear', true, 'modificar', true),
+   'roles', JSON_OBJECT('leer', true, 'modificar', true),
+   'reportes', JSON_OBJECT('exportar', true)
+)),
 
+-- 👤 CLIENTE
 ('cliente', 'Comprador registrado con acceso al catálogo, historial y fidelidad.',
- JSON_OBJECT('comprar', true, 'ver_historial', true, 'puntos', true, 'cupones', true)),
+ JSON_OBJECT(
+   'productos', JSON_OBJECT('leer', true),
+   'historial', JSON_OBJECT('ver', true),
+   'puntos', JSON_OBJECT('ver', true),
+   'cupones', JSON_OBJECT('usar', true)
+)),
 
+-- 🛍️ VENDEDOR
 ('vendedor', 'Vendedor con catálogo propio y acceso a sus pedidos.',
- JSON_OBJECT('productos', JSON_OBJECT('crear', true, 'leer', true, 'actualizar', true), 'pedidos', true)),
+ JSON_OBJECT(
+   'productos', JSON_OBJECT('leer', true, 'crear', true, 'modificar', true),
+   'pedidos', JSON_OBJECT('leer', true, 'modificar', true)
+)),
 
+-- 🛠️ SOPORTE
 ('soporte', 'Soporte técnico y atención a clientes.',
- JSON_OBJECT('ver_tickets', true, 'gestionar_usuarios', false)),
+ JSON_OBJECT(
+   'usuarios', JSON_OBJECT('leer', true),
+   'tickets', JSON_OBJECT('ver', true, 'responder', true)
+)),
 
+-- 👮 MODERADOR
 ('moderador', 'Revisor de productos, comentarios y contenido reportado.',
- JSON_OBJECT('moderar_contenido', true, 'bloquear_comentarios', true)),
+ JSON_OBJECT(
+   'productos', JSON_OBJECT('moderar', true),
+   'comentarios', JSON_OBJECT('bloquear', true)
+)),
 
+-- 🚚 LOGÍSTICA
 ('logistica', 'Encargado de envíos, devoluciones y seguimiento de pedidos.',
- JSON_OBJECT('envios', true, 'seguimiento', true)),
+ JSON_OBJECT(
+   'envios', JSON_OBJECT('gestionar', true),
+   'seguimiento', JSON_OBJECT('ver', true)
+)),
 
+-- 📢 MARKETING
 ('marketing', 'Responsable de campañas, promociones y redes sociales.',
- JSON_OBJECT('cupones', true, 'analiticas', true, 'blog', true)),
+ JSON_OBJECT(
+   'cupones', JSON_OBJECT('crear', true, 'modificar', true),
+   'analiticas', JSON_OBJECT('ver', true),
+   'blog', JSON_OBJECT('publicar', true)
+)),
 
+-- 💰 FINANZAS
 ('finanzas', 'Control de pagos, retiros y reportes económicos.',
- JSON_OBJECT('pagos', true, 'reportes', true)),
+ JSON_OBJECT(
+   'pagos', JSON_OBJECT('revisar', true),
+   'reportes', JSON_OBJECT('exportar', true)
+)),
 
+-- 🖋️ EDITOR
 ('editor', 'Gestor de contenido editorial y multimedia.',
- JSON_OBJECT('posts', true, 'multimedia', true)),
+ JSON_OBJECT(
+   'posts', JSON_OBJECT('crear', true),
+   'multimedia', JSON_OBJECT('gestionar', true)
+)),
 
+-- 🧾 AUDITOR
 ('auditor', 'Acceso de solo lectura para auditorías internas.',
- JSON_OBJECT('ver_logs', true, 'ver_reportes', true)),
+ JSON_OBJECT(
+   'logs', JSON_OBJECT('ver', true),
+   'reportes', JSON_OBJECT('ver', true)
+)),
 
+-- 🧿 ROOT
 ('root', 'Acceso total sin restricciones.',
  JSON_OBJECT('todo', true)),
 
--- Nuevos roles sugeridos (2025)
+-- 👥 INFLUENCER
 ('influencer', 'Promueve productos y recibe beneficios por referidos.',
- JSON_OBJECT('productos', JSON_OBJECT('leer', true), 'referidos', JSON_OBJECT('crear', true, 'leer', true))),
+ JSON_OBJECT(
+   'productos', JSON_OBJECT('leer', true),
+   'referidos', JSON_OBJECT('crear', true, 'leer', true)
+)),
 
+-- 🔗 AFILIADO
 ('afiliado', 'Usuario que comparte productos y gana comisiones.',
- JSON_OBJECT('productos', JSON_OBJECT('leer', true), 'reportes', JSON_OBJECT('exportar', true))),
+ JSON_OBJECT(
+   'productos', JSON_OBJECT('leer', true),
+   'reportes', JSON_OBJECT('exportar', true)
+)),
 
+-- 🏷️ PROVEEDOR
 ('proveedor', 'Usuario con permiso para subir productos de una marca.',
- JSON_OBJECT('productos', JSON_OBJECT('crear', true, 'leer', true, 'modificar', true))),
+ JSON_OBJECT(
+   'productos', JSON_OBJECT('leer', true, 'crear', true, 'modificar', true)
+)),
 
+-- 📝 BLOGGER
 ('blogger', 'Usuario con capacidad para escribir entradas de blog y responder comentarios.',
- JSON_OBJECT('blog', JSON_OBJECT('crear', true, 'responder', true)))
+ JSON_OBJECT(
+   'blog', JSON_OBJECT('crear', true, 'responder', true)
+))
 
-ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion);
+ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion), permisos_json = VALUES(permisos_json);
 
 
 -- Ampliar eventos de actividad a nivel de trigger y lógica backend (manual o SP)

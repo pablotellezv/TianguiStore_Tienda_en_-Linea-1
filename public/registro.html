@@ -1,4 +1,4 @@
-<!-- 📁 registro.html - Página de registro de TianguiStore -->
+<!-- 📁 registro.html - Registro refinado con mejoras visuales -->
 
 <!DOCTYPE html>
 <html lang="es-MX">
@@ -9,77 +9,143 @@
 
   <!-- MaterializeCSS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet" />
-  
-  <!-- FontAwesome para íconos -->
+  <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  
   <!-- Estilos personalizados -->
-  <link rel="stylesheet" href="estilo/estilos.css" />
+  <link rel="stylesheet" href="estilo/main.css" />
 </head>
 
-<body class="bg-light d-flex flex-column min-vh-100">
+<body class="grey darken-4 white-text">
 
-  <!-- Navbar modular -->
+  <!-- Navbar -->
   <div id="navbar-container"></div>
 
-  <!-- Contenido principal -->
-  <main class="container d-flex justify-content-center align-items-center flex-grow-1 py-5">
-    <div class="card shadow p-4 border-0 rounded-4 w-100" style="max-width: 420px;">
-      <div class="card-body">
-        <h3 class="text-center mb-4 fw-bold">
-          <i class="fas fa-user-plus me-2"></i> Crear Cuenta
-        </h3>
+  <!-- Main -->
+  <main class="container">
+    <div class="card grey darken-3 z-depth-4" style="margin: 6vh auto; max-width: 880px;">
+      <div class="card-content white-text">
+        <h4 class="center-align mb-4">
+          <i class="fas fa-user-plus"></i> Crear Cuenta
+        </h4>
 
         <form id="registroForm" novalidate>
-          <!-- Correo electrónico -->
-          <div class="input-field mb-3">
-            <i class="fas fa-envelope prefix"></i>
-            <input type="email" id="email" class="validate" placeholder="usuario@correo.com" required />
-            <label for="email">Correo electrónico</label>
-            <span class="helper-text" data-error="Por favor, ingresa un correo válido"></span>
+
+          <!-- Nombre y Apellido paterno -->
+          <div class="row">
+            <div class="input-field col s12 m6 tooltipped" data-tooltip="Tu nombre real">
+              <i class="fas fa-user prefix"></i>
+              <input type="text" id="nombre" class="validate white-text" required />
+              <label for="nombre">Nombre *</label>
+            </div>
+
+            <div class="input-field col s12 m6 tooltipped" data-tooltip="Apellido paterno (opcional)">
+              <i class="fas fa-id-card prefix"></i>
+              <input type="text" id="apellido_paterno" class="validate white-text" />
+              <label for="apellido_paterno">Apellido paterno</label>
+            </div>
           </div>
 
-          <!-- Contraseña -->
-          <div class="input-field mb-3">
-            <i class="fas fa-lock prefix"></i>
-            <input type="password" id="password" class="validate"
-                   placeholder="Mínimo 8 caracteres, 1 mayúscula y 1 número" pattern="^(?=.*[A-Z])(?=.*\d).{8,}$" required />
-            <button type="button" class="btn-flat" id="togglePassword" tabindex="-1">
-              <i class="fas fa-eye-slash"></i>
+          <!-- Apellido materno y Género -->
+          <div class="row">
+            <div class="input-field col s12 m6 tooltipped" data-tooltip="Apellido materno (opcional)">
+              <i class="fas fa-id-card prefix"></i>
+              <input type="text" id="apellido_materno" class="validate white-text" />
+              <label for="apellido_materno">Apellido materno</label>
+            </div>
+
+            <div class="input-field col s12 m6 tooltipped" data-tooltip="Selecciona tu género">
+              <i class="fas fa-venus-mars prefix"></i>
+              <select id="genero" required class="browser-default grey darken-4 white-text">
+                <option value="" disabled selected>Selecciona tu género</option>
+                <option value="masculino">Masculino</option>
+                <option value="femenino">Femenino</option>
+                <option value="otro">Otro</option>
+                <option value="no_especificado">Prefiero no decirlo</option>
+              </select>
+              <label class="active" for="genero">Género *</label>
+            </div>
+          </div>
+
+          <!-- Fecha de nacimiento y Teléfono -->
+          <div class="row">
+            <div class="input-field col s12 m6 tooltipped" data-tooltip="Fecha de nacimiento (opcional)">
+              <i class="fas fa-calendar-day prefix"></i>
+              <input type="date" id="fecha_nacimiento" class="white-text" />
+              <label for="fecha_nacimiento" class="active">Fecha de nacimiento</label>
+            </div>
+
+            <div class="input-field col s12 m6 tooltipped" data-tooltip="Teléfono de contacto (opcional)">
+              <i class="fas fa-phone prefix"></i>
+              <input type="tel" id="telefono" class="validate white-text" />
+              <label for="telefono">Teléfono</label>
+            </div>
+          </div>
+
+          <!-- Dirección -->
+          <div class="row">
+            <div class="input-field col s12 tooltipped" data-tooltip="Dirección completa (opcional)">
+              <i class="fas fa-map-marker-alt prefix"></i>
+              <textarea id="direccion" class="materialize-textarea white-text"></textarea>
+              <label for="direccion">Dirección</label>
+            </div>
+          </div>
+
+          <!-- Correo y contraseña -->
+          <div class="row">
+            <div class="input-field col s12 m6 tooltipped" data-tooltip="Correo válido para iniciar sesión">
+              <i class="fas fa-envelope prefix"></i>
+              <input type="email" id="email" class="validate white-text" required />
+              <label for="email">Correo electrónico *</label>
+              <span class="helper-text" data-error="Correo inválido"></span>
+            </div>
+
+            <div class="input-field col s12 m6 tooltipped" data-tooltip="Debe tener 8+ caracteres, 1 mayúscula y 1 número" style="position: relative;">
+              <i class="fas fa-lock prefix"></i>
+              <input type="password" id="password" class="validate white-text"
+                     pattern="^(?=.*[A-Z])(?=.*\\d).{8,}$" required />
+              <label for="password">Contraseña *</label>
+              <span class="helper-text" data-error="Contraseña insegura"></span>
+              <a id="togglePassword" title="Mostrar/Ocultar contraseña"
+                 style="position: absolute; right: 12px; top: 14px; color: #bbb;">
+                <i class="fas fa-eye-slash"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Botón registrar -->
+          <div class="row center-align" style="margin-top: 2rem;">
+            <button type="submit" class="btn-large amber darken-3 waves-effect waves-light col s12 m6 offset-m3">
+              <i class="fas fa-user-plus left"></i> Registrarse
             </button>
-            <label for="password">Contraseña</label>
-            <span class="helper-text" data-error="La contraseña debe tener al menos 8 caracteres, una mayúscula y un número"></span>
           </div>
-
-          <!-- Botón de registro -->
-          <button type="submit" class="btn btn-primary w-100">
-            <i class="fas fa-user-plus me-2"></i> Registrarse
-          </button>
         </form>
 
-        <!-- Alertas -->
-        <div id="mensajeError" class="alert alert-danger mt-3 d-none"></div>
-        <div id="mensajeExito" class="alert alert-success mt-3 d-none"></div>
+        <!-- Mensajes -->
+        <div id="mensajeError" class="card-panel red darken-2 white-text" style="display: none;"></div>
+        <div id="mensajeExito" class="card-panel green darken-2 white-text" style="display: none;"></div>
 
-        <!-- Enlace a inicio de sesión -->
-        <div class="text-center mt-3">
-          <a href="login.html" class="text-decoration-none">
-            <i class="fas fa-arrow-left me-1"></i> Ya tengo una cuenta
+        <!-- Link a login -->
+        <div class="section center-align">
+          <a href="login.html" class="grey-text text-lighten-2">
+            <i class="fas fa-arrow-left left"></i> Ya tengo una cuenta
           </a>
         </div>
       </div>
     </div>
   </main>
 
-  <!-- Footer modular -->
-  <div id="footer-container" class="mt-auto"></div>
+  <!-- Footer -->
+  <div id="footer-container"></div>
 
   <!-- Scripts -->
   <script src="scripts/loadComponent.js" defer></script>
   <script src="scripts/registro.js" defer></script>
   <script src="scripts/togglePassword.js" defer></script>
-
-  <!-- Materialize JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      M.Tooltip.init(document.querySelectorAll('.tooltipped'), { exitDelay: 150, margin: 6 });
+    });
+  </script>
 </body>
 </html>
