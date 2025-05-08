@@ -39,12 +39,12 @@ const HOST = process.env.HOST || "localhost";
 const REQUIRED_VARS = ["DB_HOST", "DB_PORT", "DB_USER", "DB_NAME"];
 const missing = REQUIRED_VARS.filter(key => !process.env[key]);
 if (missing.length) {
-  console.error(`[${new Date().toISOString()}] ❌ Variables faltantes: ${missing.join(", ")}`);
+  console.error(`[${getCurrentDateTime()}] ❌ Variables faltantes: ${missing.join(", ")}`);
   process.exit(1); // Terminar el proceso si faltan variables críticas
 }
 
 if (!process.env.DB_PASSWORD) {
-  console.warn(`[${new Date().toISOString()}] ⚠️ DB_PASSWORD no definida. Usando cadena vacía.`);
+  console.warn(`[${getCurrentDateTime()}] ⚠️ DB_PASSWORD no definida. Usando cadena vacía.`);
   process.env.DB_PASSWORD = "";
 }
 
@@ -55,10 +55,10 @@ const pkg = require(path.resolve(__dirname, "..", "package.json"));
 
 if (process.env.AUTO_AUDIT === "true" && IS_DEV) {
   try {
-    console.log(`[${new Date().toISOString()}] 🔄 Ejecutando auditoría de seguridad...`);
+    console.log(`[${getCurrentDateTime()}] 🔄 Ejecutando auditoría de seguridad...`);
     execSync("npm audit fix", { stdio: "inherit" });
   } catch (error) {
-    console.error(`[${new Date().toISOString()}] ❌ Error al ejecutar 'npm audit fix':`, error);
+    console.error(`[${getCurrentDateTime()}] ❌ Error al ejecutar 'npm audit fix':`, error);
   }
 }
 
@@ -127,7 +127,7 @@ app.use("/estadisticas", require("./routes/estadisticas.routes"));
 
 // Página 404 personalizada
 app.use((req, res) => {
-  console.error(`[${new Date().toISOString()}] 404 - Página no encontrada: ${req.originalUrl}`);
+  console.error(`[${getCurrentDateTime()}] 404 - Página no encontrada: ${req.originalUrl}`);
   res.status(404).sendFile(path.join(PUBLIC_DIR, "404.html"));
 });
 
@@ -135,7 +135,7 @@ app.use((req, res) => {
 // MANEJO GLOBAL DE ERRORES ⛑️
 // ─────────────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
-  console.error(`[${new Date().toISOString()}] ❌ Error inesperado:`, err);
+  console.error(`[${getCurrentDateTime()}] ❌ Error inesperado:`, err);
   const response = {
     mensaje: "Ha ocurrido un error inesperado. Por favor intente más tarde.",
     ...(IS_DEV && { detalles: err.message || err.toString() }) // Solo muestra detalles del error en desarrollo
@@ -166,13 +166,13 @@ async function verificarConexionDB() {
     console.log(`[✔] Conectado a MySQL en ${origen} - Tiempo de conexión: ${elapsed} segundos`);
   } catch (err) {
     gauge.pulse(GAUGE_MESSAGES.dbError);
-    console.error(`[${new Date().toISOString()}] [✘] Falla al conectar a la base de datos: ${origen}\n`, err);
+    console.error(`[${getCurrentDateTime()}] [✘] Falla al conectar a la base de datos: ${origen}\n`, err);
     process.exit(1);  // Termina el proceso si no puede conectar a la base de datos
   }
 }
 
 function logStartup() {
-  const t = new Date().toISOString();
+  const t = getCurrentDateTime();
   const url = `http://${HOST}:${PORT}`;
   console.log(`\n🚀 [${t}] === INICIO DEL SERVIDOR ===`);
   const config = [
@@ -181,15 +181,21 @@ function logStartup() {
     { label: "Base de datos", value: process.env.DB_NAME },
     { label: "Usuario DB", value: process.env.DB_USER },
     { label: "Host DB", value: process.env.DB_HOST },
-    { label: "API", value: "/auth, /productos, /carrito, /pedidos, /usuarios, etc." },
+    { label: "API", value: "/auth, /productos, /carrito, /pedidos, /usuarios" },
     { label: "Servidor en", value: url }
   ];
   config.forEach(({ label, value }) => console.log(`  ${label.padEnd(18)}: ${value}`));
   console.log("========================================\n");
 }
 
+// Función para obtener la fecha y hora actual
+function getCurrentDateTime() {
+  const now = new Date();
+  return now.toISOString().replace("T", " ").slice(0, 19); // Formato: 2025-05-08 15:30:00
+}
+
 async function iniciarServidor() {
-  console.log(`[${new Date().toISOString()}] 🟡 Iniciando backend TianguiStore...`);
+  console.log(`[${getCurrentDateTime()}] 🟡 Iniciando backend TianguiStore...`);
   await verificarConexionDB();  // Verificar la conexión a la base de datos antes de iniciar el servidor
   gauge.show(GAUGE_MESSAGES.startingServer, 0);
   app.listen(PORT, () => {
