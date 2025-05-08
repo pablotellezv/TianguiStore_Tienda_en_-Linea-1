@@ -13,20 +13,30 @@
 const express = require("express");
 const router = express.Router();
 
-const {
-  obtenerTodasConfiguraciones,
-  obtenerConfiguracionPorClave,
-  actualizarConfiguracion
+// **Importación de controladores**
+const { 
+  obtenerTodasConfiguraciones, 
+  obtenerConfiguracionPorClave, 
+  actualizarConfiguracion 
 } = require("../controllers/configuracionController");
 
-const {
-  verificarAutenticacion,
-  verificarPermiso
+// **Importación de middlewares para autenticación y permisos**
+const { 
+  verificarAutenticacion, 
+  verificarPermiso 
 } = require("../middlewares/authMiddleware");
 
+// **Middleware para la validación de resultados después de las validaciones**
 const validarResultados = require("../middlewares/validacion/validarResultados");
-const { configuracionSchema } = require("../middlewares/validacion/configuracionSchema");
-const { configuracionGetSchema } = require("../middlewares/validacion/configuracionGetSchema");
+
+// **Schemas de validación** para configuraciones
+const { 
+  configuracionSchema, 
+  configuracionGetSchema 
+} = require("../middlewares/validacion/configuracionSchema");  // Ajusta la ruta para que apunte correctamente a los archivos en 'validacion'
+
+
+
 
 // ───────────────────────────────────────────────
 // 🔐 Rutas protegidas — Requieren token y permisos
@@ -39,35 +49,37 @@ const { configuracionGetSchema } = require("../middlewares/validacion/configurac
  */
 router.get(
   "/",
-  verificarAutenticacion,
-  verificarPermiso("configuracion", "leer"),
-  configuracionGetSchema, // Validación opcional por query (paginación, filtros)
-  validarResultados,
-  obtenerTodasConfiguraciones
+  verificarAutenticacion,                           // Verifica que el usuario esté autenticado
+  verificarPermiso("configuracion", "leer"),        // Verifica que el usuario tenga permiso para leer configuraciones
+  configuracionGetSchema,                           // Validación opcional por query (paginación, filtros)
+  validarResultados,                                // Verifica si los datos de la solicitud son válidos
+  obtenerTodasConfiguraciones                       // Controlador para obtener todas las configuraciones activas
 );
 
 /**
  * 🔍 GET /configuracion/:clave
  * Obtener configuración específica por clave única.
+ * Requiere autenticación y permiso de lectura.
  */
 router.get(
   "/:clave",
-  verificarAutenticacion,
-  verificarPermiso("configuracion", "leer"),
-  obtenerConfiguracionPorClave
+  verificarAutenticacion,                           // Verifica que el usuario esté autenticado
+  verificarPermiso("configuracion", "leer"),        // Verifica que el usuario tenga permiso para leer configuraciones
+  obtenerConfiguracionPorClave                      // Controlador para obtener configuración por clave
 );
 
 /**
  * ✏️ PUT /configuracion/:clave
  * Actualizar (o insertar si no existe) una configuración específica.
+ * Requiere autenticación, permisos de modificación y validación del cuerpo de la petición.
  */
 router.put(
   "/:clave",
-  verificarAutenticacion,
-  verificarPermiso("configuracion", "modificar"),
-  configuracionSchema,       // Validación del cuerpo de la petición
-  validarResultados,
-  actualizarConfiguracion
+  verificarAutenticacion,                           // Verifica que el usuario esté autenticado
+  verificarPermiso("configuracion", "modificar"),   // Verifica que el usuario tenga permiso para modificar configuraciones
+  configuracionSchema,                              // Validación del cuerpo de la petición para actualización
+  validarResultados,                                // Verifica si los datos de la solicitud son válidos
+  actualizarConfiguracion                           // Controlador para actualizar la configuración
 );
 
 // ───────────────────────────────────────────────

@@ -103,9 +103,9 @@ async function actualizarUsuario(req, res) {
   const datos = req.body;
   try {
     await usuariosModel.actualizarUsuario(id, datos);
-    res.status(200).json({ mensaje: "Perfil actualizado correctamente" });
+    res.status(200).json({ mensaje: "Usuario actualizado correctamente" });
   } catch (error) {
-    console.error("❌ Error al actualizar perfil:", error);
+    console.error("❌ Error al actualizar usuario:", error);
     res.status(500).json({ mensaje: "Error al actualizar el perfil" });
   }
 }

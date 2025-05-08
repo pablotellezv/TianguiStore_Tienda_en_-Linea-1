@@ -8,7 +8,7 @@ const {
 } = require("../middlewares/authMiddleware");
 
 const validarResultados = require("../middlewares/validacion/validarResultados");
-const { usuarioSchema, usuarioUpdateSchema, cambioContrasenaSchema } = require("../middlewares/validacion/usuarioSchema");
+const { usuarioSchema, cambioContrasenaSchema } = require("../middlewares/validacion/usuarioSchema");
 
 // 📋 GET /usuarios — Obtener todos los usuarios
 router.get(
@@ -49,7 +49,7 @@ router.put(
   "/:id",
   verificarAutenticacion,
   verificarPermiso("usuarios", "modificar"),
-  usuarioUpdateSchema,
+  usuarioSchema,
   validarResultados,
   usuariosController.actualizarUsuario // ← ✅ Corrección aquí
 );

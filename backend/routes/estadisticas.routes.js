@@ -7,7 +7,7 @@
 const express = require("express");
 const router = express.Router();
 
-const estadisticasController = require("../controllers/estadisticas.controller");
+const estadisticasController = require("../controllers/estadisticasController"); // Asegúrate de que la ruta sea correcta
 
 const { 
   verificarAutenticacion, 
@@ -26,7 +26,7 @@ router.get(
   "/resumen",
   verificarAutenticacion,
   verificarPermiso("metricas", "leer"),
-  estadisticasController.obtenerResumenGlobal
+  estadisticasController.obtenerEstadisticasVentas // Asegúrate de que esta función esté correctamente definida en el controlador
 );
 
 /**
@@ -37,7 +37,7 @@ router.get(
   "/ingresos-mensuales",
   verificarAutenticacion,
   verificarPermiso("metricas", "leer"),
-  estadisticasController.obtenerIngresosMensuales
+  estadisticasController.obtenerIngresosMensuales // Asegúrate de que esta función esté correctamente definida en el controlador
 );
 
 /**
@@ -48,7 +48,18 @@ router.get(
   "/top-productos",
   verificarAutenticacion,
   verificarPermiso("metricas", "leer"),
-  estadisticasController.obtenerTopProductosVendidos
+  estadisticasController.obtenerTopProductosVendidos // Asegúrate de que esta función esté correctamente definida en el controlador
 );
 
-module.exports = router;
+/**
+ * 📅 GET /estadisticas/estadisticas-personalizadas
+ * Devuelve estadísticas de ventas personalizadas según un rango de fechas
+ */
+router.get(
+  "/estadisticas-personalizadas",
+  verificarAutenticacion,
+  verificarPermiso("metricas", "leer"),
+  estadisticasController.calcularEstadisticasPersonalizadas // Asegúrate de que esta función esté correctamente definida en el controlador
+);
+
+module.exports = router; // Exportar el router correctamente

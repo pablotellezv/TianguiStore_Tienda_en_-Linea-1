@@ -6,10 +6,18 @@ const configuracionModel = require("../models/configuracion.model");
 async function obtenerTodasConfiguraciones(req, res) {
   try {
     const configuraciones = await configuracionModel.obtenerTodas();
+    
+    if (!configuraciones || configuraciones.length === 0) {
+      return res.status(404).json({ message: "No se encontraron configuraciones." });
+    }
+
     res.status(200).json(configuraciones);
   } catch (error) {
     console.error("❌ Error al obtener configuraciones:", error);
-    res.status(500).json({ message: "Error interno del servidor." });
+    res.status(500).json({
+      message: "Error interno al obtener configuraciones.",
+      error: error.message || error
+    });
   }
 }
 
@@ -20,7 +28,7 @@ async function obtenerConfiguracionPorClave(req, res) {
   const { clave } = req.params;
 
   try {
-    const config = await configuracionModel.buscarPorClave(clave);
+    const config = await configuracionModel.obtenerConfiguracionPorClave(clave);
 
     if (!config) {
       return res.status(404).json({ message: "Configuración no encontrada." });
@@ -29,7 +37,10 @@ async function obtenerConfiguracionPorClave(req, res) {
     res.status(200).json(config);
   } catch (error) {
     console.error("❌ Error al obtener configuración:", error);
-    res.status(500).json({ message: "Error interno al obtener configuración." });
+    res.status(500).json({
+      message: "Error interno al obtener la configuración.",
+      error: error.message || error
+    });
   }
 }
 
@@ -40,12 +51,13 @@ async function actualizarConfiguracion(req, res) {
   const { clave } = req.params;
   const nuevoValor = req.body.valor_json;
 
-  if (typeof nuevoValor === "undefined") {
-    return res.status(400).json({ message: "Se requiere el campo 'valor_json' en el cuerpo." });
+  // Validación del campo 'valor_json' en el cuerpo de la solicitud
+  if (!nuevoValor) {
+    return res.status(400).json({ message: "El campo 'valor_json' es obligatorio y debe ser un JSON válido." });
   }
 
   try {
-    const config = await configuracionModel.buscarPorClave(clave);
+    const config = await configuracionModel.obtenerConfiguracionPorClave(clave);
 
     if (!config) {
       return res.status(404).json({ message: "Configuración no encontrada." });
@@ -61,11 +73,19 @@ async function actualizarConfiguracion(req, res) {
       });
     }
 
-    await configuracionModel.actualizarValor(clave, nuevoValor);
+    // Guardar la configuración actualizada
+    await configuracionModel.guardarConfiguracion({
+      clave,
+      valor: nuevoValor
+    });
+
     res.status(200).json({ message: "Configuración actualizada correctamente." });
   } catch (error) {
     console.error("❌ Error al actualizar configuración:", error);
-    res.status(500).json({ message: "Error interno al actualizar configuración." });
+    res.status(500).json({
+      message: "Error interno al actualizar configuración.",
+      error: error.message || error
+    });
   }
 }
 
@@ -74,18 +94,27 @@ async function actualizarConfiguracion(req, res) {
  */
 function validarTipoDato(valor, tipo) {
   switch (tipo) {
-    case "texto": return typeof valor === "string";
-    case "numero": return typeof valor === "number" && isFinite(valor);
-    case "booleano": return typeof valor === "boolean";
+    case "texto":
+      return typeof valor === "string" && valor.trim().length > 0;
+    case "numero":
+      return typeof valor === "number" && isFinite(valor);
+    case "booleano":
+      return typeof valor === "boolean";
     case "lista":
-      return Array.isArray(valor) &&
-        valor.every(v => typeof v === "string" || typeof v === "number");
+      return Array.isArray(valor) && valor.every(v => typeof v === "string" || typeof v === "number");
     case "json":
-      return typeof valor === "object" && valor !== null && !Array.isArray(valor);
-    default: return false;
+      try {
+        JSON.parse(valor); // Verifica si el valor es un JSON válido
+        return true;
+      } catch (e) {
+        return false; // Si no es un JSON válido, retorna false
+      }
+    default:
+      return false;
   }
 }
 
+// Exportación de las funciones del controlador
 module.exports = {
   obtenerTodasConfiguraciones,
   obtenerConfiguracionPorClave,
