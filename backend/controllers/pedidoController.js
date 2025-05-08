@@ -13,7 +13,7 @@
  * 🧠 Basado en procedimiento almacenado: sp_crear_pedido_completo
  */
 
-const db = require("../db/connection"); // ✅ Corregido
+const pedidoModel = require("../models/pedido.model"); // Uso del modelo para lógica de negocio
 
 /**
  * 🧾 GET /api/pedidos
@@ -21,14 +21,8 @@ const db = require("../db/connection"); // ✅ Corregido
  */
 exports.obtenerPedidos = async (req, res) => {
   try {
-    const [resultados] = await db.query(`
-      SELECT p.*, u.correo_electronico AS cliente_correo, e.estado_nombre
-      FROM pedidos p
-      JOIN usuarios u ON p.usuario_id = u.usuario_id
-      JOIN estados_pedido e ON p.estado_id = e.estado_id
-      WHERE p.borrado_logico = 0
-    `);
-    res.status(200).json(resultados);
+    const pedidos = await pedidoModel.obtenerPedidos();
+    res.status(200).json(pedidos);
   } catch (err) {
     console.error("❌ Error al obtener pedidos:", err);
     res.status(500).json({ mensaje: "Error al obtener pedidos" });
@@ -44,15 +38,8 @@ exports.obtenerMisPedidos = async (req, res) => {
   if (!usuario) return res.status(403).json({ mensaje: "No autenticado" });
 
   try {
-    const [resultados] = await db.query(`
-      SELECT p.*, e.estado_nombre
-      FROM pedidos p
-      JOIN estados_pedido e ON p.estado_id = e.estado_id
-      WHERE p.usuario_id = ?
-      ORDER BY p.fecha_pedido DESC
-    `, [usuario.usuario_id]);
-
-    res.status(200).json(resultados);
+    const pedidos = await pedidoModel.obtenerMisPedidos(usuario.usuario_id);
+    res.status(200).json(pedidos);
   } catch (err) {
     console.error("❌ Error al obtener pedidos del cliente:", err);
     res.status(500).json({ mensaje: "Error al obtener pedidos" });
@@ -73,19 +60,14 @@ exports.crearPedido = async (req, res) => {
   }
 
   try {
-    const [result] = await db.query(`
-      CALL sp_crear_pedido_completo(?, ?, ?, ?, ?, ?)
-    `, [
-      usuario.usuario_id,
-      parseFloat(total),
+    const pedido_id = await pedidoModel.crearPedidoConSP({
+      usuario_id: usuario.usuario_id,
+      total,
       metodo_pago,
-      cupon || null,
-      direccion_envio.trim(),
-      notas?.trim() || ""
-    ]);
-
-    const pedido_id = result?.[0]?.[0]?.pedido_id;
-    if (!pedido_id) return res.status(500).json({ mensaje: "Error al generar el pedido" });
+      cupon,
+      direccion_envio,
+      notas
+    });
 
     res.status(201).json({ mensaje: "Pedido creado correctamente", pedido_id });
   } catch (error) {
@@ -103,40 +85,26 @@ exports.crearPedidoDesdeCarrito = async (req, res) => {
   if (!usuario) return res.status(403).json({ mensaje: "No autenticado" });
 
   try {
-    const [[{ total }]] = await db.query(`
-      SELECT SUM(c.cantidad * p.precio) AS total
-      FROM carrito c
-      JOIN productos p ON c.producto_id = p.producto_id
-      WHERE c.usuario_id = ?
-    `, [usuario.usuario_id]);
-
-    if (!total || total <= 0) {
+    const totalCarrito = await pedidoModel.calcularTotalCarrito(usuario.usuario_id);
+    if (totalCarrito <= 0) {
       return res.status(400).json({ mensaje: "El carrito está vacío o sin totales válidos" });
     }
 
-    const { direccion_envio, metodo_pago, cupon = null, notas = "" } = req.body;
-
-    if (!direccion_envio?.trim() || !metodo_pago?.trim()) {
+    const { direccion_envio, metodo_pago, cupon, notas } = req.body;
+    if (!direccion_envio || !metodo_pago) {
       return res.status(400).json({ mensaje: "Faltan datos para procesar el pedido" });
     }
 
-    const [result] = await db.query(`
-      CALL sp_crear_pedido_completo(?, ?, ?, ?, ?, ?)
-    `, [
-      usuario.usuario_id,
-      parseFloat(total),
+    const pedido_id = await pedidoModel.crearPedidoConSP({
+      usuario_id: usuario.usuario_id,
+      total: totalCarrito,
       metodo_pago,
       cupon,
-      direccion_envio.trim(),
-      notas.trim()
-    ]);
+      direccion_envio,
+      notas
+    });
 
-    const pedido_id = result?.[0]?.[0]?.pedido_id;
-    if (!pedido_id) {
-      return res.status(500).json({ mensaje: "No se generó el pedido correctamente" });
-    }
-
-    await db.query(`DELETE FROM carrito WHERE usuario_id = ?`, [usuario.usuario_id]);
+    await pedidoModel.limpiarCarrito(usuario.usuario_id);
     res.status(201).json({ mensaje: "Pedido generado correctamente", pedido_id });
   } catch (error) {
     console.error("❌ Error al generar pedido desde carrito:", error);
@@ -155,11 +123,7 @@ exports.cancelarPedido = async (req, res) => {
   if (!usuario) return res.status(403).json({ mensaje: "No autenticado" });
 
   try {
-    const [[pedido]] = await db.query(`
-      SELECT * FROM pedidos
-      WHERE pedido_id = ? AND usuario_id = ? AND borrado_logico = 0
-    `, [pedido_id, usuario.usuario_id]);
-
+    const pedido = await pedidoModel.obtenerPedidoPorId(pedido_id, usuario.usuario_id);
     if (!pedido) {
       return res.status(404).json({ mensaje: "Pedido no encontrado o no autorizado" });
     }
@@ -168,10 +132,7 @@ exports.cancelarPedido = async (req, res) => {
       return res.status(400).json({ mensaje: "El pedido ya no puede cancelarse" });
     }
 
-    await db.query(`
-      UPDATE pedidos SET estado_id = 6 WHERE pedido_id = ?
-    `, [pedido_id]);
-
+    await pedidoModel.actualizarEstadoPedido(pedido_id, 6); // Estado 6: Cancelado
     res.status(200).json({ mensaje: "Pedido cancelado correctamente" });
   } catch (error) {
     console.error("❌ Error al cancelar pedido:", error);

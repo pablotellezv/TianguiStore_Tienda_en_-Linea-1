@@ -20,56 +20,26 @@ async function obtenerPedidos() {
 }
 
 /**
- * 🔍 Obtener un pedido completo por ID, incluyendo detalles de productos.
- * @param {number} id - ID del pedido.
- * @returns {Promise<Object|null>}
+ * 🔍 Obtener pedidos del usuario autenticado.
+ * @param {number} usuario_id - ID del usuario autenticado
  */
-async function obtenerPedidoPorId(id) {
-  const [pedido] = await db.query(`
+async function obtenerMisPedidos(usuario_id) {
+  const [rows] = await db.query(`
     SELECT p.*, 
-           e.estado_nombre, 
-           u.nombre, 
-           u.correo_electronico
+           e.estado_nombre
     FROM pedidos p
     JOIN estados_pedido e ON p.estado_id = e.estado_id
-    JOIN usuarios u ON p.usuario_id = u.usuario_id
-    WHERE p.pedido_id = ? AND p.borrado_logico = 0
-  `, [parseInt(id)]);
-
-  if (pedido.length === 0) return null;
-
-  const [detalles] = await db.query(`
-    SELECT dp.*, pr.nombre AS nombre_producto
-    FROM detalle_pedido dp
-    JOIN productos pr ON dp.producto_id = pr.producto_id
-    WHERE dp.pedido_id = ?
-  `, [parseInt(id)]);
-
-  return {
-    ...pedido[0],
-    productos: detalles
-  };
+    WHERE p.usuario_id = ? AND p.borrado_logico = 0
+    ORDER BY p.fecha_pedido DESC
+  `, [usuario_id]);
+  return rows;
 }
 
 /**
- * ➕ Crear un nuevo pedido usando el procedimiento almacenado `sp_crear_pedido_completo`.
+ * ➕ Crear un nuevo pedido utilizando el procedimiento almacenado.
  * @param {Object} datos
- * @param {number} datos.usuario_id
- * @param {number} datos.total
- * @param {string} datos.metodo_pago
- * @param {string|null} datos.cupon
- * @param {string} datos.direccion_envio
- * @param {string} [datos.notas]
- * @returns {Promise<number>} pedido_id generado
  */
-async function crearPedidoConSP({
-  usuario_id,
-  total,
-  metodo_pago,
-  cupon = null,
-  direccion_envio,
-  notas = ""
-}) {
+async function crearPedidoConSP({ usuario_id, total, metodo_pago, cupon, direccion_envio, notas }) {
   const [resultado] = await db.query(`
     CALL sp_crear_pedido_completo(?, ?, ?, ?, ?, ?)
   `, [
@@ -111,10 +81,38 @@ async function borrarPedidoLogico(pedido_id) {
   `, [parseInt(pedido_id)]);
 }
 
+/**
+ * 🔢 Calcular el total del carrito del usuario.
+ * @param {number} usuario_id
+ * @returns {Promise<number>} Total del carrito.
+ */
+async function calcularTotalCarrito(usuario_id) {
+  const [[{ total }]] = await db.query(`
+    SELECT SUM(c.cantidad * p.precio) AS total
+    FROM carrito c
+    JOIN productos p ON c.producto_id = p.producto_id
+    WHERE c.usuario_id = ?
+  `, [usuario_id]);
+
+  return total;
+}
+
+/**
+ * 🧹 Limpiar el carrito después de un pedido.
+ * @param {number} usuario_id
+ */
+async function limpiarCarrito(usuario_id) {
+  await db.query(`
+    DELETE FROM carrito WHERE usuario_id = ?
+  `, [usuario_id]);
+}
+
 module.exports = {
   obtenerPedidos,
-  obtenerPedidoPorId,
+  obtenerMisPedidos,
   crearPedidoConSP,
   actualizarEstadoPedido,
-  borrarPedidoLogico
+  borrarPedidoLogico,
+  calcularTotalCarrito,
+  limpiarCarrito
 };

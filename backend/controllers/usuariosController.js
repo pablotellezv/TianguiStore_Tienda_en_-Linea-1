@@ -188,7 +188,7 @@ module.exports = {
   obtenerUsuarioPorId,
   obtenerUsuarioPorCorreo,
   registrarUsuario,
-  actualizarUsuario,        // <- corregido aquí
+  actualizarUsuario,       
   cambiarContrasena,
   habilitarUsuario,
   deshabilitarUsuario,

@@ -8,23 +8,23 @@
  *
  * @author      I.S.C. Erick Renato Vega Ceron
  * @licencia    UNLICENSED-COMMERCIAL-DUAL
- * @fecha       2025-05-07
+ * @fecha       2025-05-08
  */
 
 // ─────────────────────────────────────────────────────────────
 // IMPORTACIONES BÁSICAS Y UTILIDADES 🛠️
 // ─────────────────────────────────────────────────────────────
-const path = require("path");
-const dotenv = require("dotenv");
-const express = require("express");
-const cors = require("cors");
-const helmet = require("helmet");
-const rateLimit = require("express-rate-limit");
-const hpp = require("hpp");
-const Gauge = require("gauge");
-const { default: updateNotifier } = require("update-notifier");
-const { execSync } = require("child_process");
-const pool = require("./db/connection");
+const path = require("path"); // Utilizado para gestionar rutas de archivos
+const dotenv = require("dotenv"); // Cargar variables de entorno desde un archivo .env
+const express = require("express"); // Framework para construir el servidor
+const cors = require("cors"); // Habilitar CORS (Cross-Origin Resource Sharing)
+const helmet = require("helmet"); // Seguridad HTTP para proteger de vulnerabilidades comunes
+const rateLimit = require("express-rate-limit"); // Limitar el número de solicitudes a la API
+const hpp = require("hpp"); // Prevención de ataques por contaminación de parámetros
+const Gauge = require("gauge"); // Mostrar barras de progreso en la terminal
+const { execSync } = require("child_process"); // Ejecutar comandos del sistema (como `npm audit`)
+const pool = require("./db/connection"); // Conexión a la base de datos MySQL
+
 
 // ─────────────────────────────────────────────────────────────
 // CONFIGURACIÓN Y VARIABLES DE ENTORNO 🌐
@@ -39,11 +39,12 @@ const HOST = process.env.HOST || "localhost";
 const REQUIRED_VARS = ["DB_HOST", "DB_PORT", "DB_USER", "DB_NAME"];
 const missing = REQUIRED_VARS.filter(key => !process.env[key]);
 if (missing.length) {
-  console.error(`❌ Variables faltantes: ${missing.join(", ")}`);
-  process.exit(1);
+  console.error(`[${new Date().toISOString()}] ❌ Variables faltantes: ${missing.join(", ")}`);
+  process.exit(1); // Terminar el proceso si faltan variables críticas
 }
+
 if (!process.env.DB_PASSWORD) {
-  console.warn(`⚠️ DB_PASSWORD no definida. Usando cadena vacía.`);
+  console.warn(`[${new Date().toISOString()}] ⚠️ DB_PASSWORD no definida. Usando cadena vacía.`);
   process.env.DB_PASSWORD = "";
 }
 
@@ -51,14 +52,13 @@ if (!process.env.DB_PASSWORD) {
 // CONTROL DE DEPENDENCIAS 🔧
 // ─────────────────────────────────────────────────────────────
 const pkg = require(path.resolve(__dirname, "..", "package.json"));
-updateNotifier({ pkg }).notify();
 
 if (process.env.AUTO_AUDIT === "true" && IS_DEV) {
   try {
-    console.log("🔄 Ejecutando auditoría de seguridad...");
+    console.log(`[${new Date().toISOString()}] 🔄 Ejecutando auditoría de seguridad...`);
     execSync("npm audit fix", { stdio: "inherit" });
   } catch (error) {
-    console.error("❌ Error al ejecutar 'npm audit fix':", error);
+    console.error(`[${new Date().toISOString()}] ❌ Error al ejecutar 'npm audit fix':`, error);
   }
 }
 
@@ -76,24 +76,24 @@ app.use(helmet());
 if (!IS_DEV) {
   app.use(
     helmet.hsts({
-      maxAge: 31536000,
+      maxAge: 31536000,  // 1 año
       includeSubDomains: true,
       preload: true
     })
   );
 }
-app.disable("x-powered-by");
+app.disable("x-powered-by"); // Desactiva la cabecera X-Powered-By
 
-// Rate Limiting
+// Rate Limiting (limitar el número de peticiones para prevenir ataques DDoS)
 app.use(
   rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
+    windowMs: 15 * 60 * 1000,  // 15 minutos
+    max: 100,  // Máximo de 100 peticiones por ventana
     message: "Demasiadas solicitudes. Intente más tarde."
   })
 );
 
-// Prevención de contaminación por parámetros
+// Prevención de contaminación por parámetros (HPP - HTTP Parameter Pollution)
 app.use(hpp());
 
 // Configuración CORS
@@ -127,6 +127,7 @@ app.use("/estadisticas", require("./routes/estadisticas.routes"));
 
 // Página 404 personalizada
 app.use((req, res) => {
+  console.error(`[${new Date().toISOString()}] 404 - Página no encontrada: ${req.originalUrl}`);
   res.status(404).sendFile(path.join(PUBLIC_DIR, "404.html"));
 });
 
@@ -134,10 +135,10 @@ app.use((req, res) => {
 // MANEJO GLOBAL DE ERRORES ⛑️
 // ─────────────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
-  console.error("❌ Error inesperado:", err);
+  console.error(`[${new Date().toISOString()}] ❌ Error inesperado:`, err);
   const response = {
-    mensaje: "Ha ocurrido un error inesperado.",
-    ...(IS_DEV && { detalles: err.message || err.toString() })
+    mensaje: "Ha ocurrido un error inesperado. Por favor intente más tarde.",
+    ...(IS_DEV && { detalles: err.message || err.toString() }) // Solo muestra detalles del error en desarrollo
   };
   res.status(500).json(response);
 });
@@ -155,15 +156,18 @@ const GAUGE_MESSAGES = {
 
 async function verificarConexionDB() {
   const origen = `${process.env.DB_HOST}:${process.env.DB_PORT}`;
+  const startTime = Date.now();
   gauge.show(GAUGE_MESSAGES.verifyingDB, 0);
   try {
-    await pool.query("SELECT 1");
+    await pool.query("SELECT 1");  // Verifica la conexión a la base de datos
+    const endTime = Date.now();
+    const elapsed = ((endTime - startTime) / 1000).toFixed(2);
     gauge.show(GAUGE_MESSAGES.dbSuccess, 100);
-    console.log(`[✔] Conectado a MySQL en ${origen}`);
+    console.log(`[✔] Conectado a MySQL en ${origen} - Tiempo de conexión: ${elapsed} segundos`);
   } catch (err) {
     gauge.pulse(GAUGE_MESSAGES.dbError);
-    console.error(`[✘] Falla al conectar a la base de datos:\n`, err);
-    process.exit(1);
+    console.error(`[${new Date().toISOString()}] [✘] Falla al conectar a la base de datos: ${origen}\n`, err);
+    process.exit(1);  // Termina el proceso si no puede conectar a la base de datos
   }
 }
 
@@ -185,12 +189,12 @@ function logStartup() {
 }
 
 async function iniciarServidor() {
-  console.log("🟡 Iniciando backend TianguiStore...");
-  await verificarConexionDB();
+  console.log(`[${new Date().toISOString()}] 🟡 Iniciando backend TianguiStore...`);
+  await verificarConexionDB();  // Verificar la conexión a la base de datos antes de iniciar el servidor
   gauge.show(GAUGE_MESSAGES.startingServer, 0);
   app.listen(PORT, () => {
     gauge.show(GAUGE_MESSAGES.serverActive, 100);
-    logStartup();
+    logStartup();  // Mostrar detalles del servidor cuando esté activo
   });
 }
 
