@@ -1,4 +1,9 @@
 // 📁 admin/index.js
+// Panel de Administración | TianguiStore
+
+// ─────────────────────────────
+// 📦 Importaciones por sección
+// ─────────────────────────────
 import { obtenerUsuarioAutenticado } from "./auth.js";
 import { mostrarDashboard } from "./dashboard.js";
 import { mostrarUsuarios } from "./usuarios.js";
@@ -6,7 +11,9 @@ import { mostrarProductos } from "./productos.js";
 import { mostrarPedidos } from "./pedidos.js";
 import { mostrarConfiguracion } from "./configuracion.js";
 
-// 📌 Definición de secciones y permisos
+// ─────────────────────────────
+// 📌 Configuración de secciones
+// ─────────────────────────────
 const secciones = {
   dashboard: { mostrar: mostrarDashboard, permiso: true },
   usuarios: { mostrar: mostrarUsuarios, permisoKey: "usuarios" },
@@ -17,27 +24,9 @@ const secciones = {
 
 let seccionActual = "";
 
-// 🔐 Validar sesión al cargar
-document.addEventListener("DOMContentLoaded", () => {
-  const usuario = obtenerUsuarioAutenticado();
-
-  if (!usuario) {
-    alert("⚠️ Acceso no autorizado o sesión expirada.");
-    window.location.href = "/login.html";
-    return;
-  }
-
-  // Mostrar nombre en navbar
-  const nombre = usuario.nombre || "Administrador";
-  const spanNombre = document.getElementById("usuario-info");
-  if (spanNombre) spanNombre.textContent = nombre;
-
-  // Determinar sección inicial
-  const hashInicial = location.hash.replace("#", "") || "dashboard";
-  mostrarSeccion(hashInicial);
-});
-
+// ─────────────────────────────
 // 🚪 Cerrar sesión
+// ─────────────────────────────
 export function cerrarSesion() {
   localStorage.removeItem("usuario");
   localStorage.removeItem("token");
@@ -45,7 +34,9 @@ export function cerrarSesion() {
   window.location.href = "/login.html";
 }
 
-// 🔄 Mostrar sección con control de permisos
+// ─────────────────────────────
+// 🔄 Mostrar sección con permisos
+// ─────────────────────────────
 export async function mostrarSeccion(nombreSeccion) {
   if (nombreSeccion === seccionActual) return;
   seccionActual = nombreSeccion;
@@ -54,14 +45,14 @@ export async function mostrarSeccion(nombreSeccion) {
   const contenedor = document.getElementById("seccion-principal");
   const usuario = obtenerUsuarioAutenticado();
   const permisos = usuario?.permisos || {};
-
   const seccion = secciones[nombreSeccion];
+
   if (!contenedor || !seccion) {
     console.warn(`❌ Sección "${nombreSeccion}" inválida.`);
     return;
   }
 
-  // 🔁 Spinner de carga
+  // Spinner de carga
   contenedor.innerHTML = `
     <div class="center-align" style="margin-top: 4rem;">
       <div class="preloader-wrapper active">
@@ -75,7 +66,7 @@ export async function mostrarSeccion(nombreSeccion) {
     </div>
   `;
 
-  // 🔐 Verificación de permiso
+  // Verificación de permisos
   const tienePermiso = seccion.permiso === true || permisos[seccion.permisoKey]?.leer;
 
   if (!tienePermiso) {
@@ -102,18 +93,53 @@ export async function mostrarSeccion(nombreSeccion) {
   }
 }
 
-// 🧭 Resaltar menú activo
+// ─────────────────────────────
+// 🧭 Resaltar sección activa
+// ─────────────────────────────
 function resaltarMenuActivo(nombre) {
   document.querySelectorAll(".sidenav a").forEach(el =>
     el.classList.remove("active", "amber-text")
   );
-
   const activo = document.querySelector(`.sidenav a[data-seccion="${nombre}"]`);
   if (activo) activo.classList.add("active", "amber-text");
 }
 
+// ─────────────────────────────
 // 🧩 Navegación por hash
+// ─────────────────────────────
 window.addEventListener("hashchange", () => {
   const nueva = location.hash.replace("#", "");
   if (secciones[nueva]) mostrarSeccion(nueva);
+});
+
+// ─────────────────────────────
+// 🚀 Inicialización al cargar
+// ─────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  const usuario = obtenerUsuarioAutenticado();
+  if (!usuario) {
+    alert("⚠️ Acceso no autorizado o sesión expirada.");
+    window.location.href = "/login.html";
+    return;
+  }
+
+  // Mostrar nombre en navbar
+  const nombre = usuario.nombre || "Administrador";
+  const spanNombre = document.getElementById("usuario-info");
+  if (spanNombre) spanNombre.textContent = nombre;
+
+  // Inicialización de tooltips y dropdowns
+  const tooltipElems = document.querySelectorAll('.tooltipped');
+  M.Tooltip.init(tooltipElems);
+
+  const dropdownElems = document.querySelectorAll('.dropdown-trigger');
+  M.Dropdown.init(dropdownElems, {
+    constrainWidth: false,
+    alignment: 'right',
+    coverTrigger: false
+  });
+
+  // Cargar sección por hash o dashboard por defecto
+  const hashInicial = location.hash.replace("#", "") || "dashboard";
+  mostrarSeccion(hashInicial);
 });

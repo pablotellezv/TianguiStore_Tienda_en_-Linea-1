@@ -1,32 +1,30 @@
 <!-- 📁 navbar.html - Navegación principal TianguiStore -->
 
-<!-- NAVBAR DESKTOP -->
+<!-- 🌐 NAVBAR DESKTOP -->
 <nav class="nav-extended grey darken-4 z-depth-2">
   <div class="nav-wrapper container">
-
-    <!-- LOGO + TEXTO -->
+    <!-- 🔷 LOGO + TEXTO -->
     <a href="index.html" class="brand-logo" style="display: flex; align-items: center;">
       <img src="./imagenes/logo.jpeg" alt="Logo TianguiStore" class="circle" style="width: 42px; height: 42px; margin-right: 10px;" />
       <span class="hide-on-small-only">TianguiStore</span>
     </a>
 
-    <!-- Menú hamburguesa (MÓVIL) -->
+    <!-- 🍔 Botón hamburguesa para móvil -->
     <a href="#" data-target="sidenav-mobile" class="sidenav-trigger right"><i class="fas fa-bars"></i></a>
 
-    <!-- MENÚ DESKTOP -->
+    <!-- 📁 Menú derecho (desktop) -->
     <ul class="right hide-on-med-and-down">
-
-      <!-- Públicos -->
+      <!-- Menús públicos -->
       <li><a href="index.html"><i class="fas fa-home left"></i>Inicio</a></li>
+      <li><a href="productos.html"><i class="fas fa-box-open left"></i>Productos</a></li>
+      <li><a href="categorias.html"><i class="fas fa-tags left"></i>Categorías</a></li>
       <li><a href="carrito.html"><i class="fas fa-shopping-cart left"></i>Carrito (<span id="contador-carrito">0</span>)</a></li>
 
-      <!-- Privados -->
-      <li id="nav-productos" style="display: none;"><a href="#"><i class="fas fa-box-open left"></i>Productos</a></li>
-      <li id="nav-categorias" style="display: none;"><a href="#"><i class="fas fa-tags left"></i>Categorías</a></li>
+      <!-- Menús condicionales -->
+      <li id="nav-pedidos" style="display: none;"><a href="misPedidos.html"><i class="fas fa-receipt left"></i>Mis pedidos</a></li>
       <li id="nav-usuarios" style="display: none;"><a href="#"><i class="fas fa-users-cog left"></i>Usuarios</a></li>
-      <li id="nav-pedidos" style="display: none;"><a href="#"><i class="fas fa-receipt left"></i>Pedidos</a></li>
 
-      <!-- Cuenta (Dropdown activador) -->
+      <!-- Cuenta Dropdown -->
       <li>
         <a class="dropdown-trigger" href="#!" data-target="cuentaDropdown">
           <i class="fas fa-user-circle left"></i>
@@ -45,42 +43,41 @@
   </div>
 </nav>
 
-<!-- DROPDOWN DE CUENTA (ESCRITORIO) -->
+<!-- 📥 Dropdown de cuenta (desktop) -->
 <ul id="cuentaDropdown" class="dropdown-content grey darken-4 z-depth-2">
-  <li id="menu-registro-desktop"><a href="registro.html" class="white-text"><i class="fas fa-user-plus left"></i> Registrarse</a></li>
-  <li id="menu-login-desktop"><a href="login.html" class="white-text"><i class="fas fa-sign-in-alt left"></i> Iniciar sesión</a></li>
-  <li id="menu-logout-desktop" style="display: none;"><a href="#" class="white-text"><i class="fas fa-sign-out-alt left"></i> Cerrar sesión</a></li>
+  <li id="menu-perfil-desktop" style="display: none;">
+    <a href="cuenta.html" class="white-text"><i class="fas fa-user-edit left"></i> Editar perfil</a>
+  </li>
+  <li id="menu-registro-desktop">
+    <a href="registro.html" class="white-text"><i class="fas fa-user-plus left"></i> Registrarse</a>
+  </li>
+  <li id="menu-login-desktop">
+    <a href="login.html" class="white-text"><i class="fas fa-sign-in-alt left"></i> Iniciar sesión</a>
+  </li>
+  <li id="menu-logout-desktop" style="display: none;">
+    <a href="#" class="white-text"><i class="fas fa-sign-out-alt left"></i> Cerrar sesión</a>
+  </li>
 </ul>
 
-<!-- NAVBAR MÓVIL (SIDENAV) -->
+<!-- 📱 NAVBAR MÓVIL (SIDENAV) -->
 <ul id="sidenav-mobile" class="sidenav grey darken-4">
-  <!-- Públicos -->
+  <!-- Menús públicos -->
   <li><a href="index.html" class="white-text"><i class="fas fa-home left"></i>Inicio</a></li>
+  <li><a href="productos.html" class="white-text"><i class="fas fa-box-open left"></i>Productos</a></li>
+  <li><a href="categorias.html" class="white-text"><i class="fas fa-tags left"></i>Categorías</a></li>
   <li><a href="carrito.html" class="white-text"><i class="fas fa-shopping-cart left"></i>Carrito (<span id="contador-carrito">0</span>)</a></li>
 
-  <!-- Privados -->
-  <li id="nav-productos-mobile" style="display: none;"><a href="#" class="white-text"><i class="fas fa-box-open left"></i>Productos</a></li>
-  <li id="nav-categorias-mobile" style="display: none;"><a href="#" class="white-text"><i class="fas fa-tags left"></i>Categorías</a></li>
+  <!-- Condicionales -->
+  <li id="nav-pedidos-mobile" style="display: none;"><a href="misPedidos.html" class="white-text"><i class="fas fa-receipt left"></i>Mis pedidos</a></li>
   <li id="nav-usuarios-mobile" style="display: none;"><a href="#" class="white-text"><i class="fas fa-users-cog left"></i>Usuarios</a></li>
-  <li id="nav-pedidos-mobile" style="display: none;"><a href="#" class="white-text"><i class="fas fa-receipt left"></i>Pedidos</a></li>
 
   <li class="divider"></li>
 
   <!-- Cuenta -->
+  <li id="menu-perfil-mobile" style="display: none;">
+    <a href="cuenta.html" class="white-text"><i class="fas fa-user-edit left"></i> Editar perfil</a>
+  </li>
   <li><a href="registro.html" id="menu-registro-mobile" class="white-text"><i class="fas fa-user-plus left"></i> Registrarse</a></li>
   <li><a href="login.html" id="menu-login-mobile" class="white-text"><i class="fas fa-sign-in-alt left"></i> Iniciar sesión</a></li>
   <li><a href="#" id="menu-logout-mobile" class="white-text" style="display: none;"><i class="fas fa-sign-out-alt left"></i> Cerrar sesión</a></li>
 </ul>
-
-<!-- 🔧 Inicialización (colocar en tu HTML principal si no está) -->
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    M.Sidenav.init(document.querySelectorAll('.sidenav'));
-    M.Dropdown.init(document.querySelectorAll('.dropdown-trigger'), {
-      constrainWidth: false,
-      coverTrigger: false,
-      alignment: 'right'
-    });
-    M.Tooltip.init(document.querySelectorAll('.tooltipped'));
-  });
-</script>

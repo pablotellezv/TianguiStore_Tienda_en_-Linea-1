@@ -1,5 +1,5 @@
 /**
- * 🔐 login.js — Maneja inicio de sesión con validaciones y control de sesión
+ * 🔐 login.js — Maneja inicio de sesión, validaciones y control de sesión
  * Autor: I.S.C. Erick Renato Vega Ceron — Adaptado a MaterializeCSS
  */
 
@@ -11,25 +11,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const mensajeError = document.getElementById("mensajeError");
   const mensajeExito = document.getElementById("mensajeExito");
 
-  // Mostrar/ocultar contraseña
+  // 🔒 Mostrar/ocultar contraseña
   const togglePasswordBtn = document.getElementById("togglePassword");
   if (togglePasswordBtn) {
     togglePasswordBtn.addEventListener("click", () => {
       const input = passwordInput;
       const icon = togglePasswordBtn.querySelector("i");
-      if (input.type === "password") {
-        input.type = "text";
-        icon.classList.remove("fa-eye-slash");
-        icon.classList.add("fa-eye");
-      } else {
-        input.type = "password";
-        icon.classList.remove("fa-eye");
-        icon.classList.add("fa-eye-slash");
-      }
+      const visible = input.type === "text";
+      input.type = visible ? "password" : "text";
+      icon.classList.toggle("fa-eye", !visible);
+      icon.classList.toggle("fa-eye-slash", visible);
     });
   }
 
-  // Manejo del envío del formulario
+  // 📨 Envío del formulario
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     ocultarMensajes();
@@ -56,17 +51,20 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Guardar sesión
+      // ✅ Guardar sesión
       localStorage.setItem("token", data.token);
       localStorage.setItem("usuario", JSON.stringify(data.usuario));
 
       mostrarExito("Inicio de sesión exitoso ✅");
 
+      // Redirección segura según permisos
       setTimeout(() => {
-        const rol = data.usuario.rol;
-        window.location.href = (rol === "admin" || rol === "vendedor")
-          ? "adminPanel.html"
-          : "index.html";
+        const usuario = data.usuario;
+        if (esAdministrador(usuario)) {
+          window.location.href = "adminPanel.html";
+        } else {
+          window.location.href = "index.html";
+        }
       }, 1500);
     } catch (error) {
       console.error("❌ Error en login:", error);
@@ -74,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ✅ Validación básica con expresiones regulares
+  // ✅ Validación básica de campos
   function validarFormulario(correo, contrasena) {
     const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const regexPassword = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
@@ -95,25 +93,30 @@ document.addEventListener("DOMContentLoaded", () => {
     return valido;
   }
 
-  // Mensajes
+  // ✅ Evaluar si tiene permisos administrativos reales
+  function esAdministrador(usuario) {
+    const permisos = usuario?.permisos || {};
+    return (
+      permisos.usuarios?.leer ||
+      permisos.productos?.leer ||
+      permisos.configuracion?.leer ||
+      permisos.reportes?.exportar
+    );
+  }
+
+  // 📣 Mensajes UI
   function mostrarError(msg) {
     mensajeError.textContent = msg;
     mensajeError.style.display = "block";
     mensajeExito.style.display = "none";
-
-    setTimeout(() => {
-      mensajeError.style.display = "none";
-    }, 4000);
+    setTimeout(() => (mensajeError.style.display = "none"), 4000);
   }
 
   function mostrarExito(msg) {
     mensajeExito.textContent = msg;
     mensajeExito.style.display = "block";
     mensajeError.style.display = "none";
-
-    setTimeout(() => {
-      mensajeExito.style.display = "none";
-    }, 3000);
+    setTimeout(() => (mensajeExito.style.display = "none"), 3000);
   }
 
   function ocultarMensajes() {
