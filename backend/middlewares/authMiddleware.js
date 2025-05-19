@@ -53,7 +53,10 @@ function verificarAutenticacion(req, res, next) {
  */
 function verificarPermiso(recurso, accion) {
   return (req, res, next) => {
-    const permisos = req.usuario?.permisos || {};
+    const permisos = (typeof req.usuario?.permisos === "object" && !Array.isArray(req.usuario.permisos))
+  ? req.usuario.permisos
+  : {};
+
 
     if (!permisos[recurso] || permisos[recurso][accion] !== true) {
       return res.status(403).json({

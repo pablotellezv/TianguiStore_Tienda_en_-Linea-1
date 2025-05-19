@@ -11,6 +11,7 @@
  *
  * 🔐 Dependencias:
  *   - 📊 models/usuarios.model.js → funciones de consulta y escritura en DB
+ *   - 📊 models/rol.model.js → obtiene permisos desde roles
  *   - 🔧 utils/jwt.js → utilidades para generación y validación de JWT
  *   - 🛡️ bcrypt, validator → hashing y validación de datos
  */
@@ -20,6 +21,7 @@ const bcrypt = require("bcryptjs");
 const validator = require("validator");
 
 const usuarioModel = require("../models/usuarios.model");
+const rolModel = require("../models/rol.model");
 const {
   generarAccessToken,
   generarRefreshToken,
@@ -111,11 +113,12 @@ async function verificarUsuario(req, res) {
       return res.status(401).json({ message: "Credenciales inválidas." });
     }
 
-    let permisos = [];
+    let permisos = {};
     try {
-      permisos = JSON.parse(usuario.permisos_json || "[]");
+      const permisosRaw = await rolModel.obtenerPermisosPorRolId(usuario.rol_id);
+      permisos = JSON.parse(permisosRaw || "{}");
     } catch (e) {
-      console.warn("⚠️ Permisos corruptos para usuario_id:", usuario.usuario_id);
+      console.warn("⚠️ Permisos corruptos para rol_id:", usuario.rol_id);
     }
 
     const payload = {
@@ -169,12 +172,21 @@ async function refrescarToken(req, res) {
       return res.status(401).json({ message: "Usuario no encontrado." });
     }
 
-    let permisos = [];
+    let permisos = {};
     try {
-      permisos = JSON.parse(usuario.permisos_json || "[]");
+      const permisosRaw = await rolModel.obtenerPermisosPorRolId(usuario.rol_id);
+
+      if (typeof permisosRaw === "string") {
+        permisos = JSON.parse(permisosRaw || "{}");
+      } else if (typeof permisosRaw === "object" && permisosRaw !== null) {
+        permisos = permisosRaw;
+      } else {
+        throw new Error("Tipo de permisos inesperado");
+      }
     } catch (e) {
-      console.warn("⚠️ Permisos corruptos para usuario_id:", usuario.usuario_id);
+      console.warn("⚠️ Permisos corruptos para rol_id:", usuario.rol_id, e.message);
     }
+
 
     const payload = {
       usuario_id: usuario.usuario_id,

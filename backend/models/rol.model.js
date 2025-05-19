@@ -78,10 +78,25 @@ async function eliminarRol(id) {
   `, [parseInt(id)]);
 }
 
+/**
+ * 🎯 Obtener solo los permisos (JSON) de un rol por ID.
+ * @param {number} rol_id
+ * @returns {Promise<string>} JSON string
+ */
+async function obtenerPermisosPorRolId(rol_id) {
+  const [rows] = await db.query(
+    "SELECT permisos_json FROM roles WHERE rol_id = ?",
+    [parseInt(rol_id)]
+  );
+  return rows.length > 0 ? rows[0].permisos_json : "{}";
+}
+
+
 module.exports = {
   obtenerRoles,
   obtenerRolPorId,
   crearRol,
   actualizarRol,
-  eliminarRol
+  eliminarRol,
+  obtenerPermisosPorRolId
 };
