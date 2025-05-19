@@ -3322,7 +3322,7 @@ VALUES
  JSON_OBJECT(
    'usuarios', JSON_OBJECT('leer', true, 'crear', true, 'modificar', true),
    'productos', JSON_OBJECT('leer', true, 'crear', true, 'modificar', true),
-   'pedidos', JSON_OBJECT('leer', true, 'modificar', true),
+   'pedidos', JSON_OBJECT('leer', true, 'crear', true, 'modificar', true),
    'categorias', JSON_OBJECT('leer', true, 'crear', true),
    'config', JSON_OBJECT('modificar', true),
    'cupones', JSON_OBJECT('crear', true, 'modificar', true),
@@ -3334,6 +3334,7 @@ VALUES
 ('cliente', 'Comprador registrado con acceso al catálogo, historial y fidelidad.',
  JSON_OBJECT(
    'productos', JSON_OBJECT('leer', true),
+   'pedidos', JSON_OBJECT('crear', true),
    'historial', JSON_OBJECT('ver', true),
    'puntos', JSON_OBJECT('ver', true),
    'cupones', JSON_OBJECT('usar', true)
@@ -3343,7 +3344,7 @@ VALUES
 ('vendedor', 'Vendedor con catálogo propio y acceso a sus pedidos.',
  JSON_OBJECT(
    'productos', JSON_OBJECT('leer', true, 'crear', true, 'modificar', true),
-   'pedidos', JSON_OBJECT('leer', true, 'modificar', true)
+   'pedidos', JSON_OBJECT('leer', true, 'crear', true, 'modificar', true)
 )),
 
 -- 🛠️ SOPORTE
@@ -3404,7 +3405,8 @@ VALUES
 ('influencer', 'Promueve productos y recibe beneficios por referidos.',
  JSON_OBJECT(
    'productos', JSON_OBJECT('leer', true),
-   'referidos', JSON_OBJECT('crear', true, 'leer', true)
+   'referidos', JSON_OBJECT('crear', true, 'leer', true),
+   'pedidos', JSON_OBJECT('crear', true)
 )),
 
 -- 🔗 AFILIADO

@@ -17,9 +17,9 @@
 const path = require("path"); // Utilizado para gestionar rutas de archivos
 const dotenv = require("dotenv"); // Cargar variables de entorno desde un archivo .env
 const express = require("express"); // Framework para construir el servidor web
-const cors = require("cors"); // Habilitar CORS
+//const cors = require("cors"); // Habilitar CORS
 const helmet = require("helmet"); // Seguridad HTTP
-const rateLimit = require("express-rate-limit"); // Limitar solicitudes
+//const rateLimit = require("express-rate-limit"); // Limitar solicitudes
 const hpp = require("hpp"); // Prevención de contaminación de parámetros
 const ProgressBar = require("progress"); // Barra de progreso
 const chalk = require("chalk"); // Para colores y formato en la terminal
@@ -97,13 +97,13 @@ if (!IS_DEV) {
 // ─────────────────────────────────────────────────────────────
 // CONFIGURACIÓN DE RATE LIMITING PARA PROTEGER LA API 🛡️
 // ─────────────────────────────────────────────────────────────
-app.use(
-  rateLimit({
-    windowMs: 15 * 60 * 1000,  // 15 minutos
-    max: 100,  // Limitar a 100 peticiones por ventana
-    message: `⚡ Demasiadas solicitudes. Intente más tarde.`
-  })
-);
+//app.use(
+//  rateLimit({
+//   windowMs: 15 * 60 * 1000,  // 15 minutos
+//  max: 100,  // Limitar a 100 peticiones por ventana
+//   message: `⚡ Demasiadas solicitudes. Intente más tarde.`
+// })
+//);
 
 // ─────────────────────────────────────────────────────────────
 // CONFIGURACIÓN DE HPP (HTTP PARAMETER POLLUTION) 🚫
@@ -113,7 +113,7 @@ app.use(hpp()); // Previene la contaminación de parámetros HTTP
 // ─────────────────────────────────────────────────────────────
 // CONFIGURACIÓN DE CORS PARA PERMITIR PETICIONES CRUZADAS 🌐
 // ─────────────────────────────────────────────────────────────
-app.use(cors({ origin: IS_DEV ? "*" : (process.env.CORS_ORIGIN || "https://tutiendaonline.com") }));
+//app.use(cors({ origin: IS_DEV ? "*" : (process.env.CORS_ORIGIN || "https://tutiendaonline.com") }));
 
 // ─────────────────────────────────────────────────────────────
 // LEER JSON EN LAS PETICIONES 📄
