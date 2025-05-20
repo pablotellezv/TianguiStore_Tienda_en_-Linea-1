@@ -149,7 +149,7 @@ app.use("/estadisticas", require("./routes/estadisticas.routes"));
 
 // Página 404 personalizada
 app.use((req, res) => {
-  console.error(chalk.red(`❌ [${getCurrentDateTime()}] Página no encontrada: ${req.originalUrl}`));
+  //console.error(chalk.red(`❌ [${getCurrentDateTime()}] Página no encontrada: ${req.originalUrl}`));
   res.status(404).sendFile(path.join(PUBLIC_DIR, "404.html"));
 });
 
