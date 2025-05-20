@@ -1905,7 +1905,6 @@ DO
       ru.misiones_completadas = resumen.misiones,
       ru.fecha_actualizacion = CURRENT_TIMESTAMP;
 
-
 DROP PROCEDURE IF EXISTS sp_crear_pedido_completo;
 DELIMITER //
 
@@ -1915,24 +1914,22 @@ CREATE PROCEDURE sp_crear_pedido_completo(
   IN p_metodo_pago ENUM('efectivo','tarjeta','transferencia','codi','paypal'),
   IN p_cupon VARCHAR(30),
   IN p_direccion_envio TEXT,
-  IN p_notas TEXT
+  IN p_notas TEXT,
+  IN p_productos_json JSON
 )
 BEGIN
   DECLARE v_usuario_existe INT DEFAULT 0;
   DECLARE v_pedido_id INT;
+  DECLARE v_index INT DEFAULT 0;
+  DECLARE v_total_items INT;
   DECLARE v_producto_id INT;
   DECLARE v_cantidad INT;
   DECLARE v_precio DECIMAL(10,2);
   DECLARE v_stock INT;
   DECLARE v_subtotal DECIMAL(10,2);
-  DECLARE fin_cursor INT DEFAULT FALSE;
   DECLARE msg_error TEXT;
 
-  DECLARE cur CURSOR FOR
-    SELECT producto_id, cantidad FROM carrito WHERE usuario_id = p_usuario_id;
-
-  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin_cursor = TRUE;
-
+  -- Handler de errores
   DECLARE EXIT HANDLER FOR SQLEXCEPTION
   BEGIN
     ROLLBACK;
@@ -1940,7 +1937,7 @@ BEGIN
       SET MESSAGE_TEXT = 'Error al registrar el pedido. Transacción revertida.';
   END;
 
-  -- Validaciones iniciales
+  -- Validaciones
   SELECT COUNT(*) INTO v_usuario_existe
   FROM usuarios
   WHERE usuario_id = p_usuario_id AND activo = 1 AND borrado_logico = 0;
@@ -1953,8 +1950,10 @@ BEGIN
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El total del pedido debe ser mayor a cero.';
   END IF;
 
-  IF (SELECT COUNT(*) FROM carrito WHERE usuario_id = p_usuario_id) = 0 THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El carrito está vacío.';
+  SET v_total_items = JSON_LENGTH(p_productos_json);
+
+  IF v_total_items IS NULL OR v_total_items = 0 THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se han proporcionado productos en el pedido.';
   END IF;
 
   -- Iniciar transacción
@@ -1970,19 +1969,17 @@ BEGIN
 
   SET v_pedido_id = LAST_INSERT_ID();
 
-  -- Procesar carrito
-  OPEN cur;
-  bucle_carrito: LOOP
-    FETCH cur INTO v_producto_id, v_cantidad;
-    IF fin_cursor THEN
-      LEAVE bucle_carrito;
-    END IF;
+  -- Iterar sobre productos en el JSON
+  WHILE v_index < v_total_items DO
+    SET v_producto_id = JSON_UNQUOTE(JSON_EXTRACT(p_productos_json, CONCAT('$[', v_index, '].producto_id')));
+    SET v_cantidad    = JSON_UNQUOTE(JSON_EXTRACT(p_productos_json, CONCAT('$[', v_index, '].cantidad')));
+    SET v_precio      = JSON_UNQUOTE(JSON_EXTRACT(p_productos_json, CONCAT('$[', v_index, '].precio_unitario')));
 
-    SELECT precio, stock INTO v_precio, v_stock
+    SELECT stock INTO v_stock
     FROM productos
     WHERE producto_id = v_producto_id;
 
-    IF v_precio IS NULL OR v_stock IS NULL THEN
+    IF v_stock IS NULL THEN
       ROLLBACK;
       SET msg_error = CONCAT('Producto ID ', v_producto_id, ' no existe.');
       SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg_error;
@@ -2005,11 +2002,11 @@ BEGIN
     UPDATE productos
     SET stock = stock - v_cantidad
     WHERE producto_id = v_producto_id;
-  END LOOP;
-  CLOSE cur;
 
-  DELETE FROM carrito WHERE usuario_id = p_usuario_id;
+    SET v_index = v_index + 1;
+  END WHILE;
 
+  -- Commit final
   COMMIT;
 
   SELECT v_pedido_id AS pedido_id;
