@@ -1,5 +1,4 @@
-<!-- 📁 index.html - Página de inicio de TianguiStore (MaterializeCSS) -->
-
+<!-- 📁 index.html - Página de inicio de TianguiStore -->
 <!DOCTYPE html>
 <html lang="es-MX">
 <head>
@@ -9,10 +8,8 @@
 
   <!-- MaterializeCSS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet" />
-
   <!-- FontAwesome -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
-
   <!-- Estilos personalizados -->
   <link rel="stylesheet" href="estilo/main.css" />
 </head>
@@ -22,11 +19,11 @@
   <!-- NAVBAR -->
   <div id="navbar-container"></div>
 
-  <!-- CONTENIDO -->
+  <!-- CONTENIDO PRINCIPAL -->
   <main class="container">
     <!-- ENCABEZADO -->
     <section class="section center-align">
-      <div class="z-depth-2 card-panel grey darken-3 hoverable" style="border-radius: 12px;">
+      <div class="card-panel z-depth-3 grey darken-3 hoverable" style="border-radius: 12px;">
         <h1 class="white-text" style="font-size: 3rem;">
           <i class="fas fa-store amber-text text-accent-3"></i>
           <strong>TianguiStore</strong>
@@ -49,8 +46,9 @@
         </div>
       </div>
 
-      <div id="productos-container" class="row">
-        <!-- Tarjetas dinámicas -->
+      <!-- CONTENEDOR DE TARJETAS -->
+      <div id="productos-container">
+        <!-- Las tarjetas se insertan dinámicamente con JS -->
       </div>
     </section>
   </main>
@@ -61,7 +59,7 @@
   <!-- FOOTER -->
   <div id="footer-container"></div>
 
-  <!-- SCRIPTS -->
+  <!-- SCRIPTS DEL SISTEMA -->
   <script src="scripts/loadComponent.js" defer></script>
   <script src="scripts/productos.js" defer></script>
   <script src="scripts/carrito.js" defer></script>

@@ -1906,10 +1906,6 @@ DO
       ru.fecha_actualizacion = CURRENT_TIMESTAMP;
 
 
--- ================================================================
--- 🧮 PROCEDIMIENTOS ALMACENADOS (STORED PROCEDURES)
--- ================================================================
--- 🎯 Procedimiento almacenado: Crear pedido completo con validación
 DROP PROCEDURE IF EXISTS sp_crear_pedido_completo;
 DELIMITER //
 
@@ -1922,18 +1918,29 @@ CREATE PROCEDURE sp_crear_pedido_completo(
   IN p_notas TEXT
 )
 BEGIN
-  -- Declaraciones (deben ir al inicio)
   DECLARE v_usuario_existe INT DEFAULT 0;
   DECLARE v_pedido_id INT;
+  DECLARE v_producto_id INT;
+  DECLARE v_cantidad INT;
+  DECLARE v_precio DECIMAL(10,2);
+  DECLARE v_stock INT;
+  DECLARE v_subtotal DECIMAL(10,2);
+  DECLARE fin_cursor INT DEFAULT FALSE;
+  DECLARE msg_error TEXT;
 
-  -- Manejador de errores SQL
+  DECLARE cur CURSOR FOR
+    SELECT producto_id, cantidad FROM carrito WHERE usuario_id = p_usuario_id;
+
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin_cursor = TRUE;
+
   DECLARE EXIT HANDLER FOR SQLEXCEPTION
   BEGIN
     ROLLBACK;
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error al registrar el pedido. Transacción revertida.';
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Error al registrar el pedido. Transacción revertida.';
   END;
 
-  -- Validación: usuario debe existir y estar activo
+  -- Validaciones iniciales
   SELECT COUNT(*) INTO v_usuario_existe
   FROM usuarios
   WHERE usuario_id = p_usuario_id AND activo = 1 AND borrado_logico = 0;
@@ -1942,49 +1949,73 @@ BEGIN
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Usuario no válido, inactivo o eliminado.';
   END IF;
 
-  -- Validación: total debe ser positivo
-  IF p_total <= 0 THEN
+  IF p_total IS NULL OR p_total <= 0 THEN
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El total del pedido debe ser mayor a cero.';
+  END IF;
+
+  IF (SELECT COUNT(*) FROM carrito WHERE usuario_id = p_usuario_id) = 0 THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El carrito está vacío.';
   END IF;
 
   -- Iniciar transacción
   START TRANSACTION;
 
-  -- Insertar el pedido
   INSERT INTO pedidos (
-    usuario_id,
-    estado_id,
-    total,
-    metodo_pago,
-    cupon,
-    direccion_envio,
-    notas,
-    borrado_logico,
-    fecha_pedido
+    usuario_id, estado_id, total, metodo_pago,
+    cupon, direccion_envio, notas, borrado_logico, fecha_pedido
   ) VALUES (
-    p_usuario_id,
-    1, -- Estado inicial "pendiente"
-    p_total,
-    p_metodo_pago,
-    p_cupon,
-    p_direccion_envio,
-    p_notas,
-    0,
-    NOW()
+    p_usuario_id, 1, p_total, p_metodo_pago,
+    p_cupon, p_direccion_envio, p_notas, 0, NOW()
   );
 
-  -- Obtener el ID del pedido creado
   SET v_pedido_id = LAST_INSERT_ID();
 
-  -- Confirmar la transacción
+  -- Procesar carrito
+  OPEN cur;
+  bucle_carrito: LOOP
+    FETCH cur INTO v_producto_id, v_cantidad;
+    IF fin_cursor THEN
+      LEAVE bucle_carrito;
+    END IF;
+
+    SELECT precio, stock INTO v_precio, v_stock
+    FROM productos
+    WHERE producto_id = v_producto_id;
+
+    IF v_precio IS NULL OR v_stock IS NULL THEN
+      ROLLBACK;
+      SET msg_error = CONCAT('Producto ID ', v_producto_id, ' no existe.');
+      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg_error;
+    END IF;
+
+    IF v_stock < v_cantidad THEN
+      ROLLBACK;
+      SET msg_error = CONCAT('Stock insuficiente para producto ID ', v_producto_id, '. Solo hay ', v_stock, ' unidades.');
+      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg_error;
+    END IF;
+
+    SET v_subtotal = v_precio * v_cantidad;
+
+    INSERT INTO detalle_pedido (
+      pedido_id, producto_id, cantidad, precio_unitario, subtotal
+    ) VALUES (
+      v_pedido_id, v_producto_id, v_cantidad, v_precio, v_subtotal
+    );
+
+    UPDATE productos
+    SET stock = stock - v_cantidad
+    WHERE producto_id = v_producto_id;
+  END LOOP;
+  CLOSE cur;
+
+  DELETE FROM carrito WHERE usuario_id = p_usuario_id;
+
   COMMIT;
 
-  -- Devolver el ID del nuevo pedido al frontend
   SELECT v_pedido_id AS pedido_id;
 END;
 //
 DELIMITER ;
-
 
 
 

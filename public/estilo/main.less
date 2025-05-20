@@ -1,232 +1,236 @@
 /* =======================================================
-   Archivo: main.less
-   Descripción:
-   Estilos principales de TianguiStore con tema oscuro elegante,
-   glassmorphism, acentos en ámbar, animaciones modernas y
-   estructura modular basada en Less.
+   Estilos principales de TianguiStore con tema oscuro premium
    ======================================================= */
 
-/* =======================================================
-   VARIABLES
-   ======================================================= */
-   @dark-bg: #121212;
-   @light-bg: #f4f4f4;
-   @dark-text: #e0e0e0;
-   @light-text: #333333;
-   
-   @primary-accent: #FFC107; // Ámbar
-   @secondary-accent: #FF8C00; // Naranja oscuro
-   
-   @glass-bg: rgba(28, 28, 28, 0.7);
-   @glass-blur: 10px;
-   @glass-border: rgba(255, 255, 255, 0.1);
-   
-   @border-radius: 1.2rem;
-   @transition-time: 0.3s;
-   @card-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-   
-   /* =======================================================
-      BODY Y ESTRUCTURA GENERAL
-      ======================================================= */
-   body {
-     background-color: @dark-bg;
-     color: @dark-text;
-     font-family: 'Roboto', sans-serif;
-     line-height: 1.6;
-     margin: 0;
-     padding: 0;
-     animation: fadeIn 0.6s ease-in-out;
-   }
-   
-   /* =======================================================
-      TIPOGRAFÍA
-      ======================================================= */
-   h1, h2, h3, h4, h5, h6 {
-     color: white;
-     font-weight: 600;
-     margin-bottom: 1rem;
-     letter-spacing: 0.5px;
-   }
-   
-   p, span, label {
-     color: lighten(@dark-text, 10%);
-   }
-   
-   /* =======================================================
-      NAVBAR (Estilo Cristal)
-      ======================================================= */
-   nav {
-     background-color: @glass-bg !important;
-     backdrop-filter: blur(@glass-blur);
-     -webkit-backdrop-filter: blur(@glass-blur);
-     border-bottom: 1px solid @glass-border;
-     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-     transition: background-color @transition-time ease;
-   }
-   
-   /* =======================================================
-      FOOTER (Estilo Cristal)
-      ======================================================= */
-   footer.page-footer {
-     background-color: @glass-bg !important;
-     backdrop-filter: blur(@glass-blur);
-     -webkit-backdrop-filter: blur(@glass-blur);
-     border-top: 1px solid @glass-border;
-     color: @dark-text;
-     padding: 2rem 0;
-     text-align: center;
-   }
-   
-   /* =======================================================
-      SECCIONES GENERALES
-      ======================================================= */
-   .section {
-     padding: 4rem 2rem;
-     animation: fadeUp 0.6s ease;
-   }
-   
-   /* =======================================================
-      PRODUCTOS
-      ======================================================= */
-   #productos-container {
-     display: flex;
-     flex-wrap: wrap;
-     gap: 2rem;
-     justify-content: center;
-   
-     .card {
-       background-color: @glass-bg;
-       backdrop-filter: blur(@glass-blur);
-       border-radius: @border-radius;
-       box-shadow: @card-shadow;
-       padding: 1rem;
-       width: 300px;
-       animation: scaleIn 0.4s ease;
-       transition: transform @transition-time ease, box-shadow @transition-time ease;
-   
-       &:hover {
-         transform: translateY(-10px) scale(1.03);
-         box-shadow: 0 12px 32px rgba(255, 193, 7, 0.3);
-       }
-   
-       .card-content {
-         color: @dark-text;
-         padding: 0.5rem 0;
-       }
-   
-       .card-title {
-         color: lighten(@dark-text, 10%);
-         font-weight: bold;
-       }
-   
-       .btn {
-         background-color: @primary-accent;
-         color: @light-text;
-         border-radius: @border-radius;
-         transition: background-color @transition-time ease, transform 0.2s ease;
-   
-         &:hover {
-           background-color: darken(@primary-accent, 10%);
-           transform: scale(1.05);
-         }
-       }
-     }
-   }
-   
-   /* =======================================================
-      TARJETAS DE MENÚ PRINCIPAL
-      ======================================================= */
-   .menu-tarjeta {
-     background: rgba(28, 28, 28, 0.65);
-     backdrop-filter: blur(12px);
-     -webkit-backdrop-filter: blur(12px);
-     border: 1px solid @glass-border;
-     border-radius: @border-radius;
-     box-shadow: @card-shadow;
-     display: flex;
-     flex-direction: column;
-     align-items: center;
-     justify-content: center;
-     text-align: center;
-     padding: 2.5rem 1.5rem;
-     color: @dark-text;
-     margin: 1rem 0;
-     transition: transform 0.3s ease, background 0.3s ease;
-     animation: fadeUp 0.6s ease;
-   
-     i {
-       margin-bottom: 1rem;
-       color: @primary-accent;
-       font-size: 2.8rem;
-       transition: color 0.3s ease;
-     }
-   
-     span {
-       font-size: 1.2rem;
-       font-weight: 600;
-     }
-   
-     &:hover {
-       transform: scale(1.04) translateY(-6px);
-       background: rgba(255, 193, 7, 0.08);
-   
-       i {
-         color: lighten(@primary-accent, 10%);
-       }
-     }
-   }
-   
-   /* =======================================================
-      TOASTS Y NOTIFICACIONES
-      ======================================================= */
-   #toast-container {
-     z-index: 10000;
-     bottom: 1rem;
-     right: 1rem;
-   
-     .toast {
-       background-color: @primary-accent;
-       color: black;
-       border-radius: @border-radius;
-       padding: 1rem;
-       box-shadow: @card-shadow;
-       animation: fadeInDown 0.5s ease forwards;
-     }
-   }
-   
-   /* =======================================================
-      ANIMACIONES PERSONALIZADAS
-      ======================================================= */
-   @keyframes fadeIn {
-     0% { opacity: 0; }
-     100% { opacity: 1; }
-   }
-   
-   @keyframes fadeInDown {
-     0% { opacity: 0; transform: translateY(-20px); }
-     100% { opacity: 1; transform: translateY(0); }
-   }
-   
-   @keyframes fadeUp {
-     0% { opacity: 0; transform: translateY(20px); }
-     100% { opacity: 1; transform: translateY(0); }
-   }
-   
-   @keyframes scaleIn {
-     0% { transform: scale(0.95); opacity: 0; }
-     100% { transform: scale(1); opacity: 1; }
-   }
-   
-   /* Responsive mejoras para tarjetas */
-   @media screen and (max-width: 600px) {
-     .menu-tarjeta {
-       padding: 2rem 1rem;
-       i {
-         font-size: 2.4rem;
-       }
-       span {
-         font-size: 1rem;
-       }
-     }
-   }
-   
+/* ========== VARIABLES ========= */
+@dark-bg: #0d0d0d;
+@panel-bg: #121212;
+@card-bg: #1a1a1a;
+@text-main: #e0e0e0;
+@text-muted: #b0b0b0;
+
+@primary-accent: #00BCD4;
+@secondary-accent: #FF8C00;
+
+@glass-bg: rgba(18, 18, 18, 0.85);
+@glass-blur: 16px;
+@glass-border: rgba(255, 255, 255, 0.06);
+
+@border-radius: 1rem;
+@transition-time: 0.3s;
+@card-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+
+/* ========== BASE ========= */
+body {
+  background-color: @dark-bg;
+  color: @text-main;
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+a {
+  color: lighten(@primary-accent, 10%);
+  transition: color 0.3s;
+
+  &:hover {
+    color: @primary-accent;
+  }
+}
+
+/* ========== TIPOGRAFÍA ========= */
+h1, h2, h3, h4, h5, h6 {
+  color: white;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  letter-spacing: 0.5px;
+}
+
+p, span, label {
+  color: @text-muted;
+}
+
+/* ========== NAVBAR Y FOOTER GLASS ========= */
+nav,
+footer.page-footer {
+  background-color: @glass-bg !important;
+  backdrop-filter: blur(@glass-blur);
+  -webkit-backdrop-filter: blur(@glass-blur);
+  border-bottom: 1px solid @glass-border;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+/* ========== CONTENEDOR DE PRODUCTOS EN GRID ========= */
+#productos-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2.5rem;
+  padding: 3rem 1rem;
+}
+
+/* ========== TARJETAS DE PRODUCTO ELEGANTES ========= */
+.card.producto {
+  background-color: @glass-bg;
+  backdrop-filter: blur(@glass-blur);
+  border-radius: @border-radius;
+  box-shadow: @card-shadow;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: scaleIn 0.4s ease;
+
+  &:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 16px 40px fade(@primary-accent, 25%);
+  }
+
+  .producto-imagen {
+    width: 100%;
+    max-width: 160px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    margin-bottom: 1.2rem;
+    background-color: @card-bg;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: lighten(@text-main, 10%);
+    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+
+  .card-info {
+    font-size: 0.95rem;
+    color: @text-muted;
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    i {
+      color: @primary-accent;
+    }
+  }
+
+  .btn-agregar {
+    margin-top: 1rem;
+    background-color: @primary-accent;
+    color: @dark-bg;
+    font-weight: 600;
+    border-radius: @border-radius;
+    padding: 0.7rem 1.2rem;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+
+    i {
+      margin-right: 0.5rem;
+    }
+
+    &:hover {
+      background-color: darken(@primary-accent, 10%);
+      transform: scale(1.04);
+    }
+  }
+}
+
+/* ========== BOTONES GENÉRICOS ========= */
+.btn {
+  border-radius: @border-radius;
+  font-weight: 500;
+  transition: all 0.3s ease;
+
+  &.amber {
+    background-color: @primary-accent;
+    color: @dark-bg;
+
+    &:hover {
+      background-color: darken(@primary-accent, 10%);
+    }
+  }
+
+  &.danger {
+    background-color: #e53935;
+
+    &:hover {
+      background-color: darken(#e53935, 8%);
+    }
+  }
+
+  &.secondary {
+    background-color: #2e2e2e;
+
+    &:hover {
+      background-color: lighten(#2e2e2e, 8%);
+    }
+  }
+}
+
+/* ========== SECCIONES ========= */
+.section {
+  padding: 4rem 2rem;
+  animation: fadeUp 0.6s ease;
+}
+
+/* ========== TOASTS ========= */
+#toast-container {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 10000;
+
+  .toast {
+    background-color: @primary-accent;
+    color: black;
+    border-radius: @border-radius;
+    padding: 1rem 1.5rem;
+    box-shadow: @card-shadow;
+    animation: fadeInDown 0.5s ease;
+  }
+}
+
+/* ========== ANIMACIONES ========= */
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes fadeInDown {
+  0% { opacity: 0; transform: translateY(-20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  0% { transform: scale(0.95); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ========== RESPONSIVE ========= */
+@media screen and (max-width: 600px) {
+  .card {
+    padding: 1rem;
+  }
+
+  .card-title {
+    font-size: 1.2rem;
+  }
+
+  .btn {
+    font-size: 0.95rem;
+  }
+}

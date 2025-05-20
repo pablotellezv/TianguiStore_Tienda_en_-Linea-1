@@ -1,28 +1,25 @@
 /* =======================================================
-   Archivo: main.less
-   Descripción:
-   Estilos principales de TianguiStore con tema oscuro elegante,
-   glassmorphism, acentos en ámbar, animaciones modernas y
-   estructura modular basada en Less.
+   Estilos principales de TianguiStore con tema oscuro premium
    ======================================================= */
-/* =======================================================
-   VARIABLES
-   ======================================================= */
-/* =======================================================
-      BODY Y ESTRUCTURA GENERAL
-      ======================================================= */
+/* ========== VARIABLES ========= */
+/* ========== BASE ========= */
 body {
-  background-color: #121212;
+  background-color: #0d0d0d;
   color: #e0e0e0;
   font-family: 'Roboto', sans-serif;
-  line-height: 1.6;
   margin: 0;
   padding: 0;
+  line-height: 1.6;
   animation: fadeIn 0.6s ease-in-out;
 }
-/* =======================================================
-      TIPOGRAFÍA
-      ======================================================= */
+a {
+  color: #08e3ff;
+  transition: color 0.3s;
+}
+a:hover {
+  color: #00BCD4;
+}
+/* ========== TIPOGRAFÍA ========= */
 h1,
 h2,
 h3,
@@ -37,136 +34,135 @@ h6 {
 p,
 span,
 label {
-  color: #fafafa;
+  color: #b0b0b0;
 }
-/* =======================================================
-      NAVBAR (Estilo Cristal)
-      ======================================================= */
-nav {
-  background-color: rgba(28, 28, 28, 0.7) !important;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  transition: background-color 0.3s ease;
-}
-/* =======================================================
-      FOOTER (Estilo Cristal)
-      ======================================================= */
+/* ========== NAVBAR Y FOOTER GLASS ========= */
+nav,
 footer.page-footer {
-  background-color: rgba(28, 28, 28, 0.7) !important;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  color: #e0e0e0;
-  padding: 2rem 0;
+  background-color: rgba(18, 18, 18, 0.85) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+/* ========== CONTENEDOR DE PRODUCTOS EN GRID ========= */
+#productos-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2.5rem;
+  padding: 3rem 1rem;
+}
+/* ========== TARJETAS DE PRODUCTO ELEGANTES ========= */
+.card.producto {
+  background-color: rgba(18, 18, 18, 0.85);
+  backdrop-filter: blur(16px);
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: scaleIn 0.4s ease;
+}
+.card.producto:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 16px 40px rgba(0, 188, 212, 0.25);
+}
+.card.producto .producto-imagen {
+  width: 100%;
+  max-width: 160px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  margin-bottom: 1.2rem;
+  background-color: #1a1a1a;
+}
+.card.producto .card-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #fafafa;
+  margin-bottom: 0.5rem;
   text-align: center;
 }
-/* =======================================================
-      SECCIONES GENERALES
-      ======================================================= */
+.card.producto .card-info {
+  font-size: 0.95rem;
+  color: #b0b0b0;
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.card.producto .card-info i {
+  color: #00BCD4;
+}
+.card.producto .btn-agregar {
+  margin-top: 1rem;
+  background-color: #00BCD4;
+  color: #0d0d0d;
+  font-weight: 600;
+  border-radius: 1rem;
+  padding: 0.7rem 1.2rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+.card.producto .btn-agregar i {
+  margin-right: 0.5rem;
+}
+.card.producto .btn-agregar:hover {
+  background-color: #008fa1;
+  transform: scale(1.04);
+}
+/* ========== BOTONES GENÉRICOS ========= */
+.btn {
+  border-radius: 1rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+.btn.amber {
+  background-color: #00BCD4;
+  color: #0d0d0d;
+}
+.btn.amber:hover {
+  background-color: #008fa1;
+}
+.btn.danger {
+  background-color: #e53935;
+}
+.btn.danger:hover {
+  background-color: #d6201c;
+}
+.btn.secondary {
+  background-color: #2e2e2e;
+}
+.btn.secondary:hover {
+  background-color: #424242;
+}
+/* ========== SECCIONES ========= */
 .section {
   padding: 4rem 2rem;
   animation: fadeUp 0.6s ease;
 }
-/* =======================================================
-      PRODUCTOS
-      ======================================================= */
-#productos-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2rem;
-  justify-content: center;
-}
-#productos-container .card {
-  background-color: rgba(28, 28, 28, 0.7);
-  backdrop-filter: blur(10px);
-  border-radius: 1.2rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  padding: 1rem;
-  width: 300px;
-  animation: scaleIn 0.4s ease;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-#productos-container .card:hover {
-  transform: translateY(-10px) scale(1.03);
-  box-shadow: 0 12px 32px rgba(255, 193, 7, 0.3);
-}
-#productos-container .card .card-content {
-  color: #e0e0e0;
-  padding: 0.5rem 0;
-}
-#productos-container .card .card-title {
-  color: #fafafa;
-  font-weight: bold;
-}
-#productos-container .card .btn {
-  background-color: #FFC107;
-  color: #333333;
-  border-radius: 1.2rem;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-#productos-container .card .btn:hover {
-  background-color: #d39e00;
-  transform: scale(1.05);
-}
-/* =======================================================
-      TARJETAS DE MENÚ PRINCIPAL
-      ======================================================= */
-.menu-tarjeta {
-  background: rgba(28, 28, 28, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 1.2rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 2.5rem 1.5rem;
-  color: #e0e0e0;
-  margin: 1rem 0;
-  transition: transform 0.3s ease, background 0.3s ease;
-  animation: fadeUp 0.6s ease;
-}
-.menu-tarjeta i {
-  margin-bottom: 1rem;
-  color: #FFC107;
-  font-size: 2.8rem;
-  transition: color 0.3s ease;
-}
-.menu-tarjeta span {
-  font-size: 1.2rem;
-  font-weight: 600;
-}
-.menu-tarjeta:hover {
-  transform: scale(1.04) translateY(-6px);
-  background: rgba(255, 193, 7, 0.08);
-}
-.menu-tarjeta:hover i {
-  color: #ffce3a;
-}
-/* =======================================================
-      TOASTS Y NOTIFICACIONES
-      ======================================================= */
+/* ========== TOASTS ========= */
 #toast-container {
-  z-index: 10000;
+  position: fixed;
   bottom: 1rem;
   right: 1rem;
+  z-index: 10000;
 }
 #toast-container .toast {
-  background-color: #FFC107;
+  background-color: #00BCD4;
   color: black;
-  border-radius: 1.2rem;
-  padding: 1rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  animation: fadeInDown 0.5s ease forwards;
+  border-radius: 1rem;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  animation: fadeInDown 0.5s ease;
 }
-/* =======================================================
-      ANIMACIONES PERSONALIZADAS
-      ======================================================= */
+/* ========== ANIMACIONES ========= */
 @keyframes fadeIn {
   0% {
     opacity: 0;
@@ -205,15 +201,15 @@ footer.page-footer {
     opacity: 1;
   }
 }
-/* Responsive mejoras para tarjetas */
+/* ========== RESPONSIVE ========= */
 @media screen and (max-width: 600px) {
-  .menu-tarjeta {
-    padding: 2rem 1rem;
+  .card {
+    padding: 1rem;
   }
-  .menu-tarjeta i {
-    font-size: 2.4rem;
+  .card-title {
+    font-size: 1.2rem;
   }
-  .menu-tarjeta span {
-    font-size: 1rem;
+  .btn {
+    font-size: 0.95rem;
   }
 }

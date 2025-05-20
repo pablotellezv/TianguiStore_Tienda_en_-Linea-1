@@ -1,19 +1,6 @@
 /**
  * 📁 CONTROLADOR: authController.js
  * 📦 MÓDULO: Autenticación y gestión de sesión (JWT)
- *
- * 🧩 Este controlador gestiona:
- *   - Registro de nuevos usuarios
- *   - Inicio de sesión (login) con validación de credenciales
- *   - Generación y renovación de tokens JWT (access + refresh)
- *   - Consulta de sesión activa
- *   - Cierre de sesión
- *
- * 🔐 Dependencias:
- *   - 📊 models/usuarios.model.js → funciones de consulta y escritura en DB
- *   - 📊 models/rol.model.js → obtiene permisos desde roles
- *   - 🔧 utils/jwt.js → utilidades para generación y validación de JWT
- *   - 🛡️ bcrypt, validator → hashing y validación de datos
  */
 
 require("dotenv").config();
@@ -43,7 +30,6 @@ async function registrarUsuario(req, res) {
     direccion = ""
   } = req.body;
 
-  // Validaciones básicas
   if (!correo_electronico || !contrasena || !nombre) {
     return res.status(400).json({
       message: "Faltan campos obligatorios: correo_electronico, contrasena, nombre."
@@ -116,16 +102,22 @@ async function verificarUsuario(req, res) {
     let permisos = {};
     try {
       const permisosRaw = await rolModel.obtenerPermisosPorRolId(usuario.rol_id);
-      permisos = JSON.parse(permisosRaw || "{}");
+      if (typeof permisosRaw === "string") {
+        permisos = JSON.parse(permisosRaw || "{}");
+      } else if (typeof permisosRaw === "object" && permisosRaw !== null) {
+        permisos = permisosRaw;
+      } else {
+        throw new Error("Tipo de permisos inesperado");
+      }
     } catch (e) {
-      console.warn("⚠️ Permisos corruptos para rol_id:", usuario.rol_id);
+      console.warn("⚠️ Permisos corruptos para rol_id:", usuario.rol_id, e.message);
     }
 
     const payload = {
       usuario_id: usuario.usuario_id,
       correo: usuario.correo_electronico,
       nombre: usuario.nombre,
-      rol: usuario.rol,
+      rol: usuario.rol || "cliente",
       permisos
     };
 
@@ -175,7 +167,6 @@ async function refrescarToken(req, res) {
     let permisos = {};
     try {
       const permisosRaw = await rolModel.obtenerPermisosPorRolId(usuario.rol_id);
-
       if (typeof permisosRaw === "string") {
         permisos = JSON.parse(permisosRaw || "{}");
       } else if (typeof permisosRaw === "object" && permisosRaw !== null) {
@@ -187,12 +178,11 @@ async function refrescarToken(req, res) {
       console.warn("⚠️ Permisos corruptos para rol_id:", usuario.rol_id, e.message);
     }
 
-
     const payload = {
       usuario_id: usuario.usuario_id,
       correo: usuario.correo_electronico,
       nombre: usuario.nombre,
-      rol: usuario.rol,
+      rol: usuario.rol || "cliente",
       permisos
     };
 
