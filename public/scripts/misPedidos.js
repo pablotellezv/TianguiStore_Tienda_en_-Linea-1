@@ -1,120 +1,149 @@
 /**
  * 📦 misPedidos.js
- * 
- * Descripción:
- * Este archivo maneja la visualización de los pedidos de un usuario autenticado en TianguiStore. 
- * Permite cargar y mostrar los pedidos realizados por el usuario, con la opción de cancelar pedidos 
- * si se encuentran en un estado adecuado. Además, permite ver los productos asociados a cada pedido.
- * 
- * Funciones:
- * - Cargar y mostrar los pedidos del usuario.
- * - Ver productos de cada pedido.
- * - Permitir la cancelación de pedidos en estados específicos.
- * 
- * Autor: I.S.C. Erick Renato Vega Ceron
- * Fecha de Creación: Mayo 2025
+ * Muestra los pedidos del usuario autenticado en TianguiStore.
+ * Autor: I.S.C. Erick Renato Vega Ceron — Mayo 2025
  */
 
 document.addEventListener("DOMContentLoaded", () => {
-    cargarPedidosUsuario();
+  cargarPedidosUsuario();
 });
 
+const BASE_URL = window.location.origin;
+const token = localStorage.getItem("token");
+
 /**
- * 🛒 Función principal para cargar los pedidos del usuario desde la API
- * Esta función obtiene los pedidos del usuario y los muestra en una tabla.
+ * 🛒 Cargar los pedidos del usuario autenticado
  */
 async function cargarPedidosUsuario() {
-    const tabla = document.getElementById("tabla-pedidos");
-    if (!tabla) return;
+  const tabla = document.getElementById("tabla-pedidos");
+  if (!tabla) return;
 
-    try {
-        const response = await fetch("/pedidos/mis", { credentials: "include" });
-        if (!response.ok) throw new Error("No se pudieron obtener los pedidos.");
-        
-        const pedidos = await response.json();
+  try {
+    const response = await fetch(`${BASE_URL}/api/mis-pedidos`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
 
-        // Si no hay pedidos, mostrar mensaje
-        if (pedidos.length === 0) {
-            tabla.innerHTML = `<tr><td colspan="6" class="text-center text-muted">🛒 No tienes pedidos aún.</td></tr>`;
-            return;
-        }
+    if (!response.ok) throw new Error("No se pudieron obtener los pedidos.");
 
-        // Para cada pedido, se obtiene y muestra la información relevante
-        for (const pedido of pedidos) {
-            const productosHTML = await obtenerProductosHTML(pedido.pedido_id);
-            const puedeCancelar = pedido.estado_id === 1 || pedido.estado_id === 2;
+    const pedidos = await response.json();
 
-            const filaHTML = `
-                <tr>
-                    <td>#${pedido.pedido_id}</td>
-                    <td>${new Date(pedido.fecha_pedido).toLocaleDateString()}</td>
-                    <td>${pedido.estado_nombre}</td>
-                    <td>${pedido.notas || "Sin notas"}</td>
-                    <td>
-                        <ul class="list-unstyled small">${productosHTML}</ul>
-                    </td>
-                    <td>
-                        ${puedeCancelar
-                            ? `<button class="btn btn-sm btn-danger" onclick="cancelarPedido(${pedido.pedido_id})">Cancelar</button>`
-                            : `<span class="text-muted">No cancelable</span>`
-                        }
-                    </td>
-                </tr>`;
-                
-            tabla.insertAdjacentHTML("beforeend", filaHTML);
-        }
-    } catch (error) {
-        console.error("❌ Error al cargar pedidos:", error);
-        tabla.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Error al cargar tus pedidos. Intenta más tarde.</td></tr>`;
+    if (pedidos.length === 0) {
+      tabla.innerHTML = `<tr><td colspan="6" class="center-align grey-text text-lighten-1">🛒 No tienes pedidos aún.</td></tr>`;
+      return;
     }
+
+    for (const pedido of pedidos) {
+      const puedeCancelar = [1, 2].includes(pedido.estado_id);
+      const filaHTML = `
+        <tr>
+          <td>#${pedido.pedido_id}</td>
+          <td>${new Date(pedido.fecha_pedido).toLocaleDateString()}</td>
+          <td>${pedido.estado_nombre}</td>
+          <td>$${parseFloat(pedido.total).toFixed(2)}</td>
+          <td>
+            <button class="btn btn-small amber darken-2 modal-trigger" data-pedido="${pedido.pedido_id}" data-target="modalDetalleProductos">
+              <i class="fas fa-eye"></i>
+            </button>
+          </td>
+          <td>
+            ${puedeCancelar
+              ? `<button class="btn red darken-1 btn-small" onclick="cancelarPedido(${pedido.pedido_id})">
+                  <i class="fas fa-times-circle"></i>
+                </button>`
+              : `<span class="grey-text text-lighten-1">No cancelable</span>`
+            }
+          </td>
+        </tr>`;
+      tabla.insertAdjacentHTML("beforeend", filaHTML);
+    }
+
+    inicializarModalEventos();
+  } catch (error) {
+    console.error("❌ Error al cargar pedidos:", error);
+    tabla.innerHTML = `<tr><td colspan="6" class="center-align red-text">Error al cargar tus pedidos.</td></tr>`;
+  }
 }
 
 /**
- * 🔍 Obtiene y muestra los productos asociados a un pedido.
- * Esta función se llama dentro de la función principal para mostrar la lista de productos por cada pedido.
- * 
- * @param {number} pedidoId - El ID del pedido cuyo listado de productos se quiere obtener.
- * @returns {string} - HTML con la lista de productos.
+ * 📦 Obtener productos del pedido y mostrarlos en el modal
  */
-async function obtenerProductosHTML(pedidoId) {
-    try {
-        const response = await fetch(`/pedidos/${pedidoId}/productos`, { credentials: "include" });
-        if (!response.ok) throw new Error("No se pudieron obtener los productos.");
+async function obtenerProductosDelPedido(pedidoId) {
+  const contenedor = document.getElementById("detalle-productos-contenido");
+  contenedor.innerHTML = `<p class="grey-text text-lighten-2">Cargando...</p>`;
 
-        const productos = await response.json();
-        return productos.map(p => `<li>${p.nombre} (${p.cantidad})</li>`).join("");
-    } catch (error) {
-        console.error(`❌ Error al obtener productos del pedido ${pedidoId}:`, error);
-        return `<li class="text-danger">Error al cargar productos</li>`;
+  try {
+    const response = await fetch(`${BASE_URL}/api/pedidos/${pedidoId}/productos`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) throw new Error("No se pudieron obtener los productos.");
+
+    const productos = await response.json();
+
+    if (!Array.isArray(productos) || productos.length === 0) {
+      contenedor.innerHTML = `<p class="grey-text">Este pedido no tiene productos registrados.</p>`;
+      return;
     }
+
+    contenedor.innerHTML = productos.map(p => `
+      <div class="col s12 m6">
+        <div class="card-panel grey darken-3 white-text z-depth-1">
+          <span class="fw-bold">${p.nombre}</span>
+          <p>Cantidad: <strong>${p.cantidad}</strong></p>
+          <p>Precio unitario: $${parseFloat(p.precio_unitario).toFixed(2)}</p>
+        </div>
+      </div>
+    `).join("");
+  } catch (error) {
+    console.error("❌ Error al obtener productos:", error);
+    contenedor.innerHTML = `<p class="red-text">Error al cargar productos del pedido.</p>`;
+  }
 }
 
 /**
- * 🚫 Función para cancelar un pedido, solo si se encuentra en un estado adecuado (estado_id 1 o 2).
- * Muestra un cuadro de confirmación antes de proceder con la cancelación del pedido.
- * 
- * @param {number} pedidoId - El ID del pedido que se desea cancelar.
+ * 🧩 Inicializa eventos para abrir modales de productos
+ */
+function inicializarModalEventos() {
+  const botones = document.querySelectorAll(".modal-trigger");
+  const modales = M.Modal.init(document.querySelectorAll(".modal"));
+
+  botones.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const pedidoId = btn.getAttribute("data-pedido");
+      obtenerProductosDelPedido(pedidoId);
+    });
+  });
+}
+
+/**
+ * ❌ Cancelar un pedido si su estado lo permite
  */
 async function cancelarPedido(pedidoId) {
-    const confirmar = confirm("¿Deseas cancelar este pedido?");
-    if (!confirmar) return;
+  const confirmar = confirm("¿Deseas cancelar este pedido?");
+  if (!confirmar) return;
 
-    try {
-        const response = await fetch(`/pedidos/${pedidoId}/cancelar`, {
-            method: "PUT",
-            credentials: "include"
-        });
+  try {
+    const response = await fetch(`${BASE_URL}/api/pedidos/${pedidoId}/cancelar`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
 
-        const data = await response.json();
+    const data = await response.json();
 
-        if (response.ok) {
-            alert("✅ Pedido cancelado correctamente.");
-            location.reload();
-        } else {
-            alert(`❌ No se pudo cancelar el pedido: ${data.mensaje}`);
-        }
-    } catch (error) {
-        console.error("❌ Error al cancelar pedido:", error);
-        alert("Error inesperado al cancelar el pedido.");
+    if (response.ok) {
+      M.toast({ html: "✅ Pedido cancelado.", classes: "teal darken-2" });
+      setTimeout(() => location.reload(), 1000);
+    } else {
+      M.toast({ html: `❌ ${data.mensaje}`, classes: "red darken-2" });
     }
+  } catch (error) {
+    console.error("❌ Error al cancelar pedido:", error);
+    M.toast({ html: "❌ No se pudo cancelar el pedido.", classes: "red darken-3" });
+  }
 }

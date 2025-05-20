@@ -17,8 +17,9 @@
 const path = require("path"); // Utilizado para gestionar rutas de archivos
 const dotenv = require("dotenv"); // Cargar variables de entorno desde un archivo .env
 const express = require("express"); // Framework para construir el servidor web
-const cors = require("cors"); // Habilitar CORS
+//const cors = require("cors"); // Habilitar CORS
 const helmet = require("helmet"); // Seguridad HTTP
+//const rateLimit = require("express-rate-limit"); // Limitar solicitudes
 //const rateLimit = require("express-rate-limit"); // Limitar solicitudes
 const hpp = require("hpp"); // Prevención de contaminación de parámetros
 const ProgressBar = require("progress"); // Barra de progreso
@@ -113,7 +114,7 @@ app.use(hpp()); // Previene la contaminación de parámetros HTTP
 // ─────────────────────────────────────────────────────────────
 // CONFIGURACIÓN DE CORS PARA PERMITIR PETICIONES CRUZADAS 🌐
 // ─────────────────────────────────────────────────────────────
-app.use(cors({ origin: IS_DEV ? "*" : (process.env.CORS_ORIGIN || "https://tutiendaonline.com") }));
+//app.use(cors({ origin: IS_DEV ? "*" : (process.env.CORS_ORIGIN || "https://tutiendaonline.com") }));
 
 // ─────────────────────────────────────────────────────────────
 // LEER JSON EN LAS PETICIONES 📄
@@ -149,7 +150,7 @@ app.use("/estadisticas", require("./routes/estadisticas.routes"));
 
 // Página 404 personalizada
 app.use((req, res) => {
-  console.error(chalk.red(`❌ [${getCurrentDateTime()}] Página no encontrada: ${req.originalUrl}`));
+  //console.error(chalk.red(`❌ [${getCurrentDateTime()}] Página no encontrada: ${req.originalUrl}`));
   res.status(404).sendFile(path.join(PUBLIC_DIR, "404.html"));
 });
 

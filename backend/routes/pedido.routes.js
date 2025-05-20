@@ -6,7 +6,8 @@ const {
   obtenerMisPedidos,
   crearPedido,
   cancelarPedido,
-  crearPedidoDesdeCarrito
+  crearPedidoDesdeCarrito,
+  obtenerProductosDelPedido
 } = require("../controllers/pedidoController");
 
 const {
@@ -16,7 +17,6 @@ const {
 
 const validarResultados = require("../middlewares/validacion/validarResultados");
 const pedidoSchema = require("../middlewares/validacion/pedidoSchema");
-
 
 // 📦 Obtener todos los pedidos (solo admin o soporte)
 router.get(
@@ -33,7 +33,7 @@ router.get(
   obtenerMisPedidos
 );
 
-// 🛒 Crear pedido desde productos directos
+// 🛒 Crear pedido desde productos directos (frontend)
 router.post(
   "/",
   verificarAutenticacion,
@@ -43,7 +43,7 @@ router.post(
   crearPedido
 );
 
-// 🛍️ Crear pedido desde carrito del cliente
+// 🛍️ Crear pedido desde carrito persistido
 router.post(
   "/desde-carrito",
   verificarAutenticacion,
@@ -51,6 +51,13 @@ router.post(
   pedidoSchema,
   validarResultados,
   crearPedidoDesdeCarrito
+);
+
+// 🧾 Obtener productos de un pedido (cliente o admin)
+router.get(
+  "/:id/productos",
+  verificarAutenticacion,
+  obtenerProductosDelPedido
 );
 
 // ❌ Cancelar un pedido (cliente propio o admin)

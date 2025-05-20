@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // ✅ Guardar sesión
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("token", data.accessToken);
       localStorage.setItem("usuario", JSON.stringify(data.usuario));
 
       mostrarExito("Inicio de sesión exitoso ✅");

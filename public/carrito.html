@@ -1,5 +1,4 @@
 <!-- 📁 carrito.html - Página del carrito de compras de TianguiStore -->
-
 <!DOCTYPE html>
 <html lang="es-MX">
 <head>
@@ -9,39 +8,39 @@
 
   <!-- MaterializeCSS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet" />
-  
+
   <!-- FontAwesome para íconos -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
-  
+
   <!-- Estilos personalizados -->
-  <link rel="stylesheet" href="estilo/estilos.css" />
+  <link rel="stylesheet" href="estilo/main.css" />
 </head>
 
-<body class="bg-light">
+<body class="grey darken-4 white-text">
 
   <!-- Navbar dinámica -->
   <div id="navbar-container"></div>
 
   <!-- Contenido Principal -->
   <main class="container py-5">
-    <header class="text-center mb-5">
-      <h1 class="fw-bold">
+    <header class="center-align mb-5">
+      <h1 class="teal-text text-lighten-2">
         <i class="fas fa-shopping-basket me-2"></i> Tu Carrito de Compras
       </h1>
-      <p class="lead text-muted">Administra tus productos antes de realizar tu pedido.</p>
+      <p class="flow-text grey-text text-lighten-1">Administra tus productos antes de realizar tu pedido.</p>
     </header>
 
-    <div class="row gy-4">
+    <div class="row">
       <!-- Productos en el carrito -->
-      <section class="col-lg-8" aria-labelledby="titulo-carrito">
-        <div class="card shadow-sm h-100">
-          <div class="card-body">
-            <h2 id="titulo-carrito" class="h5 mb-4">
+      <section class="col s12 l8" aria-labelledby="titulo-carrito">
+        <div class="card grey darken-3 z-depth-2">
+          <div class="card-content">
+            <h2 id="titulo-carrito" class="card-title teal-text text-lighten-3">
               <i class="fas fa-shopping-cart me-2"></i> Productos agregados
             </h2>
-            <ul id="lista-carrito" class="collection with-header">
-              <!-- Productos dinámicos -->
-              <li class="collection-item center-align text-muted" id="carrito-vacio">
+            <ul id="lista-carrito" class="collection with-header grey darken-4 white-text">
+              <!-- Productos dinámicos aquí -->
+              <li class="collection-item center-align grey-text text-lighten-1" id="carrito-vacio">
                 Tu carrito está vacío.
               </li>
             </ul>
@@ -50,27 +49,27 @@
       </section>
 
       <!-- Resumen del pedido -->
-      <aside class="col-lg-4" aria-labelledby="titulo-resumen">
-        <div class="card shadow-sm h-100">
-          <div class="card-body d-flex flex-column">
-            <h2 id="titulo-resumen" class="h5 mb-4">
+      <aside class="col s12 l4" aria-labelledby="titulo-resumen">
+        <div class="card grey darken-3 z-depth-2">
+          <div class="card-content d-flex flex-column">
+            <h2 id="titulo-resumen" class="card-title teal-text text-lighten-3">
               <i class="fas fa-receipt me-2"></i> Resumen del Pedido
             </h2>
 
             <div class="mb-3">
-              <p class="fs-5 fw-bold mb-1">Total:</p>
-              <p id="total_etiqueta" class="fs-4 text-primary">$0.00</p>
+              <p class="flow-text">Total:</p>
+              <p id="total_etiqueta" class="flow-text teal-text text-accent-2">$0.00</p>
             </div>
 
-            <div class="d-grid gap-2 mt-auto">
-              <button id="vaciar-carrito" class="btn btn-outline-danger">
-                <i class="fas fa-trash-alt me-2"></i> Vaciar Carrito
+            <div class="section">
+              <button id="vaciar-carrito" class="btn red darken-1 waves-effect waves-light full-width mb-2">
+                <i class="fas fa-trash-alt left"></i> Vaciar Carrito
               </button>
-              <button id="btnRealizarPedido" class="btn btn-success">
-                <i class="fas fa-credit-card me-2"></i> Proceder al Pago
+              <button id="btnRealizarPedido" class="btn teal darken-1 waves-effect waves-light full-width mb-2">
+                <i class="fas fa-credit-card left"></i> Proceder al Pago
               </button>
-              <a href="index.html" class="btn btn-secondary">
-                <i class="fas fa-arrow-left me-2"></i> Seguir Comprando
+              <a href="index.html" class="btn grey lighten-1 black-text waves-effect full-width">
+                <i class="fas fa-arrow-left left"></i> Seguir Comprando
               </a>
             </div>
           </div>
@@ -80,7 +79,7 @@
   </main>
 
   <!-- Toast Container (para notificaciones) -->
-  <div id="toast-container" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1056;"></div>
+  <div id="toast-container" class="fixed-action-btn" style="bottom: 1rem; right: 1rem; z-index: 2000;"></div>
 
   <!-- Footer dinámico -->
   <div id="footer-container"></div>

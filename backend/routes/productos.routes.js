@@ -1,10 +1,10 @@
 /**
  * 📁 RUTA: routes/productos.routes.js
- * 📦 Descripción: Rutas de productos (catálogo).
+ * 📦 Descripción: Rutas del catálogo de productos en TianguiStore.
  * 🔐 Reglas de acceso:
  *   - Lectura: pública
- *   - Escritura: requiere autenticación y roles permitidos
- * 💾 Incluye manejo de archivos (form-data) vía multer
+ *   - Escritura: autenticación + roles autorizados
+ * 💾 Soporte para carga de archivos (form-data) vía multer
  */
 
 const express = require("express");
@@ -25,31 +25,32 @@ const { verificarAutenticacion, permitirRoles } = require("../middlewares/authMi
 const validarResultados = require("../middlewares/validacion/validarResultados");
 const { productosSchema } = require("../middlewares/validacion/productosSchema");
 const { productosUpdateSchema } = require("../middlewares/validacion/productosUpdateSchema");
-const upload = require("../middlewares/uploadMiddleware"); // Multer configurado
+const upload = require("../middlewares/uploadMiddleware"); // Configuración de multer
 
-// ───────────────────────────────────────────────
-// 🔓 Rutas públicas — No requieren autenticación
-// ───────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// 📂 RUTAS PÚBLICAS — No requieren autenticación
+// ─────────────────────────────────────────────
 
 /**
- * 📦 GET /productos
- * Obtener todos los productos publicados
+ * 📦 GET /api/productos
+ * Lista todos los productos disponibles para el catálogo.
  */
 router.get("/", obtenerProductos);
 
 /**
- * 🔍 GET /productos/:id
- * Obtener un producto específico (con imágenes y modelo 3D)
+ * 🔍 GET /api/productos/:id
+ * Obtiene un producto específico por ID.
+ * Se utiliza en detalles de producto o validación de stock.
  */
 router.get("/:id", obtenerProductoPorId);
 
-// ───────────────────────────────────────────────
-// 🔐 Rutas protegidas — Requieren autenticación + permisos
-// ───────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// 🔐 RUTAS PROTEGIDAS — Requieren login y rol
+// ─────────────────────────────────────────────
 
 /**
- * ➕ POST /productos
- * Crear nuevo producto sin archivos
+ * ➕ POST /api/productos
+ * Crea un producto nuevo sin imágenes ni archivos.
  */
 router.post(
   "/",
@@ -61,8 +62,8 @@ router.post(
 );
 
 /**
- * 🖼️ POST /productos/archivos
- * Crear nuevo producto con imágenes y modelo 3D (form-data)
+ * 🖼️ POST /api/productos/archivos
+ * Crea un producto con imágenes y modelo 3D usando form-data.
  */
 router.post(
   "/archivos",
@@ -76,8 +77,8 @@ router.post(
 );
 
 /**
- * ✏️ PUT /productos/:id
- * Actualizar producto existente (validación parcial)
+ * ✏️ PUT /api/productos/:id
+ * Actualiza parcialmente los datos de un producto.
  */
 router.put(
   "/:id",
@@ -89,8 +90,8 @@ router.put(
 );
 
 /**
- * 🗑️ DELETE /productos/:id
- * Eliminar un producto (solo admin)
+ * 🗑️ DELETE /api/productos/:id
+ * Elimina un producto del sistema (requiere rol admin).
  */
 router.delete(
   "/:id",

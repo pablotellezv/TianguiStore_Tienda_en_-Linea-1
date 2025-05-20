@@ -1,8 +1,11 @@
 const db = require("../db/connection");
 
+/* ════════════════════════════════════════════════════════
+   📦 PEDIDOS: Funciones principales del sistema
+   ════════════════════════════════════════════════════════ */
+
 /**
- * 📋 Obtener todos los pedidos no eliminados.
- * Incluye estado y correo del usuario.
+ * 📋 Obtener todos los pedidos activos (solo no borrados)
  */
 async function obtenerPedidos() {
   const [rows] = await db.query(`
@@ -20,8 +23,7 @@ async function obtenerPedidos() {
 }
 
 /**
- * 🔍 Obtener pedidos del usuario autenticado.
- * @param {number} usuario_id - ID del usuario autenticado
+ * 🔍 Obtener pedidos por usuario autenticado
  */
 async function obtenerMisPedidos(usuario_id) {
   const [rows] = await db.query(`
@@ -31,39 +33,56 @@ async function obtenerMisPedidos(usuario_id) {
     JOIN estados_pedido e ON p.estado_id = e.estado_id
     WHERE p.usuario_id = ? AND p.borrado_logico = 0
     ORDER BY p.fecha_pedido DESC
-  `, [usuario_id]);
+  `, [parseInt(usuario_id)]);
   return rows;
 }
 
 /**
- * ➕ Crear un nuevo pedido utilizando el procedimiento almacenado.
- * @param {Object} datos
+ * 🧾 Crear pedido completo desde frontend (usando SP)
+ * Utiliza: sp_crear_pedido_completo
  */
-async function crearPedidoConSP({ usuario_id, total, metodo_pago, cupon, direccion_envio, notas }) {
+async function crearPedidoConSP({
+  usuario_id,
+  total,
+  metodo_pago,
+  cupon = null,
+  direccion_envio = "",
+  notas = "",
+  productos = []
+}) {
+  if (!Array.isArray(productos) || productos.length === 0) {
+    throw new Error("⚠️ La lista de productos está vacía o mal formateada.");
+  }
+
+  const productos_json = JSON.stringify(productos);
+
   const [resultado] = await db.query(`
-    CALL sp_crear_pedido_completo(?, ?, ?, ?, ?, ?)
+    CALL sp_crear_pedido_completo(?, ?, ?, ?, ?, ?, ?)
   `, [
     parseInt(usuario_id),
     parseFloat(total),
-    metodo_pago,
+    metodo_pago?.trim(),
     cupon,
-    direccion_envio?.trim(),
-    notas?.trim()
+    direccion_envio.trim(),
+    notas.trim(),
+    productos_json
   ]);
 
-  const pedido_id = resultado?.[0]?.pedido_id ?? null;
+  const pedido_id = resultado?.[0]?.pedido_id || resultado?.[0]?.[0]?.pedido_id || null;
 
   if (!pedido_id) {
-    throw new Error("No se pudo crear el pedido. Verifica los datos.");
+    throw new Error("⚠️ El procedimiento almacenado no devolvió un ID válido.");
   }
 
   return pedido_id;
 }
 
+/* ════════════════════════════════════════════════════════
+   ⚙️ Gestión y mantenimiento de pedidos
+   ════════════════════════════════════════════════════════ */
+
 /**
- * ✏️ Actualizar el estado de un pedido.
- * @param {number} pedido_id
- * @param {number} estado_id
+ * ✏️ Actualizar el estado de un pedido
  */
 async function actualizarEstadoPedido(pedido_id, estado_id) {
   await db.query(`
@@ -72,8 +91,7 @@ async function actualizarEstadoPedido(pedido_id, estado_id) {
 }
 
 /**
- * 🗑️ Marcar pedido como borrado (borrado lógico).
- * @param {number} pedido_id
+ * ❌ Borrado lógico de un pedido
  */
 async function borrarPedidoLogico(pedido_id) {
   await db.query(`
@@ -82,9 +100,45 @@ async function borrarPedidoLogico(pedido_id) {
 }
 
 /**
- * 🔢 Calcular el total del carrito del usuario.
- * @param {number} usuario_id
- * @returns {Promise<number>} Total del carrito.
+ * 🔍 Obtener pedido por ID y verificar si pertenece al usuario
+ */
+async function obtenerPedidoPorId(pedido_id, usuario_id) {
+  const [rows] = await db.query(`
+    SELECT * FROM pedidos 
+    WHERE pedido_id = ? AND usuario_id = ? AND borrado_logico = 0
+  `, [parseInt(pedido_id), parseInt(usuario_id)]);
+
+  return rows[0] || null;
+}
+
+/**
+ * 📦 Obtener productos de un pedido validando acceso por usuario o rol
+ */
+async function obtenerProductosPorPedido(pedido_id, usuario_id, rol = "cliente") {
+  const isAdmin = ["admin", "soporte"].includes(rol);
+
+  const query = `
+    SELECT dp.producto_id, p.nombre, dp.cantidad, dp.precio_unitario
+    FROM detalle_pedido dp
+    JOIN productos p ON dp.producto_id = p.producto_id
+    JOIN pedidos ped ON dp.pedido_id = ped.pedido_id
+    WHERE dp.pedido_id = ?
+    ${isAdmin ? "" : "AND ped.usuario_id = ?"}
+  `;
+
+  const params = isAdmin ? [pedido_id] : [pedido_id, usuario_id];
+
+  const [rows] = await db.query(query, params);
+
+  return rows.length > 0 ? rows : null;
+}
+
+/* ════════════════════════════════════════════════════════
+   🛒 Funciones relacionadas al carrito
+   ════════════════════════════════════════════════════════ */
+
+/**
+ * 🔢 Calcular total del carrito de un usuario
  */
 async function calcularTotalCarrito(usuario_id) {
   const [[{ total }]] = await db.query(`
@@ -92,19 +146,34 @@ async function calcularTotalCarrito(usuario_id) {
     FROM carrito c
     JOIN productos p ON c.producto_id = p.producto_id
     WHERE c.usuario_id = ?
-  `, [usuario_id]);
+  `, [parseInt(usuario_id)]);
 
-  return total;
+  return total || 0;
 }
 
 /**
- * 🧹 Limpiar el carrito después de un pedido.
- * @param {number} usuario_id
+ * 🧾 Obtener productos del carrito de un usuario
+ */
+async function obtenerCarrito(usuario_id) {
+  const [rows] = await db.query(`
+    SELECT 
+      c.producto_id,
+      c.cantidad,
+      p.precio AS precio_unitario
+    FROM carrito c
+    JOIN productos p ON c.producto_id = p.producto_id
+    WHERE c.usuario_id = ?
+  `, [parseInt(usuario_id)]);
+  return rows;
+}
+
+/**
+ * 🧹 Vaciar el carrito de un usuario después de crear pedido
  */
 async function limpiarCarrito(usuario_id) {
   await db.query(`
     DELETE FROM carrito WHERE usuario_id = ?
-  `, [usuario_id]);
+  `, [parseInt(usuario_id)]);
 }
 
 module.exports = {
@@ -113,6 +182,9 @@ module.exports = {
   crearPedidoConSP,
   actualizarEstadoPedido,
   borrarPedidoLogico,
+  obtenerPedidoPorId,
+  obtenerProductosPorPedido,
   calcularTotalCarrito,
-  limpiarCarrito
+  limpiarCarrito,
+  obtenerCarrito
 };

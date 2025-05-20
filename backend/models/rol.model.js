@@ -53,9 +53,11 @@ async function actualizarRol(id, datos) {
     if (valor !== undefined) {
       campos.push(`${clave} = ?`);
       valores.push(
-        clave === "permisos_json" ? JSON.stringify(valor) :
-        typeof valor === "string" ? valor.trim() :
-        valor
+        clave === "permisos_json"
+          ? JSON.stringify(valor)
+          : typeof valor === "string"
+            ? valor.trim()
+            : valor
       );
     }
   }
@@ -78,10 +80,24 @@ async function eliminarRol(id) {
   `, [parseInt(id)]);
 }
 
+/**
+ * 🎯 Obtener solo los permisos (JSON string o parsed) de un rol por ID.
+ * @param {number} rol_id
+ * @returns {Promise<string|Object>}
+ */
+async function obtenerPermisosPorRolId(rol_id) {
+  const [rows] = await db.query(
+    "SELECT permisos_json FROM roles WHERE rol_id = ?",
+    [parseInt(rol_id)]
+  );
+  return rows.length > 0 ? rows[0].permisos_json : "{}";
+}
+
 module.exports = {
   obtenerRoles,
   obtenerRolPorId,
   crearRol,
   actualizarRol,
-  eliminarRol
+  eliminarRol,
+  obtenerPermisosPorRolId
 };
