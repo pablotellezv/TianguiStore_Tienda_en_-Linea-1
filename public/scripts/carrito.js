@@ -181,7 +181,7 @@ async function validarStockAntesDeCheckout() {
 
   for (const item of carrito) {
     try {
-      const res = await fetch(`${BASE_URL}/api/productos/${item.id}`);
+      const res = await fetch(`${BASE_URL}/productos/${item.id}`);
       if (!res.ok) throw new Error("No se pudo obtener información del producto.");
       const producto = await res.json();
       if (item.cantidad > producto.stock) {
