@@ -39,34 +39,59 @@ async function cargarProductos() {
         imagen_url
       } = producto;
 
-      // 🖼️ Validar y aplicar imagen por defecto si no está definida o vacía
+      // 🖼️ Validar imagen o usar la predeterminada
       let imagen = (imagen_url && imagen_url.trim()) ? imagen_url.trim() : "/imagenes/default.png";
       imagen = imagen.replace(/\\/g, "/").replace(/^public/, "").replace(/^\/?/, "/");
 
       const tarjeta = document.createElement("div");
       tarjeta.className = "col s12 m6 l4";
-      tarjeta.innerHTML = `
-        <div class="card hoverable grey darken-3 white-text z-depth-2" style="border-radius: 10px;">
-          <div class="card-image">
-            <img src="${imagen}" alt="${nombre}" style="object-fit: cover; height: 180px;" 
-                 onerror="this.onerror=null; this.src='/imagenes/default.png';" />
-          </div>
-          <div class="card-content">
-            <span class="card-title amber-text text-lighten-2">${nombre}</span>
-            <p class="truncate">${descripcion}</p>
-            <p><strong>$${parseFloat(precio).toFixed(2)}</strong> | Stock: ${stock}</p>
-          </div>
-          <div class="card-action center-align">
-            <button class="btn amber darken-2 waves-effect waves-light btn-agregar"
-              data-id="${id}"
-              data-nombre="${nombre}"
-              data-precio="${precio}"
-              data-imagen="${imagen}">
-              <i class="fas fa-cart-plus left"></i> Agregar
-            </button>
-          </div>
-        </div>
+
+      // Crear tarjeta con elementos en DOM puro para evitar inline handlers
+      const card = document.createElement("div");
+      card.className = "card hoverable grey darken-3 white-text z-depth-2";
+      card.style.borderRadius = "10px";
+
+      const cardImage = document.createElement("div");
+      cardImage.className = "card-image";
+
+      const img = document.createElement("img");
+      img.src = imagen;
+      img.alt = nombre;
+      img.style.objectFit = "cover";
+      img.style.height = "180px";
+
+      // ✅ Manejador de error sin inline
+      img.onerror = () => {
+        img.src = "/imagenes/default.png";
+      };
+
+      cardImage.appendChild(img);
+
+      const cardContent = document.createElement("div");
+      cardContent.className = "card-content";
+      cardContent.innerHTML = `
+        <span class="card-title amber-text text-lighten-2">${nombre}</span>
+        <p class="truncate">${descripcion}</p>
+        <p><strong>$${parseFloat(precio).toFixed(2)}</strong> | Stock: ${stock}</p>
       `;
+
+      const cardAction = document.createElement("div");
+      cardAction.className = "card-action center-align";
+
+      const btn = document.createElement("button");
+      btn.className = "btn amber darken-2 waves-effect waves-light btn-agregar";
+      btn.innerHTML = `<i class="fas fa-cart-plus left"></i> Agregar`;
+      btn.dataset.id = id;
+      btn.dataset.nombre = nombre;
+      btn.dataset.precio = precio;
+      btn.dataset.imagen = imagen;
+
+      cardAction.appendChild(btn);
+
+      card.appendChild(cardImage);
+      card.appendChild(cardContent);
+      card.appendChild(cardAction);
+      tarjeta.appendChild(card);
       contenedor.appendChild(tarjeta);
     });
 
