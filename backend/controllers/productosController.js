@@ -1,24 +1,24 @@
 /**
  * 📁 CONTROLADOR: productosController.js
  * 📦 Módulo: Gestión de productos (catálogo principal)
- *
- * 🔹 Funcionalidades:
- *   - Obtener productos publicados (visibles)
- *   - Consultar detalle completo por ID (con galería multimedia)
- *   - Crear producto (JSON o archivos)
- *   - Actualizar producto
- *   - Eliminar producto
- *
- * 📂 Modelos utilizados:
- *   - productosModel.js
- *   - galeriaModel.js
+ * 
+ * Funcionalidades:
+ * - Obtener productos visibles
+ * - Consultar detalle con galería
+ * - Crear producto (JSON o archivos)
+ * - Actualizar producto existente
+ * - Eliminar producto (borrado lógico)
+ * 
+ * Modelos utilizados:
+ * - productosModel.js
+ * - galeriaModel.js
  */
 
-const productosModel = require('../models/producto.model');
-const galeriaModel = require('../models/galeria.model');
+const productosModel = require("../models/producto.model");
+const galeriaModel = require("../models/galeria.model");
 
 // ─────────────────────────────────────────────
-// 📥 GET /productos → Obtener todos los productos publicados
+// 📥 GET /api/productos
 // ─────────────────────────────────────────────
 exports.obtenerProductos = async (req, res) => {
   try {
@@ -31,10 +31,11 @@ exports.obtenerProductos = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────
-// 🔍 GET /productos/:id → Obtener detalle completo de producto
+// 🔍 GET /api/productos/:id
 // ─────────────────────────────────────────────
 exports.obtenerProductoPorId = async (req, res) => {
   const { id } = req.params;
+
   try {
     const producto = await productosModel.obtenerProductoPorId(id);
     if (!producto) {
@@ -42,8 +43,8 @@ exports.obtenerProductoPorId = async (req, res) => {
     }
 
     const galeria = await galeriaModel.obtenerGaleriaPorProducto(id);
-    const imagenes = galeria.filter(e => e.tipo === "imagen").map(e => e.url);
-    const modelo3d = galeria.find(e => e.tipo === "modelo_3d")?.url || null;
+    const imagenes = galeria.filter(g => g.tipo === "imagen").map(g => g.url);
+    const modelo3d = galeria.find(g => g.tipo === "modelo_3d")?.url || null;
 
     res.status(200).json({ ...producto, imagenes, modelo3d });
   } catch (error) {
@@ -53,13 +54,13 @@ exports.obtenerProductoPorId = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────
-// ➕ POST /productos → Crear producto (JSON plano)
+// ➕ POST /api/productos
 // ─────────────────────────────────────────────
 exports.agregarProducto = async (req, res) => {
   const producto = req.body;
-  const requeridos = ["nombre", "precio", "categoria_id", "proveedor_id"];
+  const camposObligatorios = ["nombre", "precio", "categoria_id", "proveedor_id"];
 
-  for (const campo of requeridos) {
+  for (const campo of camposObligatorios) {
     if (!producto[campo]) {
       return res.status(400).json({ mensaje: `El campo '${campo}' es obligatorio.` });
     }
@@ -68,7 +69,7 @@ exports.agregarProducto = async (req, res) => {
   try {
     const insertId = await productosModel.insertarProducto(producto);
     res.status(201).json({
-      mensaje: "Producto registrado correctamente.",
+      mensaje: "✅ Producto registrado correctamente.",
       id: insertId
     });
   } catch (error) {
@@ -78,13 +79,13 @@ exports.agregarProducto = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────
-// 🖼️ POST /productos/archivos → Crear producto con archivos
+// 🖼️ POST /api/productos/archivos
 // ─────────────────────────────────────────────
 exports.agregarProductoConArchivos = async (req, res) => {
   const datos = req.body;
-  const requeridos = ["nombre", "precio", "categoria_id", "tipo_pago"];
+  const camposObligatorios = ["nombre", "precio", "categoria_id", "tipo_pago"];
 
-  for (const campo of requeridos) {
+  for (const campo of camposObligatorios) {
     if (!datos[campo]) {
       return res.status(400).json({ mensaje: `El campo '${campo}' es obligatorio.` });
     }
@@ -93,7 +94,6 @@ exports.agregarProductoConArchivos = async (req, res) => {
   try {
     const productoId = await productosModel.insertarProducto(datos);
 
-    // Subir imágenes
     const imagenes = req.files?.imagenes || [];
     for (const archivo of imagenes) {
       await galeriaModel.insertarElemento({
@@ -104,7 +104,6 @@ exports.agregarProductoConArchivos = async (req, res) => {
       });
     }
 
-    // Subir modelo 3D
     const modelo3d = req.files?.modelo3d?.[0];
     if (modelo3d) {
       await galeriaModel.insertarElemento({
@@ -115,7 +114,7 @@ exports.agregarProductoConArchivos = async (req, res) => {
     }
 
     res.status(201).json({
-      mensaje: "Producto creado correctamente con archivos.",
+      mensaje: "✅ Producto creado correctamente con archivos.",
       id: productoId
     });
   } catch (error) {
@@ -125,14 +124,14 @@ exports.agregarProductoConArchivos = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────
-// ✏️ PUT /productos/:id → Actualizar producto existente
+// ✏️ PUT /api/productos/:id
 // ─────────────────────────────────────────────
 exports.actualizarProducto = async (req, res) => {
   const { id } = req.params;
   const datos = req.body;
-  const requeridos = ["nombre", "precio", "categoria_id"];
+  const camposObligatorios = ["nombre", "precio", "categoria_id"];
 
-  for (const campo of requeridos) {
+  for (const campo of camposObligatorios) {
     if (!datos[campo]) {
       return res.status(400).json({ mensaje: `El campo '${campo}' es obligatorio.` });
     }
@@ -140,7 +139,7 @@ exports.actualizarProducto = async (req, res) => {
 
   try {
     await productosModel.actualizarProducto(id, datos);
-    res.status(200).json({ mensaje: "Producto actualizado correctamente." });
+    res.status(200).json({ mensaje: "✅ Producto actualizado correctamente." });
   } catch (error) {
     console.error(`❌ Error al actualizar producto ID ${id}:`, error);
     res.status(500).json({ mensaje: "Error interno al actualizar producto." });
@@ -148,14 +147,14 @@ exports.actualizarProducto = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────
-// 🗑️ DELETE /productos/:id → Eliminar producto
+// 🗑️ DELETE /api/productos/:id
 // ─────────────────────────────────────────────
 exports.eliminarProducto = async (req, res) => {
   const { id } = req.params;
 
   try {
     await productosModel.eliminarProducto(id);
-    res.status(200).json({ mensaje: "Producto eliminado correctamente." });
+    res.status(200).json({ mensaje: "🗑️ Producto eliminado correctamente." });
   } catch (error) {
     console.error(`❌ Error al eliminar producto ID ${id}:`, error);
     res.status(500).json({ mensaje: "Error interno al eliminar producto." });
