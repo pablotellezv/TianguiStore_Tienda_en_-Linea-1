@@ -36,17 +36,20 @@ async function cargarProductos() {
         descripcion = "Sin descripción",
         precio = 0,
         stock = 0,
-        imagen_url = "/imagenes/default.png"
+        imagen_url
       } = producto;
 
-      const imagen = imagen_url.replace(/\\/g, "/").replace(/^public/, "").replace(/^\/?/, "/");
+      // 🖼️ Validar y aplicar imagen por defecto si no está definida o vacía
+      let imagen = (imagen_url && imagen_url.trim()) ? imagen_url.trim() : "/imagenes/default.png";
+      imagen = imagen.replace(/\\/g, "/").replace(/^public/, "").replace(/^\/?/, "/");
 
       const tarjeta = document.createElement("div");
       tarjeta.className = "col s12 m6 l4";
       tarjeta.innerHTML = `
         <div class="card hoverable grey darken-3 white-text z-depth-2" style="border-radius: 10px;">
           <div class="card-image">
-            <img src="${imagen}" alt="${nombre}" style="object-fit: cover; height: 180px;" onerror="this.src='/imagenes/default.png'" />
+            <img src="${imagen}" alt="${nombre}" style="object-fit: cover; height: 180px;" 
+                 onerror="this.onerror=null; this.src='/imagenes/default.png';" />
           </div>
           <div class="card-content">
             <span class="card-title amber-text text-lighten-2">${nombre}</span>
@@ -81,7 +84,8 @@ function asignarEventosAgregar() {
   document.querySelectorAll(".btn-agregar").forEach(btn => {
     btn.addEventListener("click", () => {
       const { id, nombre, precio, imagen } = btn.dataset;
-      agregarAlCarrito(id, nombre, parseFloat(precio), imagen);
+      const imagen_final = (imagen && imagen.trim()) ? imagen.trim() : "/imagenes/default.png";
+      agregarAlCarrito(id, nombre, parseFloat(precio), imagen_final);
     });
   });
 }
