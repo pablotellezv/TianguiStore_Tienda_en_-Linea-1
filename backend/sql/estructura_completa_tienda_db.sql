@@ -1918,6 +1918,7 @@ CREATE PROCEDURE sp_crear_pedido_completo(
   IN p_productos_json JSON
 )
 BEGIN
+  -- Variables internas
   DECLARE v_usuario_existe INT DEFAULT 0;
   DECLARE v_pedido_id INT;
   DECLARE v_index INT DEFAULT 0;
@@ -1927,36 +1928,54 @@ BEGIN
   DECLARE v_precio DECIMAL(10,2);
   DECLARE v_stock INT;
   DECLARE v_subtotal DECIMAL(10,2);
-  DECLARE msg_error TEXT;
+  DECLARE msg_error_usuario TEXT DEFAULT NULL;
+  DECLARE msg_error_detalle TEXT DEFAULT NULL;
+  DECLARE msg_final TEXT;
 
-  -- Handler de errores
+  -- Handler de error
   DECLARE EXIT HANDLER FOR SQLEXCEPTION
   BEGIN
     ROLLBACK;
-    SIGNAL SQLSTATE '45000'
-      SET MESSAGE_TEXT = 'Error al registrar el pedido. Transacción revertida.';
+    IF msg_error_usuario IS NULL THEN
+      SET msg_error_usuario = 'Ocurrió un problema al procesar tu pedido.';
+    END IF;
+    IF msg_error_detalle IS NULL THEN
+      SET msg_error_detalle = 'Error desconocido en procedimiento.';
+    END IF;
+    SET msg_final = CONCAT(msg_error_usuario, '|||', msg_error_detalle);
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg_final;
   END;
 
-  -- Validaciones
+  -- Validar usuario
   SELECT COUNT(*) INTO v_usuario_existe
   FROM usuarios
   WHERE usuario_id = p_usuario_id AND activo = 1 AND borrado_logico = 0;
 
   IF v_usuario_existe = 0 THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Usuario no válido, inactivo o eliminado.';
+    SET msg_error_usuario = 'Tu cuenta no está activa o no es válida.';
+    SET msg_error_detalle = CONCAT('Usuario ID ', p_usuario_id, ' no existe, está inactivo o fue eliminado.');
+    SET msg_final = CONCAT(msg_error_usuario, '|||', msg_error_detalle);
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg_final;
   END IF;
 
+  -- Validar total
   IF p_total IS NULL OR p_total <= 0 THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El total del pedido debe ser mayor a cero.';
+    SET msg_error_usuario = 'El total del pedido debe ser mayor a cero.';
+    SET msg_error_detalle = 'Valor total no proporcionado o inválido.';
+    SET msg_final = CONCAT(msg_error_usuario, '|||', msg_error_detalle);
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg_final;
   END IF;
 
+  -- Validar JSON de productos
   SET v_total_items = JSON_LENGTH(p_productos_json);
-
   IF v_total_items IS NULL OR v_total_items = 0 THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se han proporcionado productos en el pedido.';
+    SET msg_error_usuario = 'El pedido no contiene productos.';
+    SET msg_error_detalle = 'JSON vacío o malformado.';
+    SET msg_final = CONCAT(msg_error_usuario, '|||', msg_error_detalle);
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg_final;
   END IF;
 
-  -- Iniciar transacción
+  -- Iniciar pedido
   START TRANSACTION;
 
   INSERT INTO pedidos (
@@ -1969,36 +1988,40 @@ BEGIN
 
   SET v_pedido_id = LAST_INSERT_ID();
 
-  -- Iterar sobre productos en el JSON
+  -- Procesar productos
   WHILE v_index < v_total_items DO
-    SET v_producto_id = JSON_UNQUOTE(JSON_EXTRACT(p_productos_json, CONCAT('$[', v_index, '].producto_id')));
-    SET v_cantidad    = JSON_UNQUOTE(JSON_EXTRACT(p_productos_json, CONCAT('$[', v_index, '].cantidad')));
-    SET v_precio      = JSON_UNQUOTE(JSON_EXTRACT(p_productos_json, CONCAT('$[', v_index, '].precio_unitario')));
+    SET v_producto_id = CAST(JSON_UNQUOTE(JSON_EXTRACT(p_productos_json, CONCAT('$[', v_index, '].producto_id'))) AS UNSIGNED);
+    SET v_cantidad    = CAST(JSON_UNQUOTE(JSON_EXTRACT(p_productos_json, CONCAT('$[', v_index, '].cantidad'))) AS UNSIGNED);
+    SET v_precio      = CAST(JSON_UNQUOTE(JSON_EXTRACT(p_productos_json, CONCAT('$[', v_index, '].precio_unitario'))) AS DECIMAL(10,2));
 
+    -- Verificar existencia y stock
     SELECT stock INTO v_stock
     FROM productos
     WHERE producto_id = v_producto_id;
 
     IF v_stock IS NULL THEN
-      ROLLBACK;
-      SET msg_error = CONCAT('Producto ID ', v_producto_id, ' no existe.');
-      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg_error;
+      SET msg_error_usuario = 'Un producto ya no está disponible.';
+      SET msg_error_detalle = CONCAT('Producto ID ', v_producto_id, ' no encontrado en base de datos.');
+      SET msg_final = CONCAT(msg_error_usuario, '|||', msg_error_detalle);
+      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg_final;
     END IF;
 
     IF v_stock < v_cantidad THEN
-      ROLLBACK;
-      SET msg_error = CONCAT('Stock insuficiente para producto ID ', v_producto_id, '. Solo hay ', v_stock, ' unidades.');
-      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg_error;
+      SET msg_error_usuario = 'Stock insuficiente para uno de los productos.';
+      SET msg_error_detalle = CONCAT('Producto ID ', v_producto_id, '. Solicitado: ', v_cantidad, ', Disponible: ', v_stock);
+      SET msg_final = CONCAT(msg_error_usuario, '|||', msg_error_detalle);
+      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg_final;
     END IF;
 
+    -- Insertar detalle
     SET v_subtotal = v_precio * v_cantidad;
-
     INSERT INTO detalle_pedido (
       pedido_id, producto_id, cantidad, precio_unitario, subtotal
     ) VALUES (
       v_pedido_id, v_producto_id, v_cantidad, v_precio, v_subtotal
     );
 
+    -- Actualizar stock
     UPDATE productos
     SET stock = stock - v_cantidad
     WHERE producto_id = v_producto_id;
@@ -2006,14 +2029,14 @@ BEGIN
     SET v_index = v_index + 1;
   END WHILE;
 
-  -- Commit final
+  -- Confirmar pedido
   COMMIT;
 
+  -- Devolver ID del nuevo pedido
   SELECT v_pedido_id AS pedido_id;
 END;
 //
 DELIMITER ;
-
 
 
 -- 🧾 SP: Canjear puntos por cupon

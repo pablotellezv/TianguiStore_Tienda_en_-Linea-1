@@ -41,6 +41,10 @@ async function obtenerMisPedidos(usuario_id) {
  * 🧾 Crear pedido completo desde frontend (usando SP)
  * Utiliza: sp_crear_pedido_completo
  */
+/**
+ * 🧾 Crear pedido completo desde frontend (usando SP)
+ * Utiliza: sp_crear_pedido_completo
+ */
 async function crearPedidoConSP({
   usuario_id,
   total,
@@ -54,28 +58,50 @@ async function crearPedidoConSP({
     throw new Error("⚠️ La lista de productos está vacía o mal formateada.");
   }
 
-  const productos_json = JSON.stringify(productos);
+  // 🔒 Sanitiza los datos
+  const productos_sanitizados = productos.map(p => ({
+    producto_id: parseInt(p.producto_id),
+    cantidad: parseInt(p.cantidad),
+    precio_unitario: parseFloat(p.precio_unitario)
+  }));
 
-  const [resultado] = await db.query(`
-    CALL sp_crear_pedido_completo(?, ?, ?, ?, ?, ?, ?)
-  `, [
-    parseInt(usuario_id),
-    parseFloat(total),
-    metodo_pago?.trim(),
-    cupon,
-    direccion_envio.trim(),
-    notas.trim(),
-    productos_json
-  ]);
+  const productos_json = JSON.stringify(productos_sanitizados);
 
-  const pedido_id = resultado?.[0]?.pedido_id || resultado?.[0]?.[0]?.pedido_id || null;
+  try {
+    const [resultado] = await db.query(`
+      CALL sp_crear_pedido_completo(?, ?, ?, ?, ?, ?, ?)
+    `, [
+      parseInt(usuario_id),
+      parseFloat(total),
+      metodo_pago?.trim(),
+      cupon,
+      direccion_envio.trim(),
+      notas.trim(),
+      productos_json
+    ]);
 
-  if (!pedido_id) {
-    throw new Error("⚠️ El procedimiento almacenado no devolvió un ID válido.");
+    const pedido_id = resultado?.[0]?.pedido_id || resultado?.[0]?.[0]?.pedido_id || null;
+
+    if (!pedido_id) {
+      throw new Error("⚠️ El procedimiento almacenado no devolvió un ID válido.");
+    }
+
+    return pedido_id;
+  } catch (error) {
+    const mensajeOriginal = error?.sqlMessage || error?.message || "Error desconocido.";
+
+    // Verifica si hay un separador ||| (doble mensaje)
+    if (mensajeOriginal.includes("|||")) {
+      const [mensajeUsuario, mensajeBackend] = mensajeOriginal.split("|||");
+      console.error("🛠️ [Pedido SP ERROR]:", mensajeBackend.trim());
+      throw new Error(mensajeUsuario.trim());
+    } else {
+      console.error("🛠️ [Pedido SP ERROR GENÉRICO]:", mensajeOriginal);
+      throw new Error("Ocurrió un error al procesar tu pedido. Intenta nuevamente.");
+    }
   }
-
-  return pedido_id;
 }
+
 
 /* ════════════════════════════════════════════════════════
    ⚙️ Gestión y mantenimiento de pedidos
