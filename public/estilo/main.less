@@ -2,7 +2,7 @@
    Estilos principales de TianguiStore con tema oscuro premium
    ======================================================= */
 
-/* ========== VARIABLES ========= */
+/* ========== 🎨 VARIABLES ========= */
 @dark-bg: #0d0d0d;
 @panel-bg: #121212;
 @card-bg: #1a1a1a;
@@ -20,7 +20,7 @@
 @transition-time: 0.3s;
 @card-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 
-/* ========== BASE ========= */
+/* ========== 🧱 BASE ========= */
 body {
   background-color: @dark-bg;
   color: @text-main;
@@ -33,14 +33,14 @@ body {
 
 a {
   color: lighten(@primary-accent, 10%);
-  transition: color 0.3s;
+  transition: color @transition-time;
 
   &:hover {
     color: @primary-accent;
   }
 }
 
-/* ========== TIPOGRAFÍA ========= */
+/* ========== 🔠 TIPOGRAFÍA ========= */
 h1, h2, h3, h4, h5, h6 {
   color: white;
   font-weight: 600;
@@ -52,7 +52,7 @@ p, span, label {
   color: @text-muted;
 }
 
-/* ========== NAVBAR Y FOOTER GLASS ========= */
+/* ========== 🔳 NAVBAR Y FOOTER GLASS ========= */
 nav,
 footer.page-footer {
   background-color: @glass-bg !important;
@@ -62,7 +62,7 @@ footer.page-footer {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
 }
 
-/* ========== CONTENEDOR DE PRODUCTOS EN GRID ========= */
+/* ========== 🛍 CONTENEDOR DE PRODUCTOS EN GRID ========= */
 #productos-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -70,7 +70,7 @@ footer.page-footer {
   padding: 3rem 1rem;
 }
 
-/* ========== TARJETAS DE PRODUCTO ELEGANTES ========= */
+/* ========== 🧾 TARJETAS DE PRODUCTO ELEGANTES ========= */
 .card.producto {
   background-color: @glass-bg;
   backdrop-filter: blur(@glass-blur);
@@ -80,7 +80,7 @@ footer.page-footer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform @transition-time ease, box-shadow @transition-time ease;
   animation: scaleIn 0.4s ease;
 
   &:hover {
@@ -105,18 +105,34 @@ footer.page-footer {
     color: lighten(@text-main, 10%);
     margin-bottom: 0.5rem;
     text-align: center;
+    display: block;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 2.2rem;
+
+    &.tooltipped {
+      cursor: help;
+    }
   }
 
   .card-info {
     font-size: 0.95rem;
     color: @text-muted;
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.6rem;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.5rem;
+    width: 100%;
+    word-break: break-word;
+    white-space: normal;
+    line-height: 1.4;
 
     i {
       color: @primary-accent;
+      flex-shrink: 0;
+      margin-top: 0.2rem;
     }
   }
 
@@ -131,7 +147,7 @@ footer.page-footer {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    transition: all @transition-time ease;
 
     i {
       margin-right: 0.5rem;
@@ -144,11 +160,11 @@ footer.page-footer {
   }
 }
 
-/* ========== BOTONES GENÉRICOS ========= */
+/* ========== 🔘 BOTONES ========= */
 .btn {
   border-radius: @border-radius;
   font-weight: 500;
-  transition: all 0.3s ease;
+  transition: all @transition-time ease;
 
   &.amber {
     background-color: @primary-accent;
@@ -176,13 +192,13 @@ footer.page-footer {
   }
 }
 
-/* ========== SECCIONES ========= */
+/* ========== 📚 SECCIONES ========= */
 .section {
   padding: 4rem 2rem;
   animation: fadeUp 0.6s ease;
 }
 
-/* ========== TOASTS ========= */
+/* ========== 🔔 TOASTS ========= */
 #toast-container {
   position: fixed;
   bottom: 1rem;
@@ -199,7 +215,7 @@ footer.page-footer {
   }
 }
 
-/* ========== ANIMACIONES ========= */
+/* ========== 🎞️ ANIMACIONES ========= */
 @keyframes fadeIn {
   0% { opacity: 0; }
   100% { opacity: 1; }
@@ -220,7 +236,7 @@ footer.page-footer {
   100% { transform: scale(1); opacity: 1; }
 }
 
-/* ========== RESPONSIVE ========= */
+/* ========== 📱 RESPONSIVE ========= */
 @media screen and (max-width: 600px) {
   .card {
     padding: 1rem;
