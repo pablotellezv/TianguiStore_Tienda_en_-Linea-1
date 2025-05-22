@@ -16,8 +16,10 @@
 
 <body class="grey darken-4 white-text">
 
-  <!-- NAVBAR -->
-  <div id="navbar-container"></div>
+  <!-- NAVBAR dinámico -->
+  <header>
+    <div id="navbar-container"></div>
+  </header>
 
   <!-- CONTENIDO PRINCIPAL -->
   <main class="container">
@@ -34,7 +36,7 @@
       </div>
     </section>
 
-    <!-- PRODUCTOS -->
+    <!-- PRODUCTOS DESTACADOS -->
     <section class="section">
       <div class="row center-align">
         <div class="col s12">
@@ -46,18 +48,20 @@
         </div>
       </div>
 
-      <!-- CONTENEDOR DE TARJETAS -->
-      <div id="productos-container">
-        <!-- Las tarjetas se insertan dinámicamente con JS -->
+      <!-- CONTENEDOR DE PRODUCTOS -->
+      <div class="row" id="productos-container" aria-live="polite">
+        <!-- Las tarjetas de productos se cargarán dinámicamente desde productos.js -->
       </div>
     </section>
   </main>
 
   <!-- TOASTS -->
-  <div id="toast-container" class="fixed-action-btn"></div>
+  <div id="toast-container" class="fixed-action-btn" aria-hidden="true"></div>
 
-  <!-- FOOTER -->
-  <div id="footer-container"></div>
+  <!-- FOOTER dinámico -->
+  <footer>
+    <div id="footer-container"></div>
+  </footer>
 
   <!-- SCRIPTS DEL SISTEMA -->
   <script src="scripts/loadComponent.js" defer></script>

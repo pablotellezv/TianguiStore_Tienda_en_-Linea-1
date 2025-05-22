@@ -6,7 +6,7 @@
 const pedidoModel = require("../models/pedido.model");
 
 /**
- * 🧾 GET /api/pedidos
+ * 🧾 GET /pedidos
  * Obtener todos los pedidos del sistema (admin o gerente)
  */
 exports.obtenerPedidos = async (req, res) => {
@@ -20,7 +20,7 @@ exports.obtenerPedidos = async (req, res) => {
 };
 
 /**
- * 🧾 GET /api/mis-pedidos
+ * 🧾 GET /mis-pedidos
  * Obtener pedidos del usuario autenticado
  */
 exports.obtenerMisPedidos = async (req, res) => {
@@ -39,10 +39,8 @@ exports.obtenerMisPedidos = async (req, res) => {
 };
 
 /**
- * ➕ POST /api/pedidos
+ * ➕ POST /pedidos
  * Crear pedido completo desde el formulario del checkout
- * 🔒 Requiere autenticación
- * ⚙️ Usa sp_crear_pedido_completo con JSON de productos
  */
 exports.crearPedido = async (req, res) => {
   const usuario = req.usuario;
@@ -59,7 +57,6 @@ exports.crearPedido = async (req, res) => {
     total: total_enviado
   } = req.body;
 
-  // Validación básica
   if (!direccion_envio || !metodo_pago || !Array.isArray(productos) || productos.length === 0) {
     return res.status(400).json({
       mensaje: "Faltan campos requeridos: dirección, método de pago o productos"
@@ -94,13 +91,18 @@ exports.crearPedido = async (req, res) => {
     res.status(201).json({ mensaje: "Pedido creado correctamente", pedido_id });
 
   } catch (error) {
-    console.error("❌ Error al crear pedido:", error);
-    res.status(500).json({ mensaje: "Error interno al crear el pedido" });
+    const mensajeCompleto = error?.message || "Error desconocido";
+    const [mensajeUsuario, mensajeTecnico] = mensajeCompleto.split("|||");
+    console.error("❌ Error técnico al crear pedido:", mensajeTecnico || mensajeCompleto);
+
+    res.status(400).json({
+      mensaje: mensajeUsuario?.trim() || "No se pudo crear el pedido. Intenta nuevamente."
+    });
   }
 };
 
 /**
- * 🛒 POST /api/pedidos/carrito
+ * 🛒 POST /pedidos/carrito
  * Crear pedido desde carrito persistido en base de datos
  */
 exports.crearPedidoDesdeCarrito = async (req, res) => {
@@ -139,13 +141,18 @@ exports.crearPedidoDesdeCarrito = async (req, res) => {
     res.status(201).json({ mensaje: "Pedido generado correctamente", pedido_id });
 
   } catch (error) {
-    console.error("❌ Error al generar pedido desde carrito:", error);
-    res.status(500).json({ mensaje: "Error al procesar el pedido desde el carrito" });
+    const mensajeCompleto = error?.message || "Error desconocido";
+    const [mensajeUsuario, mensajeTecnico] = mensajeCompleto.split("|||");
+    console.error("❌ Error técnico al generar pedido desde carrito:", mensajeTecnico || mensajeCompleto);
+
+    res.status(400).json({
+      mensaje: mensajeUsuario?.trim() || "No se pudo generar el pedido desde el carrito."
+    });
   }
 };
 
 /**
- * ❌ PUT /api/pedidos/:id/cancelar
+ * ❌ PUT /pedidos/:id/cancelar
  * Cancelar un pedido si está pendiente y pertenece al usuario
  */
 exports.cancelarPedido = async (req, res) => {
@@ -175,7 +182,7 @@ exports.cancelarPedido = async (req, res) => {
 };
 
 /**
- * 📦 GET /api/pedidos/:id/productos
+ * 📦 GET /pedidos/:id/productos
  * Obtener los productos de un pedido específico
  */
 exports.obtenerProductosDelPedido = async (req, res) => {

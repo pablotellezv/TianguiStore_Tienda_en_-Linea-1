@@ -1,10 +1,12 @@
 /**
  * 📁 RUTA: routes/productos.routes.js
  * 📦 Descripción: Rutas del catálogo de productos en TianguiStore.
+ * 
  * 🔐 Reglas de acceso:
- *   - Lectura: pública
- *   - Escritura: autenticación + roles autorizados
- * 💾 Soporte para carga de archivos (form-data) vía multer
+ *   - Lectura general: pública
+ *   - Creación/actualización/eliminación: requiere autenticación + roles específicos
+ * 
+ * 💾 Soporte para carga de archivos (form-data) vía multer.
  */
 
 const express = require("express");
@@ -25,32 +27,31 @@ const { verificarAutenticacion, permitirRoles } = require("../middlewares/authMi
 const validarResultados = require("../middlewares/validacion/validarResultados");
 const { productosSchema } = require("../middlewares/validacion/productosSchema");
 const { productosUpdateSchema } = require("../middlewares/validacion/productosUpdateSchema");
-const upload = require("../middlewares/uploadMiddleware"); // Configuración de multer
+const upload = require("../middlewares/uploadMiddleware");
 
 // ─────────────────────────────────────────────
-// 📂 RUTAS PÚBLICAS — No requieren autenticación
+// 📂 RUTAS PÚBLICAS — Lectura sin autenticación
 // ─────────────────────────────────────────────
 
 /**
  * 📦 GET /api/productos
- * Lista todos los productos disponibles para el catálogo.
+ * Obtiene todos los productos disponibles (catálogo general).
  */
 router.get("/", obtenerProductos);
 
 /**
  * 🔍 GET /api/productos/:id
- * Obtiene un producto específico por ID.
- * Se utiliza en detalles de producto o validación de stock.
+ * Obtiene un producto específico por ID (uso en detalles, validaciones, etc.).
  */
 router.get("/:id", obtenerProductoPorId);
 
 // ─────────────────────────────────────────────
-// 🔐 RUTAS PROTEGIDAS — Requieren login y rol
+// 🔐 RUTAS PROTEGIDAS — Requieren autenticación y rol
 // ─────────────────────────────────────────────
 
 /**
  * ➕ POST /api/productos
- * Crea un producto nuevo sin imágenes ni archivos.
+ * Crea un nuevo producto (sin imágenes ni archivos adjuntos).
  */
 router.post(
   "/",
@@ -63,7 +64,7 @@ router.post(
 
 /**
  * 🖼️ POST /api/productos/archivos
- * Crea un producto con imágenes y modelo 3D usando form-data.
+ * Crea un nuevo producto con imágenes y/o modelo 3D (form-data).
  */
 router.post(
   "/archivos",
@@ -78,7 +79,7 @@ router.post(
 
 /**
  * ✏️ PUT /api/productos/:id
- * Actualiza parcialmente los datos de un producto.
+ * Actualiza la información de un producto específico.
  */
 router.put(
   "/:id",
@@ -91,7 +92,7 @@ router.put(
 
 /**
  * 🗑️ DELETE /api/productos/:id
- * Elimina un producto del sistema (requiere rol admin).
+ * Elimina lógicamente un producto (solo admins).
  */
 router.delete(
   "/:id",
