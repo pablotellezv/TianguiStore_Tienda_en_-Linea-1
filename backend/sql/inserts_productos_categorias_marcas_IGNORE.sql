@@ -1,12 +1,3 @@
--- Reinicio de tablas relevantes
-DELETE FROM productos;
-DELETE FROM subcategorias;
-DELETE FROM categorias;
-DELETE FROM marcas;
-ALTER TABLE productos AUTO_INCREMENT = 1;
-ALTER TABLE subcategorias AUTO_INCREMENT = 1;
-ALTER TABLE categorias AUTO_INCREMENT = 1;
-ALTER TABLE marcas AUTO_INCREMENT = 1;
 
 -- Inserción de marcas
 INSERT INTO marcas (marca_id, nombre_marca) VALUES
