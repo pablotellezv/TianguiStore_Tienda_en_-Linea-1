@@ -1,8 +1,8 @@
 /* =======================================================
    Estilos principales de TianguiStore con tema oscuro premium
    ======================================================= */
-/* ========== VARIABLES ========= */
-/* ========== BASE ========= */
+/* ========== 🎨 VARIABLES ========= */
+/* ========== 🧱 BASE ========= */
 body {
   background-color: #0d0d0d;
   color: #e0e0e0;
@@ -19,7 +19,7 @@ a {
 a:hover {
   color: #00BCD4;
 }
-/* ========== TIPOGRAFÍA ========= */
+/* ========== 🔠 TIPOGRAFÍA ========= */
 h1,
 h2,
 h3,
@@ -36,7 +36,7 @@ span,
 label {
   color: #b0b0b0;
 }
-/* ========== NAVBAR Y FOOTER GLASS ========= */
+/* ========== 🔳 NAVBAR Y FOOTER GLASS ========= */
 nav,
 footer.page-footer {
   background-color: rgba(18, 18, 18, 0.85) !important;
@@ -45,14 +45,14 @@ footer.page-footer {
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
 }
-/* ========== CONTENEDOR DE PRODUCTOS EN GRID ========= */
+/* ========== 🛍 CONTENEDOR DE PRODUCTOS EN GRID ========= */
 #productos-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2.5rem;
   padding: 3rem 1rem;
 }
-/* ========== TARJETAS DE PRODUCTO ELEGANTES ========= */
+/* ========== 🧾 TARJETAS DE PRODUCTO ELEGANTES ========= */
 .card.producto {
   background-color: rgba(18, 18, 18, 0.85);
   backdrop-filter: blur(16px);
@@ -85,17 +85,32 @@ footer.page-footer {
   color: #fafafa;
   margin-bottom: 0.5rem;
   text-align: center;
+  display: block;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 2.2rem;
+}
+.card.producto .card-title.tooltipped {
+  cursor: help;
 }
 .card.producto .card-info {
   font-size: 0.95rem;
   color: #b0b0b0;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.6rem;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.5rem;
+  width: 100%;
+  word-break: break-word;
+  white-space: normal;
+  line-height: 1.4;
 }
 .card.producto .card-info i {
   color: #00BCD4;
+  flex-shrink: 0;
+  margin-top: 0.2rem;
 }
 .card.producto .btn-agregar {
   margin-top: 1rem;
@@ -117,7 +132,7 @@ footer.page-footer {
   background-color: #008fa1;
   transform: scale(1.04);
 }
-/* ========== BOTONES GENÉRICOS ========= */
+/* ========== 🔘 BOTONES ========= */
 .btn {
   border-radius: 1rem;
   font-weight: 500;
@@ -142,12 +157,12 @@ footer.page-footer {
 .btn.secondary:hover {
   background-color: #424242;
 }
-/* ========== SECCIONES ========= */
+/* ========== 📚 SECCIONES ========= */
 .section {
   padding: 4rem 2rem;
   animation: fadeUp 0.6s ease;
 }
-/* ========== TOASTS ========= */
+/* ========== 🔔 TOASTS ========= */
 #toast-container {
   position: fixed;
   bottom: 1rem;
@@ -162,7 +177,7 @@ footer.page-footer {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   animation: fadeInDown 0.5s ease;
 }
-/* ========== ANIMACIONES ========= */
+/* ========== 🎞️ ANIMACIONES ========= */
 @keyframes fadeIn {
   0% {
     opacity: 0;
@@ -201,7 +216,7 @@ footer.page-footer {
     opacity: 1;
   }
 }
-/* ========== RESPONSIVE ========= */
+/* ========== 📱 RESPONSIVE ========= */
 @media screen and (max-width: 600px) {
   .card {
     padding: 1rem;
