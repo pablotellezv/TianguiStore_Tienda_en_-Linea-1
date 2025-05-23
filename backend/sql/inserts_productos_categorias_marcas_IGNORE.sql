@@ -7,7 +7,6 @@ INSERT INTO marcas (marca_id, nombre_marca) VALUES
 (4, 'Aosong'),
 (5, 'Genérica'),
 (6, 'Winsen');
-
 -- Inserción de categorías
 INSERT INTO categorias (categoria_id, nombre_categoria) VALUES (1, 'Sensores');
 INSERT INTO categorias (categoria_id, nombre_categoria) VALUES (2, 'Microcontroladores');
