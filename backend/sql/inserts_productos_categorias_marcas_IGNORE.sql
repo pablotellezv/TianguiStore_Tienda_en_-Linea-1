@@ -6,7 +6,8 @@ INSERT INTO marcas (marca_id, nombre_marca) VALUES
 (3, 'Texas Instruments'),
 (4, 'Aosong'),
 (5, 'Genérica'),
-(6, 'Winsen');
+(6, 'Winsen'); 
+
 
 -- Inserción de categorías
 INSERT INTO categorias (categoria_id, nombre_categoria) VALUES (1, 'Sensores');
