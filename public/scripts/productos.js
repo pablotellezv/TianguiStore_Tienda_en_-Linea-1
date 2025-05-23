@@ -1,7 +1,7 @@
 /**
  * 📦 productos.js
  * Carga los productos desde el backend, los renderiza en tarjetas con estilo y permite agregarlos al carrito local.
- * Compatible con diseño oscuro, glassmorphism y experiencia moderna.
+ * Compatible con diseño oscuro y experiencia de usuario moderna.
  * Autor: I.S.C. Erick Renato Vega Ceron | Mayo 2025
  */
 
@@ -10,7 +10,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   actualizarContadorCarrito();
 });
 
-/* 🔄 Cargar productos desde la API y renderizarlos en tarjetas */
+/* ─────────────────────────────────────────────────────────────
+ * 🔄 Cargar productos desde la API y renderizarlos en tarjetas
+ * ───────────────────────────────────────────────────────────── */
 async function cargarProductos() {
   const contenedor = document.getElementById("productos-container");
   if (!contenedor) return;
@@ -37,59 +39,72 @@ async function cargarProductos() {
         imagen_url
       } = producto;
 
-      // Validar imagen o usar la predeterminada
+      // 🖼️ Validar imagen o usar la predeterminada
       let imagen = (imagen_url && imagen_url.trim()) ? imagen_url.trim() : "/imagenes/default.png";
       imagen = imagen.replace(/\\/g, "/").replace(/^public/, "").replace(/^\/?/, "/");
 
-      // Crear estructura DOM para cada tarjeta
       const tarjeta = document.createElement("div");
-      tarjeta.className = "card producto";
+      tarjeta.className = "col s12 m6 l4";
+
+      // Crear tarjeta con elementos en DOM puro para evitar inline handlers
+      const card = document.createElement("div");
+      card.className = "card hoverable grey darken-3 white-text z-depth-2";
+      card.style.borderRadius = "10px";
+
+      const cardImage = document.createElement("div");
+      cardImage.className = "card-image";
 
       const img = document.createElement("img");
       img.src = imagen;
       img.alt = nombre;
-      img.className = "producto-imagen";
-      img.onerror = () => { img.src = "/imagenes/default.png"; };
+      img.style.objectFit = "cover";
+      img.style.height = "180px";
 
-      const titulo = document.createElement("span");
-      titulo.className = "card-title tooltipped";
-      titulo.setAttribute("data-tooltip", nombre);
-      titulo.textContent = nombre;
+      // ✅ Manejador de error sin inline
+      img.onerror = () => {
+        img.src = "/imagenes/default.png";
+      };
 
-      const descripcionElemento = document.createElement("p");
-      descripcionElemento.className = "card-info truncate";
-      descripcionElemento.innerHTML = `<i class="fas fa-align-left"></i> ${descripcion}`;
+      cardImage.appendChild(img);
 
-      const precioStock = document.createElement("p");
-      precioStock.className = "card-info";
-      precioStock.innerHTML = `<i class="fas fa-dollar-sign"></i> <strong>$${parseFloat(precio).toFixed(2)}</strong> | Stock: ${stock}`;
+      const cardContent = document.createElement("div");
+      cardContent.className = "card-content";
+      cardContent.innerHTML = `
+        <span class="card-title amber-text text-lighten-2">${nombre}</span>
+        <p class="truncate">${descripcion}</p>
+        <p><strong>$${parseFloat(precio).toFixed(2)}</strong> | Stock: ${stock}</p>
+      `;
+
+      const cardAction = document.createElement("div");
+      cardAction.className = "card-action center-align";
 
       const btn = document.createElement("button");
-      btn.className = "btn btn-agregar waves-effect waves-light";
-      btn.innerHTML = `<i class="fas fa-cart-plus"></i> Agregar`;
+      btn.className = "btn amber darken-2 waves-effect waves-light btn-agregar";
+      btn.innerHTML = `<i class="fas fa-cart-plus left"></i> Agregar`;
       btn.dataset.id = id;
       btn.dataset.nombre = nombre;
       btn.dataset.precio = precio;
       btn.dataset.imagen = imagen;
 
-      // Ensamblar la tarjeta
-      tarjeta.appendChild(img);
-      tarjeta.appendChild(titulo);
-      tarjeta.appendChild(descripcionElemento);
-      tarjeta.appendChild(precioStock);
-      tarjeta.appendChild(btn);
+      cardAction.appendChild(btn);
+
+      card.appendChild(cardImage);
+      card.appendChild(cardContent);
+      card.appendChild(cardAction);
+      tarjeta.appendChild(card);
       contenedor.appendChild(tarjeta);
     });
 
     asignarEventosAgregar();
-    M.Tooltip.init(document.querySelectorAll(".tooltipped"));
   } catch (err) {
     console.error("❌ Error al cargar productos:", err);
     contenedor.innerHTML = `<p class="center-align red-text">No se pudieron cargar los productos.</p>`;
   }
 }
 
-/* ➕ Asigna eventos a los botones "Agregar" */
+/* ─────────────────────────────────────────────
+ * ➕ Asigna eventos a los botones "Agregar"
+ * ───────────────────────────────────────────── */
 function asignarEventosAgregar() {
   document.querySelectorAll(".btn-agregar").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -100,7 +115,9 @@ function asignarEventosAgregar() {
   });
 }
 
-/* 🛒 Agrega productos al carrito (localStorage) */
+/* ─────────────────────────────────────────────
+ * 🛒 Agrega productos al carrito (localStorage)
+ * ───────────────────────────────────────────── */
 function agregarAlCarrito(id, nombre, precio, imagen_url) {
   let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
   const producto = carrito.find(p => p.id === id);
@@ -116,14 +133,18 @@ function agregarAlCarrito(id, nombre, precio, imagen_url) {
   mostrarToast(`🛒 ${nombre} agregado al carrito`);
 }
 
-/* 🔢 Actualiza el contador del ícono de carrito */
+/* ─────────────────────────────────────────────
+ * 🔢 Actualiza el contador del ícono de carrito
+ * ───────────────────────────────────────────── */
 function actualizarContadorCarrito() {
   const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
   const total = carrito.reduce((sum, p) => sum + p.cantidad, 0);
   document.querySelectorAll("#contador-carrito").forEach(el => (el.textContent = total));
 }
 
-/* 🔔 Muestra un toast personalizado (MaterializeCSS) */
+/* ─────────────────────────────────────────────
+ * 🔔 Muestra un toast personalizado (MaterializeCSS)
+ * ───────────────────────────────────────────── */
 function mostrarToast(mensaje) {
   M.toast({
     html: `<i class="fas fa-check-circle left"></i> ${mensaje}`,
