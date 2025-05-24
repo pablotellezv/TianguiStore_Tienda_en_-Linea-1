@@ -1,7 +1,3 @@
-/* LESS generado y corregido para TianguiStore - Estilo Glassmorphism Oscuro Mejorado */
-/* Incluye fondo animado, sombras refinadas, tarjetas responsivas, y botones refinados */
-/* Listo para compilar a CSS con herramientas como lessc */
-
 /* =======================================================
    🎨 TianguiStore - Estilo Oscuro Glassmorphism Mejorado
    ======================================================= */
@@ -114,7 +110,7 @@ nav, footer.page-footer {
   }
 }
 
-/* CONTENEDOR GRID */
+/* CONTENEDOR GRID DE PRODUCTOS */
 #productos-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -122,71 +118,95 @@ nav, footer.page-footer {
   padding: 3rem 1rem;
 }
 
-/* TARJETA DE PRODUCTO */
-.card.producto {
-  background-color: @glass-bg;
+/* 🔳 TARJETA DE PRODUCTO - Nueva versión */
+.product-card {
+  background: @glass-bg;
   backdrop-filter: blur(@glass-blur);
   border-radius: @border-radius;
   box-shadow: @card-shadow;
-  padding: 1.5rem;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  transition: transform @transition-time ease, box-shadow @transition-time ease;
+  justify-content: space-between;
+  transition: transform @transition-time ease;
   animation: scaleIn 0.4s ease;
-  height: 100%;
-  min-height: 440px;
-  .producto-imagen {
-    width: 100%;
-    max-width: 160px;
-    height: 160px;
-    object-fit: contain;
-    border-radius: 0.75rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-    margin-bottom: 1.2rem;
-    background-color: @card-bg;
+
+  .card-image {
+    img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      background: @card-bg;
+      border-top-left-radius: @border-radius;
+      border-top-right-radius: @border-radius;
+    }
   }
-  .card-title {
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: lighten(@text-main, 10%);
-    margin-bottom: 0.5rem;
+
+  .card-content {
+    padding: 1rem 1.2rem;
+
+    .product-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: lighten(@text-main, 10%);
+      margin-bottom: 0.5rem;
+      line-height: 1.3;
+      text-align: center;
+    }
+
+    .product-description {
+      font-size: 0.9rem;
+      color: @text-muted;
+      line-height: 1.4;
+      text-align: center;
+      min-height: 3rem;
+    }
+
+    .product-price-stock {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.6rem;
+
+      .product-price {
+        font-size: 1rem;
+        font-weight: bold;
+        color: @primary-accent;
+      }
+
+      .product-stock {
+        font-size: 0.85rem;
+        color: @text-muted;
+      }
+    }
+  }
+
+  .card-action {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 1rem;
     text-align: center;
-    line-height: 1.4;
-    min-height: 2.6rem;
-  }
-  .card-info {
-    font-size: 0.95rem;
-    color: @text-muted;
-    margin-bottom: 0.8rem;
-    text-align: left;
-    line-height: 1.5;
-    max-width: 100%;
-    white-space: normal;
-  }
-  .card-precio {
-    font-size: 1rem;
-    color: @text-main;
-    margin-bottom: 1rem;
-  }
-  .btn-agregar {
-    margin-top: auto;
-    background-color: @primary-accent;
-    color: @dark-bg;
-    font-weight: 600;
-    border-radius: @border-radius;
-    padding: 0.7rem 1.2rem;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    transition: all @transition-time ease;
-    i {
-      margin-right: 0.5rem;
+
+    .btn-agregar {
+      background-color: @primary-accent;
+      color: @dark-bg;
+      font-weight: 600;
+      border-radius: @border-radius;
+      padding: 0.6rem 1rem;
+      width: 90%;
+      transition: all @transition-time ease;
+      i {
+        margin-right: 0.5rem;
+      }
+      &:hover {
+        background-color: darken(@primary-accent, 10%);
+        transform: scale(1.04);
+      }
     }
-    &:hover {
-      background-color: darken(@primary-accent, 10%);
-      transform: scale(1.04);
-    }
+  }
+
+  &:hover {
+    transform: scale(1.01);
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.5);
   }
 }
 
