@@ -343,6 +343,7 @@ CREATE TABLE `actividad_usuario` (
 -- Volcado de datos para la tabla `actividad_usuario`
 --
 
+
 INSERT INTO `actividad_usuario` (`actividad_id`, `usuario_id`, `tipo_actividad`, `descripcion`, `modulo`, `ip_origen`, `fecha`) VALUES
 (3, 2, 'compra', 'Pedido #3 realizado', 'pedidos', NULL, '2025-05-23 09:31:47'),
 (4, 2, 'compra', 'Pedido #4 realizado', 'pedidos', NULL, '2025-05-23 09:43:23');
