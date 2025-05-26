@@ -222,7 +222,7 @@
       if (errores.length) return errores.forEach(showToast);
 
       const payload = {
-        correo_electronico: data.email,
+        correo_electronico: data.correo_electronico,
         contrasena: data.password,
         confirmar_contrasena: data.confirmPassword,
         tipo_cuenta: data.tipoCuenta,

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es-MX">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -29,7 +30,7 @@
           <!-- Tipo de cuenta visible -->
           <div class="row">
             <div class="input-field col s12 m6 offset-m3 tooltipped" data-tooltip="Tipo de cuenta que deseas crear">
-              <select id="tipoUsuario" required>
+              <select id="tipoUsuario" name="tipoCuenta" required>
                 <option value="cliente" selected>Cliente</option>
                 <option value="vendedor">Vendedor</option>
                 <option value="soporte">Soporte</option>
@@ -42,7 +43,7 @@
           <div class="row">
             <div class="input-field col s12 m6">
               <i class="fas fa-envelope prefix white-text"></i>
-              <input type="email" id="email" name="email" required autocomplete="email" />
+              <input type="email" id="email" name="correo_electronico" required />
               <label for="email">Correo electrónico *</label>
               <span class="helper-text" data-error="Correo inválido" data-success="Correo válido"></span>
             </div>
@@ -143,7 +144,8 @@
 
           <!-- Botón de envío -->
           <div class="row center-align" style="margin-top: 2rem">
-            <button type="submit" class="btn-large amber darken-3 waves-effect waves-light tooltipped" data-tooltip="Crear cuenta">
+            <button type="submit" class="btn-large amber darken-3 waves-effect waves-light tooltipped"
+              data-tooltip="Crear cuenta">
               <i class="fas fa-user-plus left"></i> Registrarse
             </button>
           </div>
@@ -165,4 +167,5 @@
   <script src="scripts/registro.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js" defer></script>
 </body>
+
 </html>
