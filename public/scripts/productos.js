@@ -1,9 +1,12 @@
 /**
- * 📦 productos.js (versión mejorada)
- * Carga productos desde la API, los muestra en tarjetas con diseño elegante, y permite agregarlos al carrito.
- * Incluye mejoras visuales, accesibilidad, y separación limpia del contenido.
- * Autor: I.S.C. Erick Renato Vega Ceron | Adaptado Mayo 2025
+ * 📦 productos.js
+ * Muestra productos con tarjetas glassmorphism + paginación.
+ * Autor: I.S.C. Erick Renato Vega Ceron | Estilo Dark Glassmorphism Mexica | Mayo 2025
  */
+
+let productosGlobal = [];
+let productosPorPagina = 10;
+let paginaActual = 1;
 
 document.addEventListener("DOMContentLoaded", async () => {
   await cargarProductos();
@@ -11,33 +14,79 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 /* ════════════════════════════════════════════
- * 🔄 Cargar productos y renderizar tarjetas
+ * 🔄 Cargar productos desde API y mostrar primera página
  * ════════════════════════════════════════════ */
 async function cargarProductos() {
   const contenedor = document.getElementById("productos-container");
-  if (!contenedor) return;
+  const paginacion = document.getElementById("paginacion-productos");
+  if (!contenedor || !paginacion) return;
 
   try {
     const res = await fetch("/productos");
     if (!res.ok) throw new Error("No se pudo obtener el listado de productos.");
 
-    const productos = await res.json();
-    contenedor.innerHTML = "";
-
-    if (!Array.isArray(productos) || productos.length === 0) {
+    productosGlobal = await res.json();
+    if (!Array.isArray(productosGlobal) || productosGlobal.length === 0) {
       contenedor.innerHTML = `<p class="center-align grey-text text-lighten-2">No hay productos disponibles.</p>`;
+      paginacion.innerHTML = "";
       return;
     }
 
-    productos.forEach(producto => renderizarProducto(producto, contenedor));
-
-    asignarEventosAgregar();
+    mostrarPagina(paginaActual);
+    generarPaginacion();
   } catch (err) {
     console.error("❌ Error al cargar productos:", err);
-    contenedor.innerHTML = `<p class="center-align red-text text-lighten-2">No se pudieron cargar los productos.</p>`;
+    contenedor.innerHTML = `<p class="center-align red-text text-lighten-2">Error al cargar productos.</p>`;
+    paginacion.innerHTML = "";
   }
 }
 
+/* ════════════════════════════════════════════
+ * 📄 Mostrar productos por página
+ * ════════════════════════════════════════════ */
+function mostrarPagina(num) {
+  const contenedor = document.getElementById("productos-container");
+  contenedor.innerHTML = "";
+
+  const inicio = (num - 1) * productosPorPagina;
+  const fin = inicio + productosPorPagina;
+  const productosPagina = productosGlobal.slice(inicio, fin);
+
+  productosPagina.forEach((producto) =>
+    renderizarProducto(producto, contenedor)
+  );
+  asignarEventosAgregar();
+}
+
+/* ════════════════════════════════════════════
+ * 🔢 Crear paginación dinámica
+ * ════════════════════════════════════════════ */
+function generarPaginacion() {
+  const paginacion = document.getElementById("paginacion-productos");
+  paginacion.innerHTML = "";
+
+  const totalPaginas = Math.ceil(productosGlobal.length / productosPorPagina);
+
+  for (let i = 1; i <= totalPaginas; i++) {
+    const li = document.createElement("li");
+    li.className =
+      i === paginaActual ? "active amber darken-3" : "waves-effect";
+    const a = document.createElement("a");
+    a.href = "#!";
+    a.textContent = i;
+    a.addEventListener("click", () => {
+      paginaActual = i;
+      mostrarPagina(paginaActual);
+      generarPaginacion();
+    });
+    li.appendChild(a);
+    paginacion.appendChild(li);
+  }
+}
+
+/* ════════════════════════════════════════════
+ * 🧱 Renderizar una tarjeta de producto estilo dark glass
+ * ════════════════════════════════════════════ */
 function renderizarProducto(producto, contenedor) {
   const {
     producto_id: id,
@@ -45,25 +94,37 @@ function renderizarProducto(producto, contenedor) {
     descripcion = "Sin descripción",
     precio = 0,
     stock = 0,
-    imagen_url
+    imagen_url,
   } = producto;
 
-  let imagen = (imagen_url && imagen_url.trim()) ? imagen_url.trim() : "/imagenes/default.png";
-  imagen = imagen.replace(/\\/g, "/").replace(/^public/, "").replace(/^\/?/, "/");
+  let imagen =
+    imagen_url && imagen_url.trim()
+      ? imagen_url.trim()
+      : "/imagenes/default.png";
+  imagen = imagen
+    .replace(/\\/g, "/")
+    .replace(/^public/, "")
+    .replace(/^\/?/, "/");
 
   const tarjeta = document.createElement("div");
   tarjeta.className = "col s12 m6 l4";
 
   const card = document.createElement("div");
-  card.className = "card product-card hoverable z-depth-3 glass-card";
+  card.classList.add(
+    "card",
+    "glass-card",
+    "product-card",
+    "hoverable",
+    "z-depth-4"
+  );
 
-  // Imagen
   const cardImage = document.createElement("div");
   cardImage.className = "card-image";
   const img = document.createElement("img");
   img.src = imagen;
-  img.alt = nombre;
+  img.alt = `Imagen de ${nombre}`;
   img.className = "responsive-img";
+  img.loading = "lazy";
   img.style.height = "180px";
   img.style.objectFit = "cover";
   img.onerror = () => {
@@ -71,26 +132,28 @@ function renderizarProducto(producto, contenedor) {
   };
   cardImage.appendChild(img);
 
-  // Contenido
   const cardContent = document.createElement("div");
-  cardContent.className = "card-content white-text";
+  cardContent.className = "card-content";
   cardContent.innerHTML = `
-    <h6 class="product-title amber-text text-lighten-2 truncate" style="font-weight:bold;">
-      ${nombre}
-    </h6>
-    <p class="grey-text text-lighten-1" style="font-size: 0.9rem;">${descripcion}</p>
-    <p class="white-text" style="margin-top: 0.6rem;">
-      <strong>$${parseFloat(precio).toFixed(2)}</strong>
-      <span class="grey-text text-lighten-1" style="font-size: 0.85rem;"> | Stock: ${stock}</span>
-    </p>
-  `;
+  <h6 class="product-title">
+    ${nombre}
+  </h6>
+  <p class="product-description">
+    ${descripcion}
+  </p>
+  <div class="product-price-stock">
+    <span class="product-price">$${parseFloat(precio).toFixed(2)}</span>
+    <span class="product-stock">Stock: ${stock}</span>
+  </div>
+`;
 
-  // Acción
   const cardAction = document.createElement("div");
   cardAction.className = "card-action center-align";
   const btn = document.createElement("button");
-  btn.className = "btn amber darken-2 waves-effect waves-light btn-agregar z-depth-1";
+  btn.className =
+    "btn amber darken-2 waves-effect waves-light btn-agregar z-depth-1";
   btn.style.borderRadius = "20px";
+  btn.setAttribute("aria-label", `Agregar ${nombre} al carrito`);
   btn.innerHTML = `<i class="fas fa-cart-plus left"></i> Agregar`;
   btn.dataset.id = id;
   btn.dataset.nombre = nombre;
@@ -98,7 +161,6 @@ function renderizarProducto(producto, contenedor) {
   btn.dataset.imagen = imagen;
   cardAction.appendChild(btn);
 
-  // Ensamblar tarjeta
   card.appendChild(cardImage);
   card.appendChild(cardContent);
   card.appendChild(cardAction);
@@ -107,14 +169,14 @@ function renderizarProducto(producto, contenedor) {
 }
 
 /* ════════════════════════════════════════════
- * ➕ Eventos de agregar al carrito
+ * ➕ Eventos para botones "Agregar al carrito"
  * ════════════════════════════════════════════ */
 function asignarEventosAgregar() {
-  document.querySelectorAll(".btn-agregar").forEach(btn => {
+  document.querySelectorAll(".btn-agregar").forEach((btn) => {
     btn.addEventListener("click", () => {
       const { id, nombre, precio, imagen } = btn.dataset;
-      const imagen_final = (imagen && imagen.trim()) ? imagen.trim() : "/imagenes/default.png";
-      agregarAlCarrito(id, nombre, parseFloat(precio), imagen_final);
+      const imagenFinal = imagen?.trim() || "/imagenes/default.png";
+      agregarAlCarrito(id, nombre, parseFloat(precio), imagenFinal);
     });
   });
 }
@@ -124,9 +186,9 @@ function asignarEventosAgregar() {
  * ════════════════════════════════════════════ */
 function agregarAlCarrito(id, nombre, precio, imagen_url) {
   let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-  const producto = carrito.find(p => p.id === id);
-  if (producto) {
-    producto.cantidad++;
+  const existente = carrito.find((p) => p.id === id);
+  if (existente) {
+    existente.cantidad++;
   } else {
     carrito.push({ id, nombre, precio, cantidad: 1, imagen_url });
   }
@@ -136,12 +198,14 @@ function agregarAlCarrito(id, nombre, precio, imagen_url) {
 }
 
 /* ════════════════════════════════════════════
- * 🔢 Actualizar contador del carrito
+ * 🔄 Actualizar contador visual del carrito
  * ════════════════════════════════════════════ */
 function actualizarContadorCarrito() {
   const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-  const total = carrito.reduce((sum, p) => sum + p.cantidad, 0);
-  document.querySelectorAll("#contador-carrito").forEach(el => (el.textContent = total));
+  const total = carrito.reduce((acc, p) => acc + (p.cantidad || 0), 0);
+  document
+    .querySelectorAll("#contador-carrito")
+    .forEach((el) => (el.textContent = total));
 }
 
 /* ════════════════════════════════════════════
@@ -151,6 +215,6 @@ function mostrarToast(mensaje) {
   M.toast({
     html: `<i class="fas fa-check-circle left"></i> ${mensaje}`,
     classes: "rounded amber darken-2 white-text",
-    displayLength: 3000
+    displayLength: 3000,
   });
 }

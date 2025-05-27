@@ -165,199 +165,206 @@ nav {
     display: flex;
     justify-content: space-between; // Distribución entre logo y menú
     align-items: center;
+    overflow: visible !important;
 
-    /* 🪙 Logo del sitio (imagen + texto) */
+    /* ======================= LOGO ======================= */
     .brand-logo {
       display: flex !important;
       align-items: center;
-      text-decoration: none; // Sin subrayado
+      text-decoration: none;
 
       img {
-        width: 36px;
-        height: 36px;
+        width: 40px;
+        height: 40px;
         margin-right: 0.6rem;
-        border-radius: 50%; // Imagen circular
+        border-radius: 50%;
+        object-fit: cover;
         filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
       }
 
       span {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: @secondary-accent; // Oro Mexica para destacar el nombre
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: @secondary-accent;
+        line-height: 1;
+        letter-spacing: -0.3px;
+        margin-top: 1px;
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+      }
+    }
+  } // <-- Cierra .nav-wrapper correctamente
+
+  /* =================== MENÚ PRINCIPAL =================== */
+  nav ul.hide-on-med-and-down li a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-weight: 500;
+    font-size: 0.88rem;
+    text-align: center;
+    color: @text-main;
+
+    i {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    &:hover {
+      color: @secondary-accent;
+    }
+  }
+
+  /* 📦 Menús desplegables (glassmorphism refinado y accesible) */
+  .dropdown-content {
+    z-index: 9999 !important;
+    background-color: lighten(@glass-bg, 6%);
+    backdrop-filter: blur(@glass-blur);
+    -webkit-backdrop-filter: blur(@glass-blur);
+    border-radius: @border-radius;
+    border: 1px solid @glass-border;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+    animation: dropdownFade 0.3s ease-in-out;
+    margin-bottom: 8px; // espacio extra si hay scroll
+    margin-bottom: 12px; // Evita que quede “pegado” al borde inferior de la pantalla
+
+    li {
+      a {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.8rem 1.1rem;
+        font-weight: 500;
+        font-size: 0.93rem;
+        color: @text-main !important;
+        line-height: 1.25;
+        transition:
+          background-color @transition-time ease-in-out,
+          transform 0.2s ease-out;
+
+        i {
+          min-width: 1.2rem;
+          text-align: center;
+          font-size: 1rem;
+          transition: transform 0.2s ease-in-out;
+        }
+
+        &:hover {
+          background-color: fade(@primary-accent, 12%);
+          transform: translateX(4px);
+        }
+
+        &:focus {
+          outline: 2px dashed fade(@primary-accent, 60%);
+          outline-offset: 4px;
+        }
       }
     }
 
-    /* 📂 Menú principal (horizontal) */
-    ul {
-      display: flex;
-      gap: 1.5rem; // Espacio entre elementos
-      margin: 0;
-      padding: 0;
-      list-style: none;
+    li.divider {
+      margin: 0.2rem 0;
+      height: 1px;
+      background-color: fade(@text-main, 10%);
+    }
+  }
 
-      li {
+  /* ============================================================================
+   📱 SIDENAV (Mobile) - Menú lateral desplegable para pantallas pequeñas
+   Aplica fondo translúcido, accesibilidad visual y efecto glassmorphism.
+============================================================================ */
+
+  .sidenav {
+    background-color: @panel-bg; // Fondo oscuro semiopaco
+    color: @text-main; // Texto principal claro
+    padding-top: 1rem; // Espaciado superior opcional
+
+    li {
+      border-bottom: 1px solid fade(@glass-border, 20%); // Separadores sutiles
+
+      > a {
+        color: @text-main !important; // Color claro por defecto
+        font-weight: 500; // Texto destacado
+        padding: 0.9rem 1.4rem;
         display: flex;
         align-items: center;
+        transition: background-color @transition-time;
 
-        a {
-          color: @text-main !important; // Texto principal claro
-          font-weight: 500;
-          display: flex;
-          align-items: center;
-          gap: 0.4rem; // Espacio entre icono y texto
-          transition: color @transition-time @easing;
+        i {
+          margin-right: 0.6rem;
+          width: 1.2rem;
+          text-align: center;
+          font-size: 1.1rem;
+        }
 
-          i {
-            font-size: 1rem;
-            width: 1.2rem;
-            text-align: center;
-          }
+        &:hover {
+          background-color: fade(
+            @primary-accent,
+            12%
+          ); // Hover con acento visual
+        }
 
-          &:hover {
-            color: @primary-accent !important; // Acento turquesa al pasar el mouse
-            background-color: transparent; // Sin fondo en hover
-          }
-
-          &:focus {
-            outline: 2px dashed fade(@primary-accent, 60%);
-            outline-offset: 4px;
-          }
+        &:focus {
+          outline: 2px dashed fade(@primary-accent, 60%);
+          outline-offset: 4px;
         }
       }
     }
   }
 
-  /* 📦 Dropdown (submenús desplegables) */
-  .dropdown-content {
-    background-color: lighten(@glass-bg, 4%); // Fondo glass claro
-    backdrop-filter: blur(@glass-blur); // Efecto glassmorphism
-    -webkit-backdrop-filter: blur(@glass-blur); // Compatibilidad
-    border-radius: @border-radius; // Bordes suaves
-    border: 1px solid @glass-border; // Borde translúcido
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4); // Sombra flotante
-    margin-top: 0.6rem !important;
-    min-width: 200px;
-    overflow: hidden;
-    animation: fadeIn 0.4s ease-in-out; // Entrada suave
+  /* 🔻 Encabezados desplegables (collapsibles) */
+  .collapsible-header {
+    color: @text-main !important; // Texto claro en encabezado de sección
+    font-weight: 600;
+    font-size: 1.05rem;
+    background-color: transparent;
+    padding: 0.9rem 1.4rem;
+    border-bottom: 1px solid fade(@glass-border, 15%);
+    transition: background-color @transition-time;
 
-    li > a {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      padding: 0.85rem 1.2rem;
-      font-weight: 500;
-      color: @text-main !important;
-      transition: background-color @transition-time;
+    &:hover {
+      background-color: fade(@primary-accent, 10%);
+    }
 
-      i {
-        width: 1.2rem;
-        text-align: center;
-      }
-
-      &:hover {
-        background-color: fade(@primary-accent, 12%); // Hover con acento sutil
-      }
-
-      &:focus {
-        outline: 2px dashed fade(@primary-accent, 60%);
-        outline-offset: 4px;
-      }
+    i {
+      margin-right: 0.8rem;
+      font-size: 1.1rem;
     }
   }
-}
-
 /* ============================================================================
-   📱 SIDENAV (Mobile) - Menú lateral desplegable para pantallas pequeñas
-   Aplica fondo translúcido, accesibilidad visual y efecto glassmorphism.
-============================================================================ */
-
-.sidenav {
-  background-color: @panel-bg; // Fondo oscuro semiopaco
-  color: @text-main; // Texto principal claro
-  padding-top: 1rem; // Espaciado superior opcional
-
-  li {
-    border-bottom: 1px solid fade(@glass-border, 20%); // Separadores sutiles
-
-    > a {
-      color: @text-main !important; // Color claro por defecto
-      font-weight: 500; // Texto destacado
-      padding: 0.9rem 1.4rem;
-      display: flex;
-      align-items: center;
-      transition: background-color @transition-time;
-
-      i {
-        margin-right: 0.6rem;
-        width: 1.2rem;
-        text-align: center;
-        font-size: 1.1rem;
-      }
-
-      &:hover {
-        background-color: fade(@primary-accent, 12%); // Hover con acento visual
-      }
-
-      &:focus {
-        outline: 2px dashed fade(@primary-accent, 60%);
-        outline-offset: 4px;
-      }
-    }
-  }
-}
-
-/* 🔻 Encabezados desplegables (collapsibles) */
-.collapsible-header {
-  color: @text-main !important; // Texto claro en encabezado de sección
-  font-weight: 600;
-  font-size: 1.05rem;
-  background-color: transparent;
-  padding: 0.9rem 1.4rem;
-  border-bottom: 1px solid fade(@glass-border, 15%);
-  transition: background-color @transition-time;
-
-  &:hover {
-    background-color: fade(@primary-accent, 10%);
-  }
-
-  i {
-    margin-right: 0.8rem;
-    font-size: 1.1rem;
-  }
-}
-
-/* ============================================================================
-   🧊 TARJETAS DE PRODUCTO - Diseño Glassmorphism extendido
-   Mejora visual y responsiva de las tarjetas con fondo decorativo y sombras suaves
+   🧊 TARJETAS DE PRODUCTO - Estilo Glassmorphism Mexica Oscuro
+   Diseño responsivo, accesible y refinado para TianguiStore
 ============================================================================ */
 
 .product-card,
 .glass-card {
-  position: relative; // Permite posicionamiento de badges o overlays
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   background:
     linear-gradient(
-      to bottom right,
-      fade(@card-bg, 88%),
-      fade(darken(@card-bg, 5%), 90%)
+      135deg,
+      fade(@card-bg, 92%),
+      fade(darken(@card-bg, 5%), 95%)
     ),
-    url("../imagenes/patron_producto.png") repeat; // Patrón visual para distinguir tarjetas
-  background-size: cover;
-  backdrop-filter: blur(@glass-blur); // Efecto glassmorphism real
-  border: 1px solid @glass-border; // Borde translúcido
-  border-radius: @border-radius; // Bordes redondeados uniformes
-  box-shadow: @card-shadow; // Sombra para dar profundidad
-  transition:
-    transform @transition-time,
-    box-shadow @transition-time;
+    url("../imagenes/patron_producto.png") repeat;
+  background-size: 160px;
+  backdrop-filter: blur(@glass-blur);
+  border-radius: @border-radius;
+  border: 1px solid fade(@glass-border, 60%);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
   overflow: hidden;
-  animation: fadeInCard 0.5s ease-in-out;
+  transition:
+    transform @transition-time ease,
+    box-shadow @transition-time ease;
+  animation: fadeInCard 0.45s ease-in-out both;
 
   &:hover {
-    transform: scale(1.02); // Efecto sutil de expansión
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); // Sombra más profunda al hacer hover
+    transform: scale(1.015);
+    box-shadow: 0 12px 30px rgba(255, 193, 7, 0.25);
   }
 
-  /* 📷 Imagen destacada del producto */
+  /* 📷 Imagen del producto */
   .card-image {
     position: relative;
     overflow: hidden;
@@ -366,89 +373,150 @@ nav {
       width: 100%;
       height: 180px;
       object-fit: cover;
-      border-bottom: 1px solid fade(@primary-accent, 15%);
+      border-bottom: 1px solid fade(@primary-accent, 20%);
+      filter: brightness(0.94);
       transition:
-        transform 0.3s ease,
-        filter 0.3s ease;
-      filter: brightness(0.98); // Ligeramente atenuada por defecto
+        transform 0.35s ease,
+        filter 0.35s ease;
     }
 
     &:hover img {
-      transform: scale(1.05); // Zoom leve al hacer hover
-      filter: brightness(1); // Imagen más viva
+      transform: scale(1.05);
+      filter: brightness(1);
     }
   }
 
-  /* 🧾 Contenido textual del producto */
+  /* 📄 Contenido textual */
   .card-content {
-    padding: 1rem 1.2rem;
+    padding: 1.2rem 1.4rem;
     display: flex;
     flex-direction: column;
-    gap: 0.6rem; // Separación uniforme entre elementos
+    gap: 0.6rem;
+    color: @text-main;
+    flex-grow: 1;
   }
 
   .product-title {
     font-size: 1.2rem;
     font-weight: 600;
-    margin: 0;
-    color: @secondary-accent; // Título con acento dorado
+    color: @secondary-accent;
+    letter-spacing: 0.4px;
     text-transform: capitalize;
-    letter-spacing: 0.3px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
   .product-description {
-    font-size: 0.92rem;
-    line-height: 1.5;
+    font-size: 0.9rem;
     color: @text-muted;
-    max-height: 4.4rem; // Limita el contenido visual
+    line-height: 1.45;
+    max-height: 4.5rem;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  /* 💰 Precio y stock en distribución horizontal */
   .product-price-stock {
-    margin-top: 0.8rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 0.5rem;
+    margin-top: 0.6rem;
     font-size: 0.95rem;
-  }
 
-  .product-price {
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: @text-main;
-    white-space: nowrap;
-  }
-
-  .product-stock {
-    font-size: 0.85rem;
-    color: @text-muted;
-    font-style: italic;
-  }
-
-  /* 💠 Animación de entrada */
-  @keyframes fadeInCard {
-    0% {
-      opacity: 0;
-      transform: translateY(10px);
+    .product-price {
+      font-weight: bold;
+      color: @primary-accent;
     }
-    100% {
+
+    .product-stock {
+      font-style: italic;
+      color: @text-muted;
+    }
+  }
+
+  /* 🧮 Botón de acción */
+  .card-action {
+    background-color: fade(@glass-border, 8%);
+    border-top: 1px solid fade(@glass-border, 20%);
+    padding: 0.8rem;
+    text-align: center;
+
+    .btn-agregar {
+      background-color: @secondary-accent;
+      color: #fff;
+      border-radius: 2rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      padding: 0.5rem 1.3rem;
+      font-size: 0.95rem;
+      transition: all 0.25s ease;
+
+      i {
+        margin-right: 6px;
+      }
+
+      &:hover {
+        background-color: darken(@secondary-accent, 12%);
+        transform: scale(1.03);
+        box-shadow: 0 6px 16px fade(@secondary-accent, 20%);
+      }
+
+      &:focus {
+        outline: 2px dashed fade(@primary-accent, 60%);
+        outline-offset: 3px;
+      }
+
+      &:disabled {
+        background-color: fade(@secondary-accent, 40%);
+        color: fade(#fff, 60%);
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  /* ✨ Animación de entrada */
+  @keyframes fadeInCard {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
       opacity: 1;
       transform: translateY(0);
     }
   }
+
+  /* 📱 Responsivo */
+  @media screen and (max-width: 600px) {
+    .card-content {
+      padding: 1rem;
+    }
+
+    .product-title {
+      font-size: 1.05rem;
+    }
+
+    .product-description {
+      font-size: 0.88rem;
+    }
+
+    .product-price-stock {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.3rem;
+    }
+
+    .btn-agregar {
+      font-size: 0.9rem;
+    }
+  }
 }
+
 /* ============================================================================
    🧾 TianguiStore - Formulario Glassmorphism Ceremonial
-   Estilo oscuro, accesible y visualmente refinado para inputs y selects.
+   Campos de entrada elegantes, accesibles y armonizados con el diseño oscuro.
 ============================================================================ */
 
-/* === Input field contenedor con prefijo e íconos === */
 .input-field {
   position: relative;
   margin-bottom: 2rem;
@@ -458,7 +526,7 @@ nav {
     opacity: 0.95;
     font-size: 1.2rem;
     margin-right: 0.6rem;
-    transition: color @transition-time;
+    transition: color @transition-time ease;
   }
 
   label {
@@ -466,8 +534,8 @@ nav {
     font-size: 0.95rem;
     font-weight: 500;
     margin-left: 0.1rem;
-    transition: color @transition-time ease;
     user-select: none;
+    transition: color @transition-time ease;
   }
 
   input:focus + label,
@@ -475,36 +543,31 @@ nav {
     color: @primary-accent;
   }
 
-  // Íconos visibles en inputs tipo date
+  // Calendario e íconos especiales
   input[type="date"]::-webkit-calendar-picker-indicator,
   input[type="time"]::-webkit-calendar-picker-indicator {
     filter: invert(100%);
   }
 }
 
-/* === Inputs y selects integrados === */
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="tel"],
-input[type="url"],
-input[type="date"],
+/* 🎨 Campos de entrada base */
+input[type],
 textarea,
 .select-wrapper input.select-dropdown {
   width: 100%;
+  padding: 0.7rem 0.5rem;
+  font-size: 1rem;
+  font-weight: 400;
+  color: @text-main;
   background: fade(@glass-bg, 30%);
-  padding: 0.7rem 0.5rem 0.4rem;
   border: none;
   border-bottom: 1.5px solid fade(@secondary-accent, 35%);
   border-radius: @border-radius;
-  color: @text-main;
-  font-size: 1rem;
-  font-weight: 400;
   letter-spacing: 0.2px;
   transition:
     border-bottom @transition-time ease,
-    box-shadow @transition-time ease,
-    background @transition-time ease;
+    background @transition-time ease,
+    box-shadow @transition-time ease;
 
   &::placeholder {
     color: fade(@text-muted, 40%);
@@ -512,7 +575,7 @@ textarea,
   }
 
   &:focus {
-    background: fade(@primary-accent, 8%);
+    background: fade(@primary-accent, 10%);
     border-bottom: 2px solid @secondary-accent;
     box-shadow: 0 1px 0 0 @secondary-accent;
     outline: none;
@@ -523,14 +586,14 @@ textarea,
   }
 
   &:disabled {
-    background-color: fade(@glass-bg, 10%);
+    background-color: fade(@glass-bg, 12%);
     color: fade(@text-muted, 50%);
     cursor: not-allowed;
     border-bottom: 1px dashed fade(@text-muted, 25%);
   }
 }
 
-/* === Validaciones visuales === */
+/* ✅ Validaciones visuales */
 input.valid,
 textarea.valid {
   border-bottom: 2px solid lighten(@success-color, 10%) !important;
@@ -543,17 +606,17 @@ textarea.invalid {
   box-shadow: 0 1px 0 0 lighten(@error-color, 8%) !important;
 }
 
-/* === Autofill y accesibilidad === */
+/* 🧠 Autofill */
 input:-webkit-autofill,
 textarea:-webkit-autofill,
 select:-webkit-autofill {
   transition: background-color 5000s ease-in-out 0s;
   -webkit-text-fill-color: @text-main !important;
-  box-shadow: 0 0 0 1000px fade(@glass-bg, 20%) inset !important;
+  box-shadow: 0 0 0 1000px fade(@glass-bg, 18%) inset !important;
   border-bottom: 1px solid fade(@primary-accent, 40%) !important;
 }
 
-/* === Toggle de contraseña === */
+/* 🔐 Ícono para alternar visibilidad de contraseña */
 .toggle-password {
   position: absolute;
   top: 50%;
@@ -564,7 +627,10 @@ select:-webkit-autofill {
   color: @text-muted;
   font-size: 1.2rem;
   opacity: 0.7;
-  transition: color @transition-time, transform 0.2s;
+  user-select: none;
+  transition:
+    color @transition-time ease,
+    transform 0.2s ease;
 
   &:hover {
     color: @primary-accent;
@@ -576,15 +642,14 @@ select:-webkit-autofill {
   }
 }
 
-/* === Menú desplegable (Materialize Select) === */
+/* 🧾 Select personalizado (Materialize) */
 .select-dropdown {
   background: fade(@panel-bg, 85%) !important;
-  backdrop-filter: blur(@glass-blur) saturate(120%);
+  backdrop-filter: blur(@glass-blur);
   border: 1px solid @glass-border;
   border-radius: @border-radius;
   color: @text-main !important;
   box-shadow: @shadow-glass;
-  font-family: 'Roboto', sans-serif;
   font-size: 1rem;
   padding: 0.25rem 0;
   z-index: @z-dropdown;
@@ -596,21 +661,25 @@ select:-webkit-autofill {
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: @primary-accent transparent;
-}
 
-.select-dropdown li > span {
-  color: @text-main;
-  font-weight: 500;
-  padding: 0.75rem 1rem;
-  display: block;
-  border-radius: @border-radius;
-  transition: background @transition-fast, color @transition-fast;
-}
+  li > span {
+    display: block;
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+    color: @text-main;
+    transition: background @transition-fast, color @transition-fast;
+    border-radius: @border-radius;
+  }
 
-.select-dropdown li:hover > span,
-.select-dropdown li.selected > span {
-  background-color: fade(@primary-accent, 20%) !important;
-  color: white !important;
+  li:hover > span,
+  li.selected > span {
+    background-color: fade(@primary-accent, 20%) !important;
+    color: white !important;
+  }
+
+  li {
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
 .select-wrapper input.select-dropdown:focus {
@@ -624,360 +693,466 @@ select:-webkit-autofill {
   color: @secondary-accent !important;
 }
 
-.select-dropdown li {
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* ============================================================================
+  /* ============================================================================
    🔒 TOGGLE-PASSWORD - Ícono para mostrar u ocultar contraseña
    Se ubica dentro del campo de input y ofrece feedback visual e interacción suave
 ============================================================================ */
 
-.toggle-password {
-  position: absolute; // Se posiciona sobre el campo de input
-  top: 50%; // Centrado vertical
-  right: 0.75rem; // Separado del borde derecho
-  transform: translateY(-50%); // Corrección de centrado
-  z-index: 2; // Encima del input
-  cursor: pointer; // Cursor de interacción
-  color: fade(@text-main, 80%); // Color semiatenuado
-  font-size: 1.25rem; // Tamaño del ícono visible
-  user-select: none; // Evita selección accidental de texto
-  -webkit-user-select: none;
-  transition:
-    color 0.25s ease,
-    opacity 0.3s ease;
+  .toggle-password {
+    position: absolute; // Se posiciona sobre el campo de input
+    top: 50%; // Centrado vertical
+    right: 0.75rem; // Separado del borde derecho
+    transform: translateY(-50%); // Corrección de centrado
+    z-index: 2; // Encima del input
+    cursor: pointer; // Cursor de interacción
+    color: fade(@text-main, 80%); // Color semiatenuado
+    font-size: 1.25rem; // Tamaño del ícono visible
+    user-select: none; // Evita selección accidental de texto
+    -webkit-user-select: none;
+    transition:
+      color 0.25s ease,
+      opacity 0.3s ease;
 
-  &:hover {
-    color: @primary-accent; // Acento turquesa al pasar el cursor
-    opacity: 1;
+    &:hover {
+      color: @primary-accent; // Acento turquesa al pasar el cursor
+      opacity: 1;
+    }
+
+    &:focus {
+      outline: 2px dashed fade(@primary-accent, 60%);
+      outline-offset: 4px;
+    }
+
+    &:active {
+      transform: translateY(-50%) scale(0.95); // Retroalimentación visual al hacer clic
+    }
   }
 
-  &:focus {
-    outline: 2px dashed fade(@primary-accent, 60%);
-    outline-offset: 4px;
-  }
-
-  &:active {
-    transform: translateY(-50%) scale(0.95); // Retroalimentación visual al hacer clic
-  }
-}
-
-/* ============================================================================
+  /* ============================================================================
    ✅ VALIDACIONES - Estados visuales para campos válidos e inválidos
    Mejora el feedback al usuario con colores contrastantes y transiciones suaves
 ============================================================================ */
 
-/* ✔️ Campo válido (éxito) */
-.input-field input.valid,
-.input-field textarea.valid,
-.input-field select.valid {
-  border-bottom: 2px solid lighten(@success-color, 10%); // Verde suave
-  box-shadow: 0 1px 0 0 lighten(@success-color, 10%);
-  transition:
-    border-color 0.3s ease,
-    box-shadow 0.3s ease;
+  /* ✔️ Campo válido (éxito) */
+  .input-field input.valid,
+  .input-field textarea.valid,
+  .input-field select.valid {
+    border-bottom: 2px solid lighten(@success-color, 10%); // Verde suave
+    box-shadow: 0 1px 0 0 lighten(@success-color, 10%);
+    transition:
+      border-color 0.3s ease,
+      box-shadow 0.3s ease;
 
-  &:focus {
-    border-bottom: 2px solid lighten(@success-color, 5%);
-    box-shadow: 0 1px 0 0 lighten(@success-color, 5%);
+    &:focus {
+      border-bottom: 2px solid lighten(@success-color, 5%);
+      box-shadow: 0 1px 0 0 lighten(@success-color, 5%);
+    }
   }
-}
 
-/* ❌ Campo inválido (error) */
-.input-field input.invalid,
-.input-field textarea.invalid,
-.input-field select.invalid {
-  border-bottom: 2px solid lighten(@error-color, 10%); // Rojo intenso
-  box-shadow: 0 1px 0 0 lighten(@error-color, 10%);
-  transition:
-    border-color 0.3s ease,
-    box-shadow 0.3s ease;
+  /* ❌ Campo inválido (error) */
+  .input-field input.invalid,
+  .input-field textarea.invalid,
+  .input-field select.invalid {
+    border-bottom: 2px solid lighten(@error-color, 10%); // Rojo intenso
+    box-shadow: 0 1px 0 0 lighten(@error-color, 10%);
+    transition:
+      border-color 0.3s ease,
+      box-shadow 0.3s ease;
 
-  &:focus {
-    border-bottom: 2px solid @error-color;
-    box-shadow: 0 1px 0 0 @error-color;
+    &:focus {
+      border-bottom: 2px solid @error-color;
+      box-shadow: 0 1px 0 0 @error-color;
+    }
   }
-}
 
-/* ============================================================================
+  /* ============================================================================
    🧾 HELPER-TEXT - Mensajes de ayuda o validación debajo de inputs
    Incluye colores semánticos, íconos y alineación moderna con feedback visual claro
 ============================================================================ */
 
-.helper-text {
-  font-size: 0.9rem; // Tamaño legible sin sobresaturar
-  line-height: 1.4; // Espaciado vertical óptimo
-  margin-top: 0.5rem; // Separación respecto al campo
-  display: block;
-  color: fade(
-    @text-main,
-    85%
-  ) !important; // Color por defecto (ligeramente atenuado)
-  font-weight: 400;
-  padding-left: 0.2rem;
-  transition: color @transition-time ease;
+  .helper-text {
+    font-size: 0.9rem; // Tamaño legible sin sobresaturar
+    line-height: 1.4; // Espaciado vertical óptimo
+    margin-top: 0.5rem; // Separación respecto al campo
+    display: block;
+    color: fade(
+      @text-main,
+      85%
+    ) !important; // Color por defecto (ligeramente atenuado)
+    font-weight: 400;
+    padding-left: 0.2rem;
+    transition: color @transition-time ease;
 
-  /* 🔁 Estilo para mensajes con íconos */
-  &.red-text,
-  &.green-text,
-  &.amber-text {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem; // Separación entre ícono y texto
-    margin-top: 0.35rem;
-    font-weight: 500;
-    letter-spacing: 0.2px;
-  }
+    /* 🔁 Estilo para mensajes con íconos */
+    &.red-text,
+    &.green-text,
+    &.amber-text {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem; // Separación entre ícono y texto
+      margin-top: 0.35rem;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+    }
 
-  /* ❌ Error (rojo) */
-  &.red-text {
-    color: lighten(@error-color, 5%) !important;
-  }
+    /* ❌ Error (rojo) */
+    &.red-text {
+      color: lighten(@error-color, 5%) !important;
+    }
 
-  /* ✅ Correcto (verde) */
-  &.green-text {
-    color: lighten(@success-color, 5%) !important;
-  }
+    /* ✅ Correcto (verde) */
+    &.green-text {
+      color: lighten(@success-color, 5%) !important;
+    }
 
-  /* ⚠️ Advertencia / Sugerencia (ámbar) */
-  &.amber-text {
-    color: darken(@warning-color, 5%) !important;
-  }
+    /* ⚠️ Advertencia / Sugerencia (ámbar) */
+    &.amber-text {
+      color: darken(@warning-color, 5%) !important;
+    }
 
-  /* 🧩 Ícono embebido dentro del mensaje */
-  .material-icons {
-    font-size: 1.1rem;
-    line-height: 1;
-    position: relative;
-    top: 1px;
-    opacity: 0.85;
-  }
-
-  /* 📱 Responsividad en dispositivos pequeños */
-  @media screen and (max-width: 480px) {
-    font-size: 0.85rem;
+    /* 🧩 Ícono embebido dentro del mensaje */
     .material-icons {
-      font-size: 1rem;
+      font-size: 1.1rem;
+      line-height: 1;
+      position: relative;
+      top: 1px;
+      opacity: 0.85;
+    }
+
+    /* 📱 Responsividad en dispositivos pequeños */
+    @media screen and (max-width: 480px) {
+      font-size: 0.85rem;
+      .material-icons {
+        font-size: 1rem;
+      }
     }
   }
-}
 
-
-/* ============================================================================
+  /* ============================================================================
    🔘 BOTONES - Estilo principal para botones grandes (submit) y de acción
    Estética elegante, acentuada y con interactividad suave. Coherente con el estilo Mexica.
 ============================================================================ */
 
-button[type="submit"].btn-large,
-.btn.btn-agregar {
-  background-color: @secondary-accent; // Fondo oro Mexica
-  color: @dark-bg; // Texto oscuro para contraste
-  font-weight: 600;
-  font-size: 1.05rem;
-  padding: 0.85rem 1.6rem;
-  border-radius: @border-radius; // Bordes suaves
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); // Sombra flotante suave
-  transition: all @transition-time ease-in-out;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+  button[type="submit"].btn-large,
+  .btn.btn-agregar {
+    background-color: @secondary-accent; // Fondo oro Mexica
+    color: @dark-bg; // Texto oscuro para contraste
+    font-weight: 600;
+    font-size: 1.05rem;
+    padding: 0.85rem 1.6rem;
+    border-radius: @border-radius; // Bordes suaves
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); // Sombra flotante suave
+    transition: all @transition-time ease-in-out;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
 
-  &:hover {
-    background-color: darken(@secondary-accent, 10%); // Acento más oscuro
-    transform: scale(1.035); // Ligero zoom
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5); // Sombra más profunda
+    &:hover {
+      background-color: darken(@secondary-accent, 10%); // Acento más oscuro
+      transform: scale(1.035); // Ligero zoom
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5); // Sombra más profunda
+    }
+
+    &:focus {
+      outline: 2px dashed fade(@primary-accent, 60%);
+      outline-offset: 4px;
+    }
+
+    &:active {
+      transform: scale(0.98); // Feedback al clic
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    &:disabled {
+      background-color: fade(@secondary-accent, 40%);
+      color: fade(@dark-bg, 60%);
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    i.material-icons,
+    svg {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      vertical-align: middle;
+    }
   }
 
-  &:focus {
-    outline: 2px dashed fade(@primary-accent, 60%);
-    outline-offset: 4px;
-  }
-
-  &:active {
-    transform: scale(0.98); // Feedback al clic
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  }
-
-  &:disabled {
-    background-color: fade(@secondary-accent, 40%);
-    color: fade(@dark-bg, 60%);
-    cursor: not-allowed;
-    box-shadow: none;
-    transform: none;
-  }
-
-  i.material-icons,
-  svg {
-    font-size: 1.1rem;
-    opacity: 0.9;
-    vertical-align: middle;
-  }
-}
-
-/* ============================================================================
+  /* ============================================================================
    🏷️ ETIQUETAS DE PRODUCTO (BADGES)
    Distintivos flotantes para destacar estado del producto: nuevo, popular, bajo stock, etc.
    Estilo visual con glassmorphism, color de fondo semántico y legibilidad optimizada.
 ============================================================================ */
 
-.badge-etiqueta {
-  position: absolute; // Se posiciona sobre la tarjeta
-  top: 10px;
-  left: 10px;
-  z-index: 3; // Encima del contenido de la tarjeta
-  padding: 4px 10px; // Relleno interno horizontal
-  font-size: 0.75rem; // Tamaño pequeño pero legible
-  font-weight: bold;
-  color: #fff; // Texto claro
-  text-transform: uppercase; // Texto en mayúsculas
-  letter-spacing: 0.5px; // Espaciado tipográfico
-  border-radius: 1.25rem; // Bordes redondeados tipo píldora
+  .badge-etiqueta {
+    position: absolute; // Se posiciona sobre la tarjeta
+    top: 10px;
+    left: 10px;
+    z-index: 3; // Encima del contenido de la tarjeta
+    padding: 4px 10px; // Relleno interno horizontal
+    font-size: 0.75rem; // Tamaño pequeño pero legible
+    font-weight: bold;
+    color: #fff; // Texto claro
+    text-transform: uppercase; // Texto en mayúsculas
+    letter-spacing: 0.5px; // Espaciado tipográfico
+    border-radius: 1.25rem; // Bordes redondeados tipo píldora
 
-  background-color: fade(
-    #000,
-    0%
-  ); // Fallback transparente (se sobreescribe por clases)
-  backdrop-filter: blur(6px); // Efecto glass real
-  -webkit-backdrop-filter: blur(6px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); // Sombra difusa
-  border: 1px solid fade(#fff, 6%); // Borde tenue que destaca
+    background-color: fade(
+      #000,
+      0%
+    ); // Fallback transparente (se sobreescribe por clases)
+    backdrop-filter: blur(6px); // Efecto glass real
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); // Sombra difusa
+    border: 1px solid fade(#fff, 6%); // Borde tenue que destaca
 
-  display: inline-flex; // Permite alinear texto e íconos
-  align-items: center;
-  gap: 0.4rem;
+    display: inline-flex; // Permite alinear texto e íconos
+    align-items: center;
+    gap: 0.4rem;
 
-  animation: fadeIn 0.5s ease-in-out;
-  transition:
-    background-color 0.3s ease,
-    transform 0.2s ease;
+    animation: fadeIn 0.5s ease-in-out;
+    transition:
+      background-color 0.3s ease,
+      transform 0.2s ease;
 
-  &:hover {
-    transform: scale(1.05); // Efecto suave al pasar el mouse
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    &:hover {
+      transform: scale(1.05); // Efecto suave al pasar el mouse
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    }
+
+    i,
+    svg {
+      font-size: 0.9rem;
+      opacity: 0.85;
+    }
   }
 
-  i,
-  svg {
-    font-size: 0.9rem;
-    opacity: 0.85;
+  /* 🎯 Badges específicos por tipo de estado */
+  .badge-destacado {
+    background-color: @primary-accent; // Turquesa (producto importante)
   }
-}
 
-/* 🎯 Badges específicos por tipo de estado */
-.badge-destacado {
-  background-color: @primary-accent; // Turquesa (producto importante)
-}
+  .badge-nuevo {
+    background-color: #2e7d32; // Verde (producto recién agregado)
+  }
 
-.badge-nuevo {
-  background-color: #2e7d32; // Verde (producto recién agregado)
-}
+  .badge-bajo-stock {
+    background-color: #f4511e; // Naranja intenso (alerta de inventario bajo)
+  }
 
-.badge-bajo-stock {
-  background-color: #f4511e; // Naranja intenso (alerta de inventario bajo)
-}
+  .badge-popular {
+    background-color: #ffc107; // Amarillo vibrante
+    color: #121212; // Contraste en fondo claro
+  }
 
-.badge-popular {
-  background-color: #ffc107; // Amarillo vibrante
-  color: #121212; // Contraste en fondo claro
-}
+  /* ══════════════════════════════════════
+   👥 MENÚ DE USUARIO + IDENTIDAD DE ROL
+═══════════════════════════════════════ */
 
-/* ============================================================================
+  /* === Contenedor principal === */
+  #menu-usuario .dropdown-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: @border-radius;
+    background-color: fade(@card-bg, 85%);
+    backdrop-filter: blur(6px);
+    transition: background-color @transition-time;
+
+    &:hover {
+      background-color: fade(@glass-bg, 95%);
+    }
+
+    img {
+      width: 36px;
+      height: 36px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 2px solid @glass-border;
+    }
+
+    div {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+
+      // Nombre de usuario
+      span:first-child {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: @text-main;
+      }
+
+      // Etiqueta de rol
+      .badge {
+        font-size: 0.72rem;
+        font-weight: 500;
+        padding: 2px 6px;
+        margin-top: 2px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        text-transform: none;
+
+        i {
+          font-size: 0.75rem;
+        }
+      }
+    }
+
+    // Icono caret dropdown
+    i.fas.fa-caret-down {
+      margin-top: 4px;
+      font-size: 0.9rem;
+      opacity: 0.8;
+      margin-left: auto;
+    }
+  }
+
+  /* ══════════════════════════════════════
+   🎨 PALETA DE COLORES POR ROL (Accesible)
+═══════════════════════════════════════ */
+
+  .admin {
+    background-color: fade(@secondary-accent, 90%) !important;
+    color: #000 !important;
+    i {
+      color: #000 !important;
+    }
+  }
+
+  .soporte {
+    background-color: fade(#42a5f5, 85%) !important;
+    color: #fff !important;
+    i {
+      color: #fff !important;
+    }
+  }
+
+  .vendedor {
+    background-color: darken(@primary-accent, 10%) !important;
+    color: #fff !important;
+    i {
+      color: #fff !important;
+    }
+  }
+
+  .cliente {
+    background-color: fade(#b0bec5, 80%) !important;
+    color: #121212 !important;
+    i {
+      color: #121212 !important;
+    }
+  }
+
+  .sin-rol {
+    background-color: fade(#616161, 85%) !important;
+    color: #fff !important;
+    i {
+      color: #fff !important;
+    }
+  }
+
+  /* ============================================================================
    🎞️ ANIMACIONES - TianguiStore
    Animaciones modernas y suaves para glassmorphism oscuro profesional.
 ============================================================================ */
 
-/* === ⚡ Aparición básica === */
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
+  /* === ⚡ Aparición básica === */
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
   }
-  100% {
-    opacity: 1;
-  }
-}
 
-/* === ⬇️ Entrada desde arriba (menús, alertas, modales) === */
-@keyframes fadeInDown {
-  0% {
-    opacity: 0;
-    transform: translateY(-20px);
+  /* === ⬇️ Entrada desde arriba (menús, alertas, modales) === */
+  @keyframes fadeInDown {
+    0% {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
-/* === ⬆️ Entrada desde abajo (botones flotantes, tarjetas) === */
-@keyframes fadeInUp {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
+  /* === ⬆️ Entrada desde abajo (botones flotantes, tarjetas) === */
+  @keyframes fadeInUp {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
-/* === 🔍 Escala suave (entradas visuales como tarjetas) === */
-@keyframes scaleIn {
-  0% {
-    transform: scale(0.95);
-    opacity: 0;
+  /* === 🔍 Escala suave (entradas visuales como tarjetas) === */
+  @keyframes scaleIn {
+    0% {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
 
-/* === 🔁 Fade escalonado para listas (cards en galería o loops) === */
-@keyframes fadeStaggered {
-  0% {
-    opacity: 0;
-    transform: translateY(12px);
+  /* === 🔁 Fade escalonado para listas (cards en galería o loops) === */
+  @keyframes fadeStaggered {
+    0% {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
-/* === 🔄 Rotación continua (spinners) === */
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
+  /* === 🔄 Rotación continua (spinners) === */
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
-  100% {
-    transform: rotate(360deg);
-  }
-}
 
-/* === 💡 Parpadeo pulsante (tooltips, badges dinámicos) === */
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
+  /* === 💡 Parpadeo pulsante (tooltips, badges dinámicos) === */
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.4;
+    }
   }
-  50% {
-    opacity: 0.4;
-  }
-}
 
-/* === ✨ Fade in + blur (efecto vidrio animado) === */
-@keyframes fadeBlurIn {
-  0% {
-    opacity: 0;
-    filter: blur(4px);
-    transform: scale(0.98);
-  }
-  100% {
-    opacity: 1;
-    filter: blur(0);
-    transform: scale(1);
+  /* === ✨ Fade in + blur (efecto vidrio animado) === */
+  @keyframes fadeBlurIn {
+    0% {
+      opacity: 0;
+      filter: blur(4px);
+      transform: scale(0.98);
+    }
+    100% {
+      opacity: 1;
+      filter: blur(0);
+      transform: scale(1);
+    }
   }
 }
