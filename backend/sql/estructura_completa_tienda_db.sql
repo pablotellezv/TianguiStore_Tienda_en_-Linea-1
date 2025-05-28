@@ -309,6 +309,9 @@ CREATE TABLE IF NOT EXISTS usuarios (
   FOREIGN KEY (sucursal_id) REFERENCES sucursales(sucursal_id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
+
+
 -- 📧 Tabla: verificaciones de usuario
 CREATE TABLE IF NOT EXISTS verificaciones_usuario (
   verificacion_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -823,7 +826,61 @@ CREATE TABLE IF NOT EXISTS niveles_fidelidad (
   creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Adaptación de la tabla usuarios para incluir niveles de fidelidad
+INSERT INTO niveles_fidelidad (nivel_id, nombre_nivel, descripcion, puntos_necesarios, beneficios)
+VALUES 
+-- Niveles para clientes normales y fidelización
+(1, 'Básico', 'Nivel inicial sin beneficios especiales.', 0, JSON_OBJECT()),
 
+(2, 'Explorador', 'Recién registrado, recibe recomendaciones personalizadas.', 20, 
+ JSON_OBJECT('recomendaciones_ai', true)),
+
+(3, 'Bronce', 'Acceso a promociones básicas y prioridad media en soporte.', 100, 
+ JSON_OBJECT('descuento', '5%', 'prioridad_soporte', 'media')),
+
+(4, 'Mercante', 'Bonificaciones por compartir el sitio.', 180, 
+ JSON_OBJECT('bono_referidos', true, 'descuento', '7%')),
+
+(5, 'Plata', 'Envíos gratuitos y mayor descuento en productos seleccionados.', 250, 
+ JSON_OBJECT('descuento', '10%', 'envio_gratis', true)),
+
+(6, 'Aliado', 'Ofertas relámpago y acceso anticipado.', 350, 
+ JSON_OBJECT('descuento', '12%', 'early_access', true)),
+
+(7, 'Oro', 'Descuentos premium, soporte prioritario y regalos mensuales.', 500, 
+ JSON_OBJECT('descuento', '15%', 'envio_gratis', true, 'regalo_mensual', true)),
+
+(8, 'Embajador', 'Acceso exclusivo a sorteos y eventos.', 750, 
+ JSON_OBJECT('descuento', '15%', 'sorteos_exclusivos', true, 'regalo_mensual', true)),
+
+(9, 'Platino', 'Soporte VIP, regalos y descuentos máximos.', 1000, 
+ JSON_OBJECT('descuento', '20%', 'envio_gratis', true, 'soporte_vip', true, 'regalo_mensual', true)),
+
+(10, 'Diamante', 'Nivel élite reservado para miembros de alto impacto.', 1500, 
+ JSON_OBJECT('descuento', '25%', 'soporte_vip', true, 'eventos_privados', true)),
+
+-- Niveles internos de gestión y desarrollo
+(11, 'Staff', 'Acceso interno a operaciones y herramientas de soporte.', 0, 
+ JSON_OBJECT('acceso_interno', true, 'descuento_empleado', '100%')),
+
+(12, 'Soporte Técnico', 'Rol operativo con funciones técnicas de ayuda.', 0, 
+ JSON_OBJECT('panel_soporte', true, 'prioridad_tickets', 'alta')),
+
+(13, 'Moderador', 'Supervisa actividad y comunidad.', 0, 
+ JSON_OBJECT('acceso_moderacion', true)),
+
+(14, 'Desarrollador', 'Acceso a herramientas de desarrollo y pruebas.', 0, 
+ JSON_OBJECT('acceso_api', true, 'logs_tecnicos', true)),
+
+(15, 'Administrador', 'Control total del sistema y funciones avanzadas.', 0, 
+ JSON_OBJECT('acceso_sistema', true, 'privilegios_totales', true));
+
+ALTER TABLE usuarios
+ADD COLUMN nivel_id INT DEFAULT 1 AFTER rol_id,
+ADD CONSTRAINT fk_usuario_nivel
+  FOREIGN KEY (nivel_id) REFERENCES niveles_fidelidad(nivel_id)
+  ON UPDATE CASCADE
+  ON DELETE SET NULL;
 
 
 -- ════════════════════════════════════════════════════════════════════
@@ -3683,7 +3740,7 @@ VALUES
 ('blogger', 'Usuario con capacidad para escribir entradas de blog y responder comentarios.',
  JSON_OBJECT(
    'blog', JSON_OBJECT('crear', true, 'responder', true)
-))
+)),
 
 -- 👨‍💼 CANDIDATO
 ('candidato', 'Usuario que aplica a oportunidades laborales o colaboraciones.',

@@ -1,8 +1,8 @@
 /**
  * 📦 loadComponent.js
- * Carga dinámica de Navbar y Footer, aplica tema, y controla visibilidad y menús según sesión.
- * Incluye dropdown con imagen de perfil, permisos por rol y estilo glassmorphism.
- * Autor: I.S.C. Erick Renato Vega Ceron — Versión Final Mayo 2025
+ * Carga dinámica de navbar/footer, tema claro/oscuro, contador de carrito
+ * y menú contextual de usuario con roles, nivel y permisos.
+ * Autor: I.S.C. Erick Renato Vega Ceron – Última revisión: Mayo 2025
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -11,14 +11,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     await Promise.all([cargarNavbar(), cargarFooter()]);
     inicializarMaterialize();
     sincronizarToggleTema();
-    actualizarContadorCarrito();
+    actualizarContadorCarrito(); // ✅ ESTA LÍNEA
   } catch (error) {
-    console.error("⚠️ Error general de inicialización:", error);
+    console.error("⚠️ Error durante inicialización:", error);
   }
 });
 
 /* ══════════════════════════════════════
-   📁 CARGA DE COMPONENTES
+   🌐 CARGA DINÁMICA DE COMPONENTES
 ═══════════════════════════════════════ */
 
 async function cargarNavbar() {
@@ -28,13 +28,15 @@ async function cargarNavbar() {
   try {
     const res = await fetch("./componentes/navbar.html");
     if (!res.ok) throw new Error("No se pudo cargar navbar.html");
+
     contenedor.innerHTML = await res.text();
     contenedor.classList.add("animate__animated", "animate__fadeInDown");
 
-    gestionarVisibilidadMenus();
-    inicializarMaterialize();
+    inicializarMaterialize(); // ✅ Primero activa tooltips, dropdowns, etc.
+    gestionarVisibilidadMenus(); // ✅ Luego muestra u oculta ítems del menú
+    actualizarContadorCarrito(); // ✅ Finalmente actualiza los íconos del carrito
   } catch (err) {
-    console.error("❌ Navbar:", err);
+    console.error("❌ Error cargando navbar:", err);
     contenedor.innerHTML = `<nav class="red darken-4 center-align">⚠️ Error al cargar menú</nav>`;
   }
 }
@@ -46,16 +48,17 @@ async function cargarFooter() {
   try {
     const res = await fetch("./componentes/footer.html");
     if (!res.ok) throw new Error("No se pudo cargar footer.html");
+
     contenedor.innerHTML = await res.text();
     contenedor.classList.add("animate__animated", "animate__fadeInUp");
   } catch (err) {
-    console.error("❌ Footer:", err);
+    console.error("❌ Error cargando footer:", err);
     contenedor.innerHTML = `<footer class="page-footer red darken-4 center-align">⚠️ Error al cargar pie de página</footer>`;
   }
 }
 
 /* ══════════════════════════════════════
-   🌗 TEMA OSCURO / CLARO
+   🌓 CONTROL DE TEMA OSCURO / CLARO
 ═══════════════════════════════════════ */
 
 function aplicarTemaDesdePreferencias() {
@@ -69,7 +72,10 @@ function sincronizarToggleTema() {
   if (!toggle || !icono) return;
 
   const temaActual = localStorage.getItem("tema") || "oscuro";
-  icono.classList.replace("fa-moon", temaActual === "oscuro" ? "fa-sun" : "fa-moon");
+  icono.classList.replace(
+    "fa-moon",
+    temaActual === "oscuro" ? "fa-sun" : "fa-moon"
+  );
 
   toggle.addEventListener("click", () => {
     const oscuro = document.documentElement.classList.toggle("dark");
@@ -80,95 +86,164 @@ function sincronizarToggleTema() {
 }
 
 /* ══════════════════════════════════════
-   🧠 INICIALIZACIÓN MATERIALIZE
+   🧠 INICIALIZACIÓN DE COMPONENTES MATERIALIZE
 ═══════════════════════════════════════ */
 
 function inicializarMaterialize() {
+  // 📱 Menú lateral móvil
   const sidenavs = document.querySelectorAll(".sidenav");
-  const tooltips = document.querySelectorAll(".tooltipped");
-  const dropdowns = document.querySelectorAll(".dropdown-trigger");
-  const selects = document.querySelectorAll("select");
-  const collapsibles = document.querySelectorAll(".collapsible");
+  if (sidenavs.length) M.Sidenav.init(sidenavs);
 
-  M.Sidenav.init(sidenavs);
-  M.Tooltip.init(tooltips);
-  M.Dropdown.init(dropdowns, {
-    constrainWidth: false,
-    coverTrigger: false,
-    alignment: "right",
-  });
-  M.Collapsible.init(collapsibles);
-  M.FormSelect.init(selects);
+  // 🧭 Tooltips (iconos, botones, avatar)
+  const tooltips = document.querySelectorAll(".tooltipped");
+  if (tooltips.length) M.Tooltip.init(tooltips);
+
+  // 🔽 Menús desplegables
+  const dropdowns = document.querySelectorAll(".dropdown-trigger");
+  if (dropdowns.length) {
+    M.Dropdown.init(dropdowns, {
+      constrainWidth: false,
+      coverTrigger: false,
+      alignment: "right",
+    });
+  }
+
+  // 📂 Acordeones colapsables (opcional)
+  const collapsibles = document.querySelectorAll(".collapsible");
+  if (collapsibles.length) M.Collapsible.init(collapsibles);
+
+  // 📋 Select con estilo
+  const selects = document.querySelectorAll("select");
+  if (selects.length) M.FormSelect.init(selects);
 }
 
 /* ══════════════════════════════════════
-   🛒 CONTADOR DE CARRITO
+   🛒 ACTUALIZACIÓN DE CARRITO
 ═══════════════════════════════════════ */
-
+/**
+ * 🛒 Actualiza visualmente el contador de carrito en desktop y móvil.
+ * Incluye animación con Animate.css si hay productos.
+ */
 function actualizarContadorCarrito() {
   try {
     const carrito = JSON.parse(localStorage.getItem("carrito") || "[]");
     const total = carrito.reduce((acc, prod) => acc + (prod.cantidad || 0), 0);
-    document.querySelectorAll("#contador-carrito").forEach(el => el.textContent = total);
+
+    const badgeDesktop = document.getElementById("contador-carrito");
+    const badgeMobile = document.getElementById("contador-carrito-mobile");
+
+    // 🔄 Función reutilizable para actualizar y animar cada badge
+    const actualizarYAnimarBadge = (badge) => {
+      if (!badge) return;
+
+      badge.textContent = total;
+      badge.style.display = total > 0 ? "inline-block" : "none";
+
+      // Reinicia y aplica animación si hay productos
+      if (total > 0) {
+        badge.classList.remove("animate__animated", "animate__bounceIn");
+        void badge.offsetWidth; // Forzar reflow para reiniciar animación
+        badge.classList.add("animate__animated", "animate__bounceIn");
+
+        // Limpia la clase después de un breve tiempo
+        setTimeout(() => {
+          badge.classList.remove("animate__animated", "animate__bounceIn");
+        }, 800);
+      }
+    };
+
+    actualizarYAnimarBadge(badgeDesktop);
+    actualizarYAnimarBadge(badgeMobile);
   } catch (err) {
     console.error("❌ Error en contador de carrito:", err);
   }
 }
 
 /* ══════════════════════════════════════
-   🔐 VISIBILIDAD Y MENÚ POR ROL
+   🔐 GENERACIÓN DE MENÚ POR ROL Y VISIBILIDAD
 ═══════════════════════════════════════ */
 
 function gestionarVisibilidadMenus() {
   const token = localStorage.getItem("token");
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
-  const permisos = usuario?.permisos || {};
-  const menuUsuario = document.getElementById("menu-usuario");
+
   const loginBtn = document.getElementById("menu-login");
   const registroBtn = document.getElementById("menu-registro");
+  const menuUsuario = document.getElementById("menu-usuario");
 
   if (!token || !usuario) {
-    if (loginBtn) loginBtn.style.display = "block";
-    if (registroBtn) registroBtn.style.display = "block";
+    loginBtn?.classList.remove("hide");
+    registroBtn?.classList.remove("hide");
     return;
   }
 
   if (!menuUsuario) return;
-  menuUsuario.innerHTML = "";
 
-  const nombre = usuario.nombre || usuario.correo || "Usuario";
+  // Elimina el avatar anterior sin borrar el carrito ni el login/registro
+  document.getElementById("menu-avatar")?.remove();
+
+  // Inserta solo el bloque de usuario logueado
+  menuUsuario.insertAdjacentHTML("beforeend", generarBloqueUsuario(usuario));
+
+  // Agrega dropdown de usuario
+  document.body.appendChild(generarDropdownUsuario(usuario.permisos || {}));
+
+  setTimeout(() => {
+    const logoutBtn = document.getElementById("menu-logout");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        localStorage.clear();
+        M.toast({
+          html: "Sesión cerrada exitosamente",
+          classes: "rounded amber darken-3",
+        });
+        window.location.href = "login.html";
+      });
+    } else {
+      console.warn(
+        "⚠️ No se encontró el botón #menu-logout para cerrar sesión."
+      );
+    }
+  }, 300);
+
+  mostrarMenuPedidosSiSesionActiva();
+}
+
+function generarBloqueUsuario(usuario) {
+  const nombre = escapeHTML(usuario.nombre || usuario.correo || "Usuario");
   const rol = (usuario.rol || "cliente").toLowerCase();
-  const nivel = usuario.nivel || "Básico";
+  const nivel = escapeHTML(usuario.nivel || "Básico");
   const foto = usuario.fotoPerfil || "./imagenes/default_profile.png";
 
-  const rolConfig = {
-    admin: { color: "amber darken-2", icon: "fas fa-user-shield" },
-    soporte: { color: "blue lighten-2", icon: "fas fa-headset" },
-    vendedor: { color: "green lighten-2", icon: "fas fa-store" },
-    cliente: { color: "grey lighten-1", icon: "fas fa-user" },
+  const iconosRol = {
+    admin: "fas fa-user-shield",
+    soporte: "fas fa-headset",
+    vendedor: "fas fa-store",
+    cliente: "fas fa-user",
+    desarrollador: "fas fa-code",
   };
 
-  const rolColor = rolConfig[rol]?.color || "grey";
-  const rolIcon = rolConfig[rol]?.icon || "fas fa-user";
+  const icono = iconosRol[rol] || "fas fa-user";
+  const claseRol = `badge-rol ${rol}`;
 
-  menuUsuario.innerHTML = `
+  return `
     <li>
-      <a class="dropdown-trigger tooltipped" href="#" data-target="dropdown-usuario" data-tooltip="${nombre}"
-         style="display: flex; align-items: center; gap: 0.6rem;">
-        <img src="${foto}" alt="Perfil" class="circle z-depth-2"
-             style="width: 36px; height: 36px; object-fit: cover; border: 2px solid #555;" />
+      <a class="dropdown-trigger tooltipped" href="#" data-target="dropdown-usuario" data-tooltip="${nombre}" aria-label="Menú de usuario">
+        <img src="${foto}" alt="Perfil" class="circle z-depth-2" style="width: 36px; height: 36px; object-fit: cover; border: 2px solid #555;" />
         <div style="display: flex; flex-direction: column; line-height: 1.2;">
           <span class="white-text" style="font-weight: 600; font-size: 0.95rem;">${nombre}</span>
-          <span class="${rolColor} white-text badge z-depth-1"
-                style="font-size: 0.75rem; padding: 2px 6px; border-radius: 6px;">
-            <i class="${rolIcon}" style="margin-right: 4px;"></i>${rol.charAt(0).toUpperCase() + rol.slice(1)} — ${nivel}
+          <span class="${claseRol}">
+            <i class="${icono}"></i> ${usuario.rol} — ${nivel}
           </span>
         </div>
         <i class="fas fa-caret-down right white-text"></i>
       </a>
     </li>
   `;
+}
 
+function generarDropdownUsuario(permisos) {
   const dropdown = document.createElement("ul");
   dropdown.id = "dropdown-usuario";
   dropdown.className = "dropdown-content glass-navbar z-depth-2";
@@ -184,43 +259,23 @@ function gestionarVisibilidadMenus() {
     <li class="divider" tabindex="-1"></li>
     <li><a href="#" id="menu-logout"><i class="fas fa-sign-out-alt red-text"></i> Cerrar sesión</a></li>
   `;
-
-  document.body.appendChild(dropdown);
-  asignarLogout(["menu-logout"]);
-  mostrarMenuPedidosSiSesionActiva();
-
-  const usuarioDropdown = document.querySelector(".dropdown-trigger[data-target='dropdown-usuario']");
-  if (usuarioDropdown) {
-    M.Dropdown.init(usuarioDropdown, {
-      constrainWidth: false,
-      coverTrigger: false,
-      alignment: "right",
-      inDuration: 250,
-      outDuration: 150,
-      container: document.body
-    });
-  }
+  return dropdown;
 }
 
 function mostrarMenuPedidosSiSesionActiva() {
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
-  const permisos = usuario?.permisos || {};
-  const puedeVerPedidos = permisos?.pedidos?.leer === true;
+  const puedeVerPedidos = usuario?.permisos?.pedidos?.leer === true;
 
-  const liNavbar = document.getElementById("nav-pedidos");
-  const liSidenav = document.getElementById("sidenav-pedidos");
-
-  if (puedeVerPedidos) {
-    if (liNavbar) liNavbar.style.display = "flex";
-    if (liSidenav) liSidenav.style.display = "block";
-  } else {
-    if (liNavbar) liNavbar.style.display = "none";
-    if (liSidenav) liSidenav.style.display = "none";
-  }
+  document
+    .getElementById("nav-pedidos")
+    ?.style.setProperty("display", puedeVerPedidos ? "flex" : "none");
+  document
+    .getElementById("sidenav-pedidos")
+    ?.style.setProperty("display", puedeVerPedidos ? "block" : "none");
 }
 
 /* ══════════════════════════════════════
-   🔓 CIERRE DE SESIÓN
+   🔓 CIERRE DE SESIÓN Y LIMPIEZA LOCAL
 ═══════════════════════════════════════ */
 
 function asignarLogout(ids) {
@@ -233,8 +288,19 @@ function asignarLogout(ids) {
     window.location.href = "login.html";
   };
 
-  ids.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.onclick = logout;
+  ids.forEach((id) => {
+    document.getElementById(id)?.addEventListener("click", logout);
   });
+}
+
+/* ══════════════════════════════════════
+   🧼 ESCAPE BÁSICO DE HTML (prevención de XSS)
+═══════════════════════════════════════ */
+function escapeHTML(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
