@@ -84,89 +84,117 @@ function generarPaginacion() {
   }
 }
 
-/* ════════════════════════════════════════════
- * 🧱 Renderizar una tarjeta de producto estilo dark glass
- * ════════════════════════════════════════════ */
 function renderizarProducto(producto, contenedor) {
   const {
     producto_id: id,
     nombre = "Producto sin nombre",
-    descripcion = "Sin descripción",
+    descripcion = "Sin descripción disponible",
     precio = 0,
     stock = 0,
     imagen_url,
+    es_nuevo = false,
+    es_popular = false,
   } = producto;
 
-  let imagen =
-    imagen_url && imagen_url.trim()
-      ? imagen_url.trim()
-      : "/imagenes/default.png";
-  imagen = imagen
+  // 🖼️ Imagen segura
+  const imagen = (imagen_url || "/imagenes/default.png")
+    .trim()
     .replace(/\\/g, "/")
     .replace(/^public/, "")
     .replace(/^\/?/, "/");
 
+  // 📦 Tarjeta base
   const tarjeta = document.createElement("div");
   tarjeta.className = "col s12 m6 l4";
 
-  const card = document.createElement("div");
-  card.classList.add(
-    "card",
-    "glass-card",
-    "product-card",
-    "hoverable",
-    "z-depth-4"
-  );
+  const card = document.createElement("article");
+  card.className = "card product-card hoverable z-depth-4";
+  card.setAttribute("tabindex", "0");
 
-  const cardImage = document.createElement("div");
+  // 🔲 Sección de imagen
+  const cardImage = document.createElement("figure");
   cardImage.className = "card-image";
+
   const img = document.createElement("img");
   img.src = imagen;
   img.alt = `Imagen de ${nombre}`;
-  img.className = "responsive-img";
+  img.className = "responsive-img product-img";
   img.loading = "lazy";
-  img.style.height = "180px";
-  img.style.objectFit = "cover";
-  img.onerror = () => {
+  img.addEventListener("error", () => {
     img.src = "/imagenes/default.png";
-  };
+  });
+
+  // 🏷️ Badge
+  const badge = document.createElement("span");
+  badge.classList.add("badge-etiqueta");
+
+  if (stock > 0 && stock <= 10) {
+    badge.classList.add("badge-bajo-stock");
+    badge.title = "Quedan pocas unidades";
+    badge.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Bajo stock`;
+    cardImage.appendChild(badge);
+  } else if (es_popular) {
+    badge.classList.add("badge-popular");
+    badge.title = "Producto popular";
+    badge.innerHTML = `<i class="fas fa-fire"></i> Popular`;
+    cardImage.appendChild(badge);
+  } else if (es_nuevo) {
+    badge.classList.add("badge-nuevo");
+    badge.title = "Nuevo producto";
+    badge.innerHTML = `<i class="fas fa-star"></i> Nuevo`;
+    cardImage.appendChild(badge);
+  }
+
   cardImage.appendChild(img);
 
-  const cardContent = document.createElement("div");
+  // 📃 Contenido
+  const cardContent = document.createElement("section");
   cardContent.className = "card-content";
-  cardContent.innerHTML = `
-  <h6 class="product-title">
-    ${nombre}
-  </h6>
-  <p class="product-description">
-    ${descripcion}
-  </p>
-  <div class="product-price-stock">
-    <span class="product-price">$${parseFloat(precio).toFixed(2)}</span>
-    <span class="product-stock">Stock: ${stock}</span>
-  </div>
-`;
 
-  const cardAction = document.createElement("div");
+  const titulo = document.createElement("h6");
+  titulo.className = "product-title";
+  titulo.textContent = nombre;
+
+  const desc = document.createElement("p");
+  desc.className = "product-description";
+  desc.textContent = descripcion;
+
+  const info = document.createElement("div");
+  info.className = "product-price-stock";
+
+  const precioEl = document.createElement("span");
+  precioEl.className = "product-price";
+  precioEl.textContent = `$${parseFloat(precio).toFixed(2)}`;
+
+  const stockEl = document.createElement("span");
+  stockEl.className = "product-stock";
+  stockEl.textContent = `Stock: ${stock}`;
+
+  info.append(precioEl, stockEl);
+  cardContent.append(titulo, desc, info);
+
+  // 🛒 Botón de acción
+  const cardAction = document.createElement("footer");
   cardAction.className = "card-action center-align";
+
   const btn = document.createElement("button");
-  btn.className =
-    "btn amber darken-2 waves-effect waves-light btn-agregar z-depth-1";
-  btn.style.borderRadius = "20px";
+  btn.className = "btn btn-agregar amber darken-2 waves-effect waves-light z-depth-1";
   btn.setAttribute("aria-label", `Agregar ${nombre} al carrito`);
   btn.innerHTML = `<i class="fas fa-cart-plus left"></i> Agregar`;
   btn.dataset.id = id;
   btn.dataset.nombre = nombre;
   btn.dataset.precio = precio;
   btn.dataset.imagen = imagen;
+
   cardAction.appendChild(btn);
 
-  card.appendChild(cardImage);
-  card.appendChild(cardContent);
-  card.appendChild(cardAction);
+  // 🧱 Ensamblaje final
+  card.append(cardImage, cardContent, cardAction);
   tarjeta.appendChild(card);
   contenedor.appendChild(tarjeta);
 }
+
+
 
 /* ════════════════════════════════════════════
  * ➕ Eventos para botones "Agregar al carrito"
