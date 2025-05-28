@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS auditoria_errores (
   user_agent VARCHAR(255) DEFAULT NULL COMMENT 'Agente del navegador o cliente (User-Agent)',
 
   datos_entrada JSON NULL COMMENT 'Datos enviados por el cliente (body en JSON)',
-  sqlstate VARCHAR(10) DEFAULT NULL COMMENT 'Código SQLSTATE o error lógico de aplicación',
+  `sqlstate` VARCHAR(10) DEFAULT NULL COMMENT 'Código SQLSTATE o error lógico de aplicación',
   mysql_errno INT DEFAULT NULL COMMENT 'Código de error MySQL simulado o real (ej. 1064, 1048)',
   mensaje TEXT NOT NULL COMMENT 'Mensaje de error o detalles concatenados'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -3683,7 +3683,7 @@ VALUES
 ('blogger', 'Usuario con capacidad para escribir entradas de blog y responder comentarios.',
  JSON_OBJECT(
    'blog', JSON_OBJECT('crear', true, 'responder', true)
-))
+)),
 
 -- 👨‍💼 CANDIDATO
 ('candidato', 'Usuario que aplica a oportunidades laborales o colaboraciones.',
