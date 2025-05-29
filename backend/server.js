@@ -20,6 +20,7 @@ const express = require("express"); // Framework para construir el servidor web
 //const cors = require("cors"); // Habilitar CORS
 const helmet = require("helmet"); // Seguridad HTTP
 //const rateLimit = require("express-rate-limit"); // Limitar solicitudes
+//const rateLimit = require("express-rate-limit"); // Limitar solicitudes
 const hpp = require("hpp"); // Prevención de contaminación de parámetros
 const ProgressBar = require("progress"); // Barra de progreso
 const chalk = require("chalk"); // Para colores y formato en la terminal
@@ -99,10 +100,10 @@ if (!IS_DEV) {
 // ─────────────────────────────────────────────────────────────
 //app.use(
 //  rateLimit({
-//   windowMs: 15 * 60 * 1000,  // 15 minutos
-//  max: 100,  // Limitar a 100 peticiones por ventana
-//   message: `⚡ Demasiadas solicitudes. Intente más tarde.`
-// })
+//    windowMs: 15 * 60 * 1000,  // 15 minutos
+//    max: 100,  // Limitar a 100 peticiones por ventana
+//    message: `⚡ Demasiadas solicitudes. Intente más tarde.`
+//  })
 //);
 
 // ─────────────────────────────────────────────────────────────
