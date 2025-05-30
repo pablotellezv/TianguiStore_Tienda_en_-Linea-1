@@ -120,6 +120,12 @@ function renderizarProducto(producto, contenedor) {
 
   const cardImage = document.createElement("div");
   cardImage.className = "card-image";
+
+  // Aquí envolvemos la imagen con un enlace que apunta a detalle-producto.html?id=ID
+  const enlace = document.createElement("a");
+  enlace.href = `producto.html?id=${encodeURIComponent(id)}`;
+  enlace.setAttribute("aria-label", `Ver detalles de ${nombre}`);
+
   const img = document.createElement("img");
   img.src = imagen;
   img.alt = `Imagen de ${nombre}`;
@@ -130,7 +136,9 @@ function renderizarProducto(producto, contenedor) {
   img.onerror = () => {
     img.src = "/imagenes/default.png";
   };
-  cardImage.appendChild(img);
+
+  enlace.appendChild(img);
+  cardImage.appendChild(enlace);
 
   const cardContent = document.createElement("div");
   cardContent.className = "card-content";
