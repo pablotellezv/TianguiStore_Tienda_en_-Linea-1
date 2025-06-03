@@ -237,7 +237,6 @@ SELECT 'OK - estados_pedido' AS modulo, COUNT(*) AS registros FROM estados_pedid
 -- Define roles, perfiles extendidos de usuarios, sistema de verificación,
 -- asociación a sucursales, postulaciones y soporte para fidelización.
 -- =====================================================================
-
 -- 🧑‍⚖️ Tabla: roles
 CREATE TABLE IF NOT EXISTS roles (
   rol_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -261,7 +260,7 @@ CREATE TABLE IF NOT EXISTS sucursales (
 -- 👤 Tabla: usuarios
 CREATE TABLE IF NOT EXISTS usuarios (
   usuario_id INT AUTO_INCREMENT PRIMARY KEY,
-  rol_id INT NOT NULL DEFAULT 3,
+  rol_id INT NOT NULL DEFAULT 2,
   sucursal_id INT DEFAULT NULL COMMENT 'Sucursal asignada si es personal interno',
 
   correo_electronico VARCHAR(100) NOT NULL UNIQUE,
@@ -1678,7 +1677,6 @@ END;
 -- ════════════════════════════════════════════════════════════════════
 -- 📦 🔄 MANTENIMIENTO AUTOMÁTICO: EXPIRAR PUNTOS
 -- ════════════════════════════════════════════════════════════════════
-
 
 -- Evita eliminación física de usuarios
 CREATE TRIGGER trg_proteger_borrado_usuarios
