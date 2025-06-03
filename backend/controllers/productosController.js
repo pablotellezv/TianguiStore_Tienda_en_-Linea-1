@@ -1,21 +1,26 @@
 /**
  * 📁 CONTROLADOR: productosController.js
  * 📦 Módulo: Gestión de productos (catálogo principal)
- * 
+ *
  * Funcionalidades:
  * - Obtener productos visibles
  * - Consultar detalle con galería
+ * - Consultar detalle enriquecido (con promociones y estadísticas)
  * - Crear producto (JSON o archivos)
  * - Actualizar producto existente
  * - Eliminar producto (borrado lógico)
- * 
+ *
  * Modelos utilizados:
  * - productosModel.js
  * - galeriaModel.js
+ * - promocionesModel.js
+ * - ventasModel.js
  */
 
 const productosModel = require("../models/producto.model");
 const galeriaModel = require("../models/galeria.model");
+const promocionesModel = require("../models/marketing.model");
+const ventasModel = require("../models/ventas.model");
 
 // ─────────────────────────────────────────────
 // 📥 GET /api/productos
@@ -31,7 +36,7 @@ exports.obtenerProductos = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────
-// 🔍 GET /api/productos/:id
+// 🔍 GET /api/productos/:id (detalle básico)
 // ─────────────────────────────────────────────
 exports.obtenerProductoPorId = async (req, res) => {
   const { id } = req.params;
@@ -50,6 +55,42 @@ exports.obtenerProductoPorId = async (req, res) => {
   } catch (error) {
     console.error(`❌ Error al obtener producto ID ${id}:`, error);
     res.status(500).json({ mensaje: "Error interno al obtener el producto." });
+  }
+};
+
+// ─────────────────────────────────────────────
+// 🔍 GET /api/producto-detalle/:id (detalle enriquecido)
+// ─────────────────────────────────────────────
+exports.obtenerDetalleProducto = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const producto = await productosModel.obtenerProductoPorIdExtendido(id);
+    if (!producto) {
+      return res.status(404).json({ mensaje: "Producto no encontrado." });
+    }
+
+    const galeria = await galeriaModel.obtenerGaleriaPorProducto(id);
+    const imagenes = galeria.filter(g => g.tipo === "imagen").map(g => g.url);
+    const videos = galeria.filter(g => g.tipo === "video").map(g => g.url);
+    const modelo3d = galeria.find(g => g.tipo === "modelo_3d")?.url || null;
+
+    const promociones = await promocionesModel.obtenerPromocionesPorProducto(id);
+    const ventas = await ventasModel.obtenerEstadisticasProducto(id);
+    const relacionados = await productosModel.obtenerProductosRelacionados(id, producto.categoria_id);
+
+    return res.status(200).json({
+      ...producto,
+      imagenes,
+      videos,
+      modelo3d,
+      promociones,
+      ventas,
+      relacionados
+    });
+  } catch (error) {
+    console.error(`❌ Error al obtener detalle de producto ID ${id}:`, error);
+    return res.status(500).json({ mensaje: "Error interno al obtener detalle del producto." });
   }
 };
 

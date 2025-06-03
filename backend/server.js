@@ -135,6 +135,7 @@ app.use("/carrito", require("./routes/carrito.routes"));
 app.use("/pedidos", require("./routes/pedido.routes"));
 app.use("/categorias", require("./routes/categorias.routes"));
 app.use("/marcas", require("./routes/marcas.routes"));
+app.use("/marketing", require("./routes/marketing.routes"));
 app.use("/usuarios", require("./routes/usuarios.routes"));
 app.use("/configuracion", require("./routes/configuracion.routes"));
 app.use("/estadisticas", require("./routes/estadisticas.routes"));

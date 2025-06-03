@@ -132,13 +132,53 @@ async function eliminarProducto(id) {
   `, [parseInt(id)]);
 }
 
+// 🔍 Obtener producto con datos extendidos (galería, marca, categoría, subcategoría, etc.)
+async function obtenerProductoPorIdExtendido(id) {
+  const [rows] = await db.query(`
+    SELECT 
+      p.*, 
+      m.nombre_marca, 
+      c.nombre_categoria, 
+      s.nombre_subcategoria
+    FROM productos p
+    LEFT JOIN marcas m ON p.marca_id = m.marca_id
+    LEFT JOIN categorias c ON p.categoria_id = c.categoria_id
+    LEFT JOIN subcategorias s ON p.subcategoria_id = s.subcategoria_id
+    WHERE p.producto_id = ?
+  `, [parseInt(id)]);
+  return rows[0] || null;
+}
+
+// ───────────────────────────────────────────────
+// 🔄 OBTENER PRODUCTOS RELACIONADOS POR CATEGORÍA
+// (excluye el producto actual, solo productos activos)
+// ───────────────────────────────────────────────
+async function obtenerProductosRelacionados(producto_id, categoria_id) {
+  const [rows] = await db.query(`
+    SELECT p.*, m.nombre_marca, c.nombre_categoria
+    FROM productos p
+    LEFT JOIN marcas m ON p.marca_id = m.marca_id
+    LEFT JOIN categorias c ON p.categoria_id = c.categoria_id
+    WHERE p.categoria_id = ?
+      AND p.producto_id != ?
+      AND p.status = 'activo'
+      AND p.publicado = TRUE
+    ORDER BY RAND()
+    LIMIT 6
+  `, [categoria_id, producto_id]);
+
+  return rows;
+}
+
 // ───────────────────────────────────────────────
 // 📤 EXPORTACIÓN DE FUNCIONES
 // ───────────────────────────────────────────────
 module.exports = {
   obtenerProductosPublicados,
   obtenerProductoPorId,
+  obtenerProductoPorIdExtendido,
   insertarProducto,
   actualizarProducto,
-  eliminarProducto
+  eliminarProducto,
+  obtenerProductosRelacionados 
 };

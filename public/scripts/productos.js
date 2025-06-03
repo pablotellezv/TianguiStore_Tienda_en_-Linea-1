@@ -96,14 +96,14 @@ function renderizarProducto(producto, contenedor) {
     es_popular = false,
   } = producto;
 
-  // 🖼️ Imagen segura
+  // 🖼️ Ruta segura de imagen
   const imagen = (imagen_url || "/imagenes/default.png")
     .trim()
     .replace(/\\/g, "/")
     .replace(/^public/, "")
     .replace(/^\/?/, "/");
 
-  // 📦 Tarjeta base
+  // 🔲 Tarjeta contenedor
   const tarjeta = document.createElement("div");
   tarjeta.className = "col s12 m6 l4";
 
@@ -111,20 +111,24 @@ function renderizarProducto(producto, contenedor) {
   card.className = "card product-card hoverable z-depth-4";
   card.setAttribute("tabindex", "0");
 
-  // 🔲 Sección de imagen
-  const cardImage = document.createElement("figure");
-  cardImage.className = "card-image";
+  /* ════════════════════════════════════════════
+   * 📷 Imagen con enlace a detalle
+   * ════════════════════════════════════════════ */
+  const linkImagen = document.createElement("a");
+  linkImagen.href = `/detalleProducto.html?id=${id}`;
+  linkImagen.className = "card-image";
+  linkImagen.setAttribute("aria-label", `Ver detalles de ${nombre}`);
 
   const img = document.createElement("img");
   img.src = imagen;
   img.alt = `Imagen de ${nombre}`;
   img.className = "responsive-img product-img";
   img.loading = "lazy";
-  img.addEventListener("error", () => {
+  img.onerror = () => {
     img.src = "/imagenes/default.png";
-  });
+  };
 
-  // 🏷️ Badge
+  // 🏷️ Badge condicional
   const badge = document.createElement("span");
   badge.classList.add("badge-etiqueta");
 
@@ -132,28 +136,35 @@ function renderizarProducto(producto, contenedor) {
     badge.classList.add("badge-bajo-stock");
     badge.title = "Quedan pocas unidades";
     badge.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Bajo stock`;
-    cardImage.appendChild(badge);
   } else if (es_popular) {
     badge.classList.add("badge-popular");
     badge.title = "Producto popular";
     badge.innerHTML = `<i class="fas fa-fire"></i> Popular`;
-    cardImage.appendChild(badge);
   } else if (es_nuevo) {
     badge.classList.add("badge-nuevo");
     badge.title = "Nuevo producto";
     badge.innerHTML = `<i class="fas fa-star"></i> Nuevo`;
-    cardImage.appendChild(badge);
   }
 
-  cardImage.appendChild(img);
+  linkImagen.append(img);
+  if (badge.innerHTML) linkImagen.append(badge);
 
-  // 📃 Contenido
+  /* ════════════════════════════════════════════
+   * 📄 Contenido textual con enlace en título
+   * ════════════════════════════════════════════ */
   const cardContent = document.createElement("section");
   cardContent.className = "card-content";
 
   const titulo = document.createElement("h6");
   titulo.className = "product-title";
-  titulo.textContent = nombre;
+
+  const linkTitulo = document.createElement("a");
+  linkTitulo.href = `/detalleProducto.html?id=${id}`;
+  linkTitulo.textContent = nombre;
+  linkTitulo.className = "amber-text text-darken-2"; // Estilo opcional
+  linkTitulo.setAttribute("aria-label", `Ir a detalle de ${nombre}`);
+
+  titulo.appendChild(linkTitulo);
 
   const desc = document.createElement("p");
   desc.className = "product-description";
@@ -173,12 +184,15 @@ function renderizarProducto(producto, contenedor) {
   info.append(precioEl, stockEl);
   cardContent.append(titulo, desc, info);
 
-  // 🛒 Botón de acción
+  /* ════════════════════════════════════════════
+   * 🛒 Botón para agregar al carrito
+   * ════════════════════════════════════════════ */
   const cardAction = document.createElement("footer");
   cardAction.className = "card-action center-align";
 
   const btn = document.createElement("button");
-  btn.className = "btn btn-agregar amber darken-2 waves-effect waves-light z-depth-1";
+  btn.className =
+    "btn btn-agregar amber darken-2 waves-effect waves-light z-depth-1";
   btn.setAttribute("aria-label", `Agregar ${nombre} al carrito`);
   btn.innerHTML = `<i class="fas fa-cart-plus left"></i> Agregar`;
   btn.dataset.id = id;
@@ -188,11 +202,14 @@ function renderizarProducto(producto, contenedor) {
 
   cardAction.appendChild(btn);
 
-  // 🧱 Ensamblaje final
-  card.append(cardImage, cardContent, cardAction);
+  /* ════════════════════════════════════════════
+   * 🧱 Ensamblaje de tarjeta completa
+   * ════════════════════════════════════════════ */
+  card.append(linkImagen, cardContent, cardAction);
   tarjeta.appendChild(card);
   contenedor.appendChild(tarjeta);
 }
+
 
 
 

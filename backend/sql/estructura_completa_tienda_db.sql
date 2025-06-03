@@ -57,6 +57,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 
 
+
 -- ════════════════════════════════════════════════════════════════════
 -- 📦 📜 MÓDULO: AUDITORIA_ERRORES (Versión Extendida)
 -- ════════════════════════════════════════════════════════════════════
@@ -80,6 +81,73 @@ CREATE TABLE IF NOT EXISTS auditoria_errores (
   mensaje TEXT NOT NULL COMMENT 'Mensaje de error o detalles concatenados'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ════════════════════════════════════════════════════════════════════
+-- 📦 🛠️ MÓDULO: CONFIGURACIONES (Parámetros del sistema)
+-- ════════════════════════════════════════════════════════════════════
+-- Tabla de configuración global para TianguiStore.
+-- Permite definir parámetros clave-valor con validación de tipo, visibilidad
+-- y protección frente a ediciones no deseadas desde la interfaz.
+-- Ideal para administración avanzada de ajustes en tiempo real.
+
+CREATE TABLE IF NOT EXISTS configuraciones (
+  clave VARCHAR(100) PRIMARY KEY
+    COMMENT 'Clave única de la configuración (ej. nombre_sitio, modo_mantenimiento)',
+
+  valor TEXT NOT NULL
+    COMMENT 'Valor actual del parámetro (puede ser texto, número, booleano o JSON)',
+  
+  valor_por_defecto TEXT DEFAULT NULL
+    COMMENT 'Valor predeterminado recomendado para restauraciones o fallback',
+
+  tipo ENUM('texto', 'numero', 'booleano', 'json', 'url', 'email', 'color') DEFAULT 'texto'
+    COMMENT 'Tipo de dato validado (se usa para validación y visualización)',
+
+  descripcion TEXT
+    COMMENT 'Descripción técnica o de negocio sobre el uso del parámetro',
+  
+  modulo VARCHAR(50) DEFAULT 'sistema'
+    COMMENT 'Módulo funcional asociado (sistema, tienda, marketing, seguridad, etc.)',
+
+  visible BOOLEAN DEFAULT TRUE
+    COMMENT '¿Es visible en el panel de administración o configuración web?',
+  
+  solo_lectura BOOLEAN DEFAULT FALSE
+    COMMENT '¿Se bloquea edición desde frontend o API no autorizada?',
+
+  actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    COMMENT 'Marca de tiempo de la última actualización del registro'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ════════════════════════════════════════════════════════════════════
+-- 🗂️ VALORES POR DEFECTO PARA LA TABLA `configuraciones`
+-- ════════════════════════════════════════════════════════════════════
+
+INSERT INTO configuraciones (clave, valor, valor_por_defecto, tipo, descripcion, modulo, visible, solo_lectura)
+VALUES 
+-- 📌 Configuración General
+('nombre_sitio', 'TianguiStore', 'TianguiStore', 'texto', 'Nombre visible de la tienda', 'sistema', TRUE, FALSE),
+('modo_mantenimiento', 'false', 'false', 'booleano', 'Activa/desactiva el mantenimiento global del sistema', 'sistema', TRUE, TRUE),
+('moneda', 'MXN', 'MXN', 'texto', 'Moneda predeterminada (ej. MXN, USD)', 'sistema', TRUE, TRUE),
+('porcentaje_impuesto', '16', '16', 'numero', 'IVA estándar aplicado a productos y servicios', 'tienda', TRUE, FALSE),
+('impuestos_incluidos', 'true', 'true', 'booleano', 'Indica si los precios incluyen impuestos', 'tienda', TRUE, FALSE),
+
+-- 📧 Contacto y Branding
+('correo_contacto', 'soporte@tianguistore.com', 'soporte@tianguistore.com', 'email', 'Correo visible para atención al cliente', 'sistema', TRUE, FALSE),
+('logo_url', '/imagenes/logo.png', '/imagenes/logo.png', 'url', 'Ruta al logotipo oficial de la tienda', 'sistema', TRUE, FALSE),
+('mensaje_bienvenida', '¡Bienvenido a TianguiStore!', '¡Bienvenido a TianguiStore!', 'texto', 'Mensaje mostrado a nuevos usuarios', 'sistema', TRUE, FALSE),
+
+-- 🔖 Promociones y Marketing
+('promociones_activas', 'true', 'true', 'booleano', '¿Mostrar automáticamente promociones vigentes?', 'marketing', TRUE, FALSE),
+('mostrar_combos', 'true', 'true', 'booleano', '¿Habilitar combos de productos en la tienda?', 'marketing', TRUE, FALSE),
+('mostrar_cupones', 'true', 'true', 'booleano', '¿Permitir el uso de cupones de descuento en checkout?', 'marketing', TRUE, FALSE),
+('dias_publicacion_destacada', '7', '7', 'numero', 'Días que dura un producto destacado en la portada', 'marketing', TRUE, FALSE),
+
+-- 🆓 Plan gratuito y límites
+('max_productos_gratis', '15', '15', 'numero', 'Cantidad máxima de productos permitidos en plan gratuito', 'planes', TRUE, FALSE),
+
+-- 🔒 Legal y cumplimiento
+('politica_privacidad_url', '/legal/privacidad.html', '/legal/privacidad.html', 'url', 'Enlace a la política de privacidad del sitio', 'legal', TRUE, TRUE);
 
 -- ================================================================
 -- 📦 MÓDULO: estados_pedido + pedidos
@@ -122,8 +190,9 @@ CREATE TABLE IF NOT EXISTS pedidos (
   INDEX idx_cupon (cupon)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
--- Tabla de detalle de pedidos
+-- ════════════════════════════════════════════════════════════════════
+-- 📦 🧾 TABLA: DETALLE_PEDIDO (Versión extendida y validada)
+-- ════════════════════════════════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS detalle_pedido (
   detalle_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -134,6 +203,7 @@ CREATE TABLE IF NOT EXISTS detalle_pedido (
   precio_unitario DECIMAL(10,2) NOT NULL COMMENT 'Precio base del producto en el momento de la compra',
   descuento_aplicado DECIMAL(10,2) DEFAULT 0.00 COMMENT 'Monto de descuento aplicado a este producto',
   iva_porcentaje DECIMAL(5,2) DEFAULT 0.00 COMMENT 'Porcentaje de IVA aplicado (ej. 16)',
+
   iva_monto DECIMAL(10,2) GENERATED ALWAYS AS (
     (cantidad * (precio_unitario - descuento_aplicado)) * (iva_porcentaje / 100)
   ) STORED,
@@ -143,15 +213,27 @@ CREATE TABLE IF NOT EXISTS detalle_pedido (
   ) STORED,
 
   total DECIMAL(10,2) GENERATED ALWAYS AS (
-    (cantidad * (precio_unitario - descuento_aplicado)) + iva_monto
+    subtotal + iva_monto
   ) STORED,
+
+  calificacion TINYINT UNSIGNED DEFAULT NULL
+    CHECK (calificacion BETWEEN 1 AND 5)
+    COMMENT 'Calificación del producto (opcional, 1 a 5 estrellas)',
+
+  comentario TEXT COMMENT 'Comentario opcional del cliente sobre este producto',
+  fecha_calificacion DATETIME DEFAULT NULL COMMENT 'Fecha en que se calificó este producto',
+
+  fecha_detalle TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de registro del detalle',
 
   FOREIGN KEY (pedido_id) REFERENCES pedidos(pedido_id) ON DELETE CASCADE,
   FOREIGN KEY (producto_id) REFERENCES productos(producto_id) ON DELETE CASCADE,
 
   INDEX idx_pedido (pedido_id),
-  INDEX idx_producto (producto_id)
+  INDEX idx_producto (producto_id),
+  INDEX idx_calificacion (calificacion),
+  INDEX idx_fecha (fecha_detalle)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- Tabla de carrito
 CREATE TABLE IF NOT EXISTS carrito (
@@ -258,10 +340,14 @@ CREATE TABLE IF NOT EXISTS sucursales (
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 👤 Tabla: usuarios
+-- ════════════════════════════════════════════════════════════════════
+-- 👤 TABLA: USUARIOS (Versión extendida con nivel_id)
+-- ════════════════════════════════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS usuarios (
   usuario_id INT AUTO_INCREMENT PRIMARY KEY,
-  rol_id INT NOT NULL DEFAULT 3,
+
+  rol_id INT NOT NULL DEFAULT 2,
+  nivel_id INT DEFAULT 1 COMMENT 'Nivel de fidelidad del usuario (1=base)',
   sucursal_id INT DEFAULT NULL COMMENT 'Sucursal asignada si es personal interno',
 
   correo_electronico VARCHAR(100) NOT NULL UNIQUE,
@@ -292,7 +378,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
   portafolio_url VARCHAR(255),
 
   activo BOOLEAN DEFAULT TRUE,
-  borrado_logico BOOLEAN DEFAULT FALSE,  -- 👈 NUEVO CAMPO PARA ELIMINACIÓN LÓGICA
+  borrado_logico BOOLEAN DEFAULT FALSE COMMENT 'Eliminación lógica',
   verificado BOOLEAN DEFAULT FALSE,
 
   origen_reclutamiento ENUM('externo', 'interno', 'campaña', 'referido', 'fidelidad') DEFAULT 'externo',
@@ -306,6 +392,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
   fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
   FOREIGN KEY (rol_id) REFERENCES roles(rol_id) ON UPDATE CASCADE ON DELETE RESTRICT,
+  FOREIGN KEY (nivel_id) REFERENCES niveles_fidelidad(nivel_id) ON UPDATE CASCADE ON DELETE SET NULL,
   FOREIGN KEY (sucursal_id) REFERENCES sucursales(sucursal_id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -574,7 +661,6 @@ CREATE TABLE IF NOT EXISTS valoraciones (
 -- ════════════════════════════════════════════════════════════════════
 -- 📦 📦 PRODUCTOS (CATÁLOGO PRINCIPAL, CON SOPORTE PARA BORRADO LÓGICO)
 -- ════════════════════════════════════════════════════════════════════
-DROP TABLE IF EXISTS productos;
 CREATE TABLE IF NOT EXISTS productos (
   producto_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -875,14 +961,6 @@ VALUES
 (15, 'Administrador', 'Control total del sistema y funciones avanzadas.', 0, 
  JSON_OBJECT('acceso_sistema', true, 'privilegios_totales', true));
 
-ALTER TABLE usuarios
-ADD COLUMN nivel_id INT DEFAULT 1 AFTER rol_id,
-ADD CONSTRAINT fk_usuario_nivel
-  FOREIGN KEY (nivel_id) REFERENCES niveles_fidelidad(nivel_id)
-  ON UPDATE CASCADE
-  ON DELETE SET NULL;
-
-
 -- ════════════════════════════════════════════════════════════════════
 -- 📦 🪙 TABLA: PUNTOS_USUARIO
 -- ════════════════════════════════════════════════════════════════════
@@ -1091,9 +1169,8 @@ CREATE TABLE IF NOT EXISTS ranking_promotores (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
-
 -- ════════════════════════════════════════════════════════════════════
--- 📦 🎁 TABLA: PROMOCIONES
+-- 📦 🎁 TABLA: PROMOCIONES (Versión completa y validada)
 -- ════════════════════════════════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS promociones (
   promocion_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -1104,30 +1181,62 @@ CREATE TABLE IF NOT EXISTS promociones (
 
   tipo_promocion ENUM('porcentaje', 'cantidad_fija', 'envio_gratis', 'regalo', 'especial') NOT NULL DEFAULT 'porcentaje',
   valor DECIMAL(10,2) DEFAULT 0.00 COMMENT 'Valor del descuento: porcentaje o cantidad fija',
+  tipo_valor ENUM('porcentaje', 'fijo') DEFAULT 'porcentaje' COMMENT 'Tipo de valor aplicado (solo para compatibilidad lógica)',
 
   aplica_a ENUM('producto', 'categoria', 'marca', 'carrito', 'usuario', 'todos') DEFAULT 'carrito',
   restriccion_json JSON COMMENT 'Reglas condicionales como mínimo de compra, categorías, clientes nuevos, etc.',
 
-  fecha_inicio DATETIME DEFAULT CURRENT_TIMESTAMP,
-  fecha_fin DATETIME DEFAULT NULL,
+  cliente_segmento VARCHAR(100) DEFAULT NULL COMMENT 'Segmento de cliente (ej. nuevos, leales, premium)',
+  prioridad INT DEFAULT 1 COMMENT 'Prioridad de aplicación en conflictos múltiples',
 
+  exclusiva BOOLEAN DEFAULT FALSE COMMENT 'Si esta promoción es exclusiva y no acumulable',
   activa BOOLEAN DEFAULT TRUE,
   destacada BOOLEAN DEFAULT FALSE,
+
+  fecha_inicio DATETIME DEFAULT CURRENT_TIMESTAMP,
+  fecha_fin DATETIME DEFAULT NULL,
 
   borrado_logico BOOLEAN DEFAULT FALSE,
   fecha_borrado TIMESTAMP NULL DEFAULT NULL,
 
+  visible BOOLEAN DEFAULT TRUE COMMENT 'Visibilidad de la promoción en el frontend',
+
   creada_por INT DEFAULT NULL,
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
+  producto_id INT DEFAULT NULL,
+  categoria_id INT DEFAULT NULL,
+  marca_id INT DEFAULT NULL,
+
   FOREIGN KEY (creada_por) REFERENCES usuarios(usuario_id) ON DELETE SET NULL,
+  FOREIGN KEY (producto_id) REFERENCES productos(producto_id) ON DELETE SET NULL,
+  FOREIGN KEY (categoria_id) REFERENCES categorias(categoria_id) ON DELETE SET NULL,
+  FOREIGN KEY (marca_id) REFERENCES marcas(marca_id) ON DELETE SET NULL,
 
   INDEX idx_codigo (nombre),
   INDEX idx_fecha (fecha_inicio, fecha_fin),
-  INDEX idx_estado (activa, borrado_logico)
+  INDEX idx_estado (activa, borrado_logico),
+  INDEX idx_segmento (cliente_segmento),
+  INDEX idx_aplicacion (aplica_a, producto_id, categoria_id, marca_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+/*
+-- 🛠️ Agregar columna 'prioridad' a promociones
+ALTER TABLE promociones
+  ADD COLUMN prioridad INT DEFAULT 1 COMMENT 'Prioridad de aplicación';
 
+-- 🛠️ Agregar columna 'calificacion' a detalle_pedido
+ALTER TABLE detalle_pedido
+  ADD COLUMN calificacion TINYINT UNSIGNED NULL
+  CHECK (calificacion BETWEEN 1 AND 5)
+  COMMENT 'Calificación del producto por el cliente (1 a 5, opcional)';
+
+-- 🛠️ Agregar columna 'estado' a pedidos
+ALTER TABLE pedidos
+  ADD COLUMN estado ENUM('pendiente', 'procesando', 'completado', 'entregado', 'cancelado') 
+  NOT NULL DEFAULT 'pendiente'
+  COMMENT 'Estado actual del pedido: seguimiento del flujo de compra';
+*/
 
 
 
@@ -2917,17 +3026,6 @@ CREATE TABLE movimientos_contables (
   FOREIGN KEY (referencia_factura) REFERENCES facturas(factura_id)
 ) ENGINE=InnoDB;
 
--- Configuración fiscal del sistema (una sola fila)
-CREATE TABLE configuracion_fiscal (
-  id INT PRIMARY KEY,
-  rfc_emisor VARCHAR(13) NOT NULL,
-  razon_social VARCHAR(255) NOT NULL,
-  regimen_fiscal VARCHAR(100),
-  certificado_digital_url VARCHAR(255),
-  clave_privada_url VARCHAR(255),
-  clave_csd VARCHAR(255),
-  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
 
 -- Peticiones de factura realizadas por clientes
 CREATE TABLE solicitudes_factura (
