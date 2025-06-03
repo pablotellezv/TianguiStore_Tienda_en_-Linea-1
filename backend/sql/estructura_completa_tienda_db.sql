@@ -573,7 +573,6 @@ CREATE TABLE IF NOT EXISTS valoraciones (
 -- ════════════════════════════════════════════════════════════════════
 -- 📦 📦 PRODUCTOS (CATÁLOGO PRINCIPAL, CON SOPORTE PARA BORRADO LÓGICO)
 -- ════════════════════════════════════════════════════════════════════
-DROP TABLE IF EXISTS productos;
 CREATE TABLE IF NOT EXISTS productos (
   producto_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -3583,10 +3582,8 @@ CREATE TRIGGER trg_usuario_login
 AFTER UPDATE ON usuarios
 FOR EACH ROW
 BEGIN
-  IF NEW.ultima_conexion IS NOT NULL AND OLD.ultima_conexion IS NULL THEN
     INSERT INTO actividad_usuario (usuario_id, tipo_actividad, descripcion, modulo)
     VALUES (NEW.usuario_id, 'inicio_sesion', 'Inicio de sesión del usuario', 'autenticacion');
-  END IF;
 END;
 //
 
