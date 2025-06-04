@@ -2,7 +2,13 @@
  * 📦 productos.js
  * Muestra productos con tarjetas glassmorphism + paginación.
  * Autor: I.S.C. Erick Renato Vega Ceron | Estilo Dark Glassmorphism Mexica | Mayo 2025
+ * Muestra productos con tarjetas glassmorphism + paginación.
+ * Autor: I.S.C. Erick Renato Vega Ceron | Estilo Dark Glassmorphism Mexica | Mayo 2025
  */
+
+let productosGlobal = [];
+let productosPorPagina = 10;
+let paginaActual = 1;
 
 let productosGlobal = [];
 let productosPorPagina = 10;
@@ -16,8 +22,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 /* ════════════════════════════════════════════
  * 🔄 Cargar productos desde API y mostrar primera página
  * ════════════════════════════════════════════ */
+/* ════════════════════════════════════════════
+ * 🔄 Cargar productos desde API y mostrar primera página
+ * ════════════════════════════════════════════ */
 async function cargarProductos() {
   const contenedor = document.getElementById("productos-container");
+  const paginacion = document.getElementById("paginacion-productos");
+  if (!contenedor || !paginacion) return;
   const paginacion = document.getElementById("paginacion-productos");
   if (!contenedor || !paginacion) return;
 
@@ -27,11 +38,77 @@ async function cargarProductos() {
 
     productosGlobal = await res.json();
     if (!Array.isArray(productosGlobal) || productosGlobal.length === 0) {
+    productosGlobal = await res.json();
+    if (!Array.isArray(productosGlobal) || productosGlobal.length === 0) {
       contenedor.innerHTML = `<p class="center-align grey-text text-lighten-2">No hay productos disponibles.</p>`;
+      paginacion.innerHTML = "";
       paginacion.innerHTML = "";
       return;
     }
 
+    mostrarPagina(paginaActual);
+    generarPaginacion();
+  } catch (err) {
+    console.error("❌ Error al cargar productos:", err);
+    contenedor.innerHTML = `<p class="center-align red-text text-lighten-2">Error al cargar productos.</p>`;
+    paginacion.innerHTML = "";
+  }
+}
+
+/* ════════════════════════════════════════════
+ * 📄 Mostrar productos por página
+ * ════════════════════════════════════════════ */
+function mostrarPagina(num) {
+  const contenedor = document.getElementById("productos-container");
+  contenedor.innerHTML = "";
+
+  const inicio = (num - 1) * productosPorPagina;
+  const fin = inicio + productosPorPagina;
+  const productosPagina = productosGlobal.slice(inicio, fin);
+
+  productosPagina.forEach((producto) =>
+    renderizarProducto(producto, contenedor)
+  );
+  asignarEventosAgregar();
+}
+
+/* ════════════════════════════════════════════
+ * 🔢 Crear paginación dinámica
+ * ════════════════════════════════════════════ */
+function generarPaginacion() {
+  const paginacion = document.getElementById("paginacion-productos");
+  paginacion.innerHTML = "";
+
+  const totalPaginas = Math.ceil(productosGlobal.length / productosPorPagina);
+
+  for (let i = 1; i <= totalPaginas; i++) {
+    const li = document.createElement("li");
+    li.className =
+      i === paginaActual ? "active amber darken-3" : "waves-effect";
+    const a = document.createElement("a");
+    a.href = "#!";
+    a.textContent = i;
+    a.addEventListener("click", () => {
+      paginaActual = i;
+      mostrarPagina(paginaActual);
+      generarPaginacion();
+    });
+    li.appendChild(a);
+    paginacion.appendChild(li);
+  }
+}
+
+function renderizarProducto(producto, contenedor) {
+  const {
+    producto_id: id,
+    nombre = "Producto sin nombre",
+    descripcion = "Sin descripción disponible",
+    precio = 0,
+    stock = 0,
+    imagen_url,
+    es_nuevo = false,
+    es_popular = false,
+  } = producto;
     mostrarPagina(paginaActual);
     generarPaginacion();
   } catch (err) {
@@ -218,8 +295,11 @@ function renderizarProducto(producto, contenedor) {
  * ════════════════════════════════════════════ */
 function asignarEventosAgregar() {
   document.querySelectorAll(".btn-agregar").forEach((btn) => {
+  document.querySelectorAll(".btn-agregar").forEach((btn) => {
     btn.addEventListener("click", () => {
       const { id, nombre, precio, imagen } = btn.dataset;
+      const imagenFinal = imagen?.trim() || "/imagenes/default.png";
+      agregarAlCarrito(id, nombre, parseFloat(precio), imagenFinal);
       const imagenFinal = imagen?.trim() || "/imagenes/default.png";
       agregarAlCarrito(id, nombre, parseFloat(precio), imagenFinal);
     });
@@ -229,8 +309,14 @@ function asignarEventosAgregar() {
 /* ════════════════════════════════════════════
  * 🛒 Agregar producto al carrito (localStorage)
  * ════════════════════════════════════════════ */
+/* ════════════════════════════════════════════
+ * 🛒 Agregar producto al carrito (localStorage)
+ * ════════════════════════════════════════════ */
 function agregarAlCarrito(id, nombre, precio, imagen_url) {
   let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+  const existente = carrito.find((p) => p.id === id);
+  if (existente) {
+    existente.cantidad++;
   const existente = carrito.find((p) => p.id === id);
   if (existente) {
     existente.cantidad++;
@@ -245,8 +331,15 @@ function agregarAlCarrito(id, nombre, precio, imagen_url) {
 /* ════════════════════════════════════════════
  * 🔄 Actualizar contador visual del carrito
  * ════════════════════════════════════════════ */
+/* ════════════════════════════════════════════
+ * 🔄 Actualizar contador visual del carrito
+ * ════════════════════════════════════════════ */
 function actualizarContadorCarrito() {
   const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+  const total = carrito.reduce((acc, p) => acc + (p.cantidad || 0), 0);
+  document
+    .querySelectorAll("#contador-carrito")
+    .forEach((el) => (el.textContent = total));
   const total = carrito.reduce((acc, p) => acc + (p.cantidad || 0), 0);
   document
     .querySelectorAll("#contador-carrito")
@@ -256,10 +349,14 @@ function actualizarContadorCarrito() {
 /* ════════════════════════════════════════════
  * 🔔 Mostrar notificación tipo toast
  * ════════════════════════════════════════════ */
+/* ════════════════════════════════════════════
+ * 🔔 Mostrar notificación tipo toast
+ * ════════════════════════════════════════════ */
 function mostrarToast(mensaje) {
   M.toast({
     html: `<i class="fas fa-check-circle left"></i> ${mensaje}`,
     classes: "rounded amber darken-2 white-text",
+    displayLength: 3000,
     displayLength: 3000,
   });
 }
