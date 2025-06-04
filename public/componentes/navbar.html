@@ -1,11 +1,12 @@
 <!-- 📦 navbar.html - Barra de navegación TianguiStore -->
 <nav class="nav-extended glass-navbar z-depth-2">
   <div class="nav-wrapper container nav-contenedor">
-    
+
     <!-- 🔷 Logo -->
     <div class="logo-wrapper">
-      <a href="index.html" class="brand-logo logo-tianguistore">
-        <img src="./imagenes/logo.jpeg" alt="Logo TianguiStore" class="circle logo-img" />
+      <a href="/index.html" class="brand-logo logo-tianguistore">
+
+        <img src="/imagenes/logo.jpeg" alt="Logo TianguiStore" class="circle logo-img" />
         <span class="logo-text">TianguiStore</span>
       </a>
     </div>
@@ -23,12 +24,11 @@
       <li><a href="soporte.html" class="nav-item"><i class="fas fa-life-ring icon-nav"></i><span class="texto-nav">Soporte</span></a></li>
       <li><a href="nosotros.html" class="nav-item"><i class="fas fa-users icon-nav"></i><span class="texto-nav">Nosotros</span></a></li>
       <li><a href="contacto.html" class="nav-item"><i class="fas fa-envelope icon-nav"></i><span class="texto-nav">Contacto</span></a></li>
-      <li id="nav-pedidos" style="display: none;"><a href="misPedidos.html" class="nav-item"><i class="fas fa-box-open icon-nav"></i><span class="texto-nav">Pedidos</span></a></li>
+      <li id="nav-pedidos" style="display: none;"><a id="link-nav-pedidos" href="#" class="nav-item"><i class="fas fa-box-open icon-nav"></i><span class="texto-nav">Pedidos</span></a></li>
     </ul>
 
     <!-- 👤 Usuario y carrito -->
     <ul id="menu-usuario" class="right hide-on-med-and-down user-menu">
-      <!-- 🛒 Carrito -->
       <li>
         <a href="carrito.html" class="tooltipped" data-tooltip="Mi carrito" data-position="bottom">
           <i class="fas fa-shopping-cart white-text"></i>
@@ -36,26 +36,21 @@
         </a>
       </li>
 
-      <!-- 🔐 Login -->
       <li id="menu-login" class="menu-auth-opcion hide">
-        <a href="login.html" class="tooltipped white-text btn-auth" data-tooltip="Inicia sesión" aria-label="Inicia sesión">
-          <i class="fas fa-sign-in-alt icon-login"></i>
-          <span class="hide-on-small-only texto-auth">Entrar</span>
+        <a href="login.html" class="tooltipped white-text btn-auth" data-tooltip="Inicia sesión">
+          <i class="fas fa-sign-in-alt icon-login"></i><span class="hide-on-small-only texto-auth">Entrar</span>
         </a>
       </li>
 
-      <!-- 🧾 Registro -->
       <li id="menu-registro" class="menu-auth-opcion hide">
-        <a href="registro.html" class="tooltipped white-text btn-auth" data-tooltip="Crear cuenta" aria-label="Crear cuenta">
-          <i class="fas fa-user-plus icon-registro"></i>
-          <span class="hide-on-small-only texto-auth">Registrarse</span>
+        <a href="registro.html" class="tooltipped white-text btn-auth" data-tooltip="Crear cuenta">
+          <i class="fas fa-user-plus icon-registro"></i><span class="hide-on-small-only texto-auth">Registrarse</span>
         </a>
       </li>
 
-      <!-- 👤 Usuario logueado -->
       <li id="menu-avatar" class="dropdown-trigger avatar-container hide" data-target="dropdown-usuario">
         <a href="#!" class="btn-flat avatar-btn">
-          <img id="avatar-img" src="./imagenes/default-user.png" alt="Usuario" class="circle avatar-img z-depth-1" />
+          <img id="avatar-img" src="/imagenes/default_profile.png" alt="Usuario" class="circle avatar-img z-depth-1" />
           <div class="avatar-info">
             <span id="nombre-usuario" class="nombre-usuario">Usuario</span>
             <span id="rol-usuario" class="rol-usuario">Rol</span>
@@ -79,8 +74,8 @@
 
 <!-- 🔽 Dropdown Usuario -->
 <ul id="dropdown-usuario" class="dropdown-content z-depth-3">
-  <li><a href="perfil.html"><i class="fas fa-user-cog"></i> Mi perfil</a></li>
-  <li><a href="misPedidos.html"><i class="fas fa-box-open"></i> Mis pedidos</a></li>
+  <li><a href="/perfil.html"><i class="fas fa-user-cog"></i> Mi perfil</a></li>
+  <li id="dropdown-pedidos" style="display: none;"><a id="link-dropdown-pedidos" href="#"><i class="fas fa-box-open"></i> Pedidos</a></li>
   <li id="link-admin" style="display: none;"><a href="adminPanel.html"><i class="fas fa-tools"></i> Panel Admin</a></li>
   <li class="divider"></li>
   <li><a href="#" id="menu-logout"><i class="fas fa-sign-out-alt red-text"></i> Cerrar sesión</a></li>
@@ -88,15 +83,20 @@
 
 <!-- 📱 Menú lateral móvil -->
 <ul class="sidenav glass-navbar z-depth-2" id="sidenav-mobile">
-  <li><a href="index.html"><i class="fas fa-home"></i> Inicio</a></li>
-  <li><a href="ofertas.html"><i class="fas fa-tags"></i> Ofertas</a></li>
-  <li><a href="categorias.html"><i class="fas fa-th-large"></i> Categorías</a></li>
-  <li><a href="blog.html"><i class="fas fa-newspaper"></i> Blog</a></li>
-  <li><a href="soporte.html"><i class="fas fa-life-ring"></i> Soporte</a></li>
-  <li><a href="nosotros.html"><i class="fas fa-users"></i> Nosotros</a></li>
-  <li><a href="contacto.html"><i class="fas fa-envelope"></i> Contacto</a></li>
-  <li><a href="carrito.html" class="tooltipped" data-tooltip="Mi carrito"><i class="fas fa-shopping-cart"></i><span id="contador-carrito-mobile" class="new badge amber darken-2 right" data-badge-caption="">0</span></a></li>
-  <li id="sidenav-pedidos" style="display: none;"><a href="misPedidos.html"><i class="fas fa-box-open"></i> Pedidos</a></li>
+  <li><a href="/index.html"><i class="fas fa-home"></i> Inicio</a></li>
+  <li><a href="/ofertas.html"><i class="fas fa-tags"></i> Ofertas</a></li>
+  <li><a href="/categorias.html"><i class="fas fa-th-large"></i> Categorías</a></li>
+  <li><a href="/blog.html"><i class="fas fa-newspaper"></i> Blog</a></li>
+  <li><a href="/soporte.html"><i class="fas fa-life-ring"></i> Soporte</a></li>
+  <li><a href="/nosotros.html"><i class="fas fa-users"></i> Nosotros</a></li>
+  <li><a href="/contacto.html"><i class="fas fa-envelope"></i> Contacto</a></li>
+  <li>
+    <a href="carrito.html" class="tooltipped" data-tooltip="Mi carrito">
+      <i class="fas fa-shopping-cart"></i>
+      <span id="contador-carrito-mobile" class="new badge amber darken-2 right" data-badge-caption="">0</span>
+    </a>
+  </li>
+  <li id="sidenav-pedidos" style="display: none;"><a id="link-sidenav-pedidos" href="#"><i class="fas fa-box-open"></i> Pedidos</a></li>
   <li id="sidenav-admin" style="display: none;"><a href="adminPanel.html"><i class="fas fa-tools"></i> Panel Admin</a></li>
   <li class="divider"></li>
   <li id="sidenav-login"><a href="login.html"><i class="fas fa-sign-in-alt"></i> Iniciar sesión</a></li>

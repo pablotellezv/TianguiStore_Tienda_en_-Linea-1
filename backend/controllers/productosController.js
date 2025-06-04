@@ -23,17 +23,33 @@ const promocionesModel = require("../models/marketing.model");
 const ventasModel = require("../models/ventas.model");
 
 // ─────────────────────────────────────────────
-// 📥 GET /api/productos
+// 📥 GET /api/productos (con etiquetas visuales)
 // ─────────────────────────────────────────────
 exports.obtenerProductos = async (req, res) => {
   try {
     const productos = await productosModel.obtenerProductosPublicados();
-    res.status(200).json(productos);
+
+    const ahora = new Date();
+    const productosConEtiquetas = productos.map((producto) => {
+      const fechaCreacion = new Date(producto.fecha_creacion);
+      const diasDesdeCreacion = Math.floor((ahora - fechaCreacion) / (1000 * 60 * 60 * 24));
+
+      return {
+        ...producto,
+        es_nuevo: diasDesdeCreacion <= 15,        // 🟢 Nuevo: < 15 días
+        es_popular: producto.stock > 50,          // 🟡 Popular: stock alto
+        bajo_stock: producto.stock <= 5,          // 🟠 ¡Últimos!: stock bajo
+        destacado: Boolean(producto.destacado)    // 🔵 Destacado
+      };
+    });
+
+    res.status(200).json(productosConEtiquetas);
   } catch (error) {
     console.error("❌ Error al obtener productos:", error);
     res.status(500).json({ mensaje: "Error interno al obtener productos." });
   }
 };
+
 
 // ─────────────────────────────────────────────
 // 🔍 GET /api/productos/:id (detalle básico)

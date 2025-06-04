@@ -9,19 +9,19 @@ const {
   crearPedido,
   cancelarPedido,
   crearPedidoDesdeCarrito,
-  obtenerProductosDelPedido
+  obtenerProductosDelPedido,
+  listarTodosLosPedidos,
 } = require("../controllers/pedidoController");
 
 // 🔐 Middlewares de seguridad
 const {
   verificarAutenticacion,
-  verificarPermiso
+  verificarPermiso,
 } = require("../middlewares/authMiddleware");
 
 // 🧪 Validación de datos
 const validarResultados = require("../middlewares/validacion/validarResultados");
 const pedidoSchema = require("../middlewares/validacion/pedidoSchema");
-
 
 // ════════════════════════════════════════════════════════════════
 // 📦 CONSULTAS DE PEDIDOS
@@ -36,19 +36,17 @@ router.get(
 );
 
 // 🧑‍💼 Obtener los pedidos del usuario autenticado
-router.get(
-  "/mis",
-  verificarAutenticacion,
-  obtenerMisPedidos
-);
+router.get("/mis", verificarAutenticacion, obtenerMisPedidos);
 
 // 🔍 Obtener productos de un pedido específico
+router.get("/:id/productos", verificarAutenticacion, obtenerProductosDelPedido);
+// 🗂️ Obtener todos los pedidos con filtros y paginación (solo admin)
 router.get(
-  "/:id/productos",
+  "/admin/listado",
   verificarAutenticacion,
-  obtenerProductosDelPedido
+  verificarPermiso("pedidos", "leer"),
+  listarTodosLosPedidos
 );
-
 
 // ════════════════════════════════════════════════════════════════
 // 🛒 CREACIÓN DE PEDIDOS
@@ -73,7 +71,6 @@ router.post(
   validarResultados,
   crearPedidoDesdeCarrito
 );
-
 
 // ════════════════════════════════════════════════════════════════
 // ❌ GESTIÓN Y CANCELACIÓN

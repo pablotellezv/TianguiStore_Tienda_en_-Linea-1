@@ -279,6 +279,7 @@ nav .collapsible-header i {
 .card.product-card .card-image {
   position: relative;
   overflow: hidden;
+  padding-top: 42px;
 }
 .card.product-card .card-image img {
   width: 100%;
@@ -382,6 +383,17 @@ nav .collapsible-header i {
 .card.product-card .badge-etiqueta i {
   font-size: 0.9rem;
   opacity: 0.85;
+}
+.card.product-card .badges-contenedor {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  z-index: 4;
 }
 @keyframes fadeInCard {
   from {
@@ -1028,10 +1040,6 @@ button[type="submit"].btn-large svg,
    Estilo visual con glassmorphism, color de fondo semántico y legibilidad optimizada.
 ============================================================================ */
 .badge-etiqueta {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 3;
   padding: 4px 10px;
   font-size: 0.75rem;
   font-weight: bold;
@@ -1039,7 +1047,6 @@ button[type="submit"].btn-large svg,
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-radius: 1.25rem;
-  background-color: rgba(0, 0, 0, 0);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
@@ -1052,7 +1059,6 @@ button[type="submit"].btn-large svg,
 }
 .badge-etiqueta:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
 .badge-etiqueta i,
 .badge-etiqueta svg {
@@ -1061,17 +1067,24 @@ button[type="submit"].btn-large svg,
 }
 /* 🎯 Badges específicos por tipo de estado */
 .badge-destacado {
-  background-color: #00acc1;
+  background-color: #00bcd4;
+  color: #081c1b;
+  box-shadow: 0 0 8px rgba(0, 188, 212, 0.5);
 }
 .badge-nuevo {
   background-color: #2e7d32;
+  color: #fff;
+  box-shadow: 0 0 8px rgba(46, 125, 50, 0.4);
 }
 .badge-bajo-stock {
   background-color: #f4511e;
+  color: #fff;
+  box-shadow: 0 0 8px rgba(244, 81, 30, 0.4);
 }
 .badge-popular {
   background-color: #ffc107;
   color: #121212;
+  box-shadow: 0 0 8px rgba(255, 193, 7, 0.4);
 }
 /* ══════════════════════════════════════
  👤 MENÚ DE USUARIO + IDENTIDAD DE ROL

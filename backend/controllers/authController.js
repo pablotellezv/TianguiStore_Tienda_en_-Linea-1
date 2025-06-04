@@ -200,7 +200,7 @@ async function verificarUsuario(req, res) {
         `${usuario.nombre} ${usuario.apellido_paterno || ""} ${usuario.apellido_materno || ""}`.trim(),
       rol: usuario.rol || "cliente",
       nivel: usuario.nivel || "Básico",
-      fotoPerfil: usuario.foto_perfil_url || "./imagenes/default_profile.png",
+      fotoPerfil: usuario.foto_perfil_url || "/imagenes/default_profile.png",
       permisos,
     };
     usuarioModel.actualizarAccesoUsuario(usuario.usuario_id);

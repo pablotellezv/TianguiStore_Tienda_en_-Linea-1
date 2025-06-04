@@ -379,6 +379,7 @@ nav {
   .card-image {
     position: relative;
     overflow: hidden;
+    padding-top: 42px; // espacio reservado para los badges
 
     img {
       width: 100%;
@@ -500,6 +501,18 @@ nav {
       font-size: 0.9rem;
       opacity: 0.85;
     }
+  }
+
+  .badges-contenedor {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    flex-direction: column; // 👈 En fila
+    gap: 8px; // 👈 Separación horizontal entre badges
+    align-items: center;
+    flex-wrap: wrap; // 👈 Si hay muchos, hacen salto de línea
+    z-index: 4;
   }
 
   @keyframes fadeInCard {
@@ -1242,39 +1255,27 @@ button[type="submit"].btn-large,
 ============================================================================ */
 
 .badge-etiqueta {
-  position: absolute; // Se posiciona sobre la tarjeta
-  top: 10px;
-  left: 10px;
-  z-index: 3; // Encima del contenido de la tarjeta
-  padding: 4px 10px; // Relleno interno horizontal
-  font-size: 0.75rem; // Tamaño pequeño pero legible
+  padding: 4px 10px;
+  font-size: 0.75rem;
   font-weight: bold;
-  color: #fff; // Texto claro
-  text-transform: uppercase; // Texto en mayúsculas
-  letter-spacing: 0.5px; // Espaciado tipográfico
-  border-radius: 1.25rem; // Bordes redondeados tipo píldora
-
-  background-color: fade(
-    #000,
-    0%
-  ); // Fallback transparente (se sobreescribe por clases)
-  backdrop-filter: blur(6px); // Efecto glass real
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 1.25rem;
+  backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); // Sombra difusa
-  border: 1px solid fade(#fff, 6%); // Borde tenue que destaca
-
-  display: inline-flex; // Permite alinear texto e íconos
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  border: 1px solid fade(#fff, 6%);
+  display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-
   animation: fadeIn 0.5s ease-in-out;
   transition:
     background-color 0.3s ease,
     transform 0.2s ease;
 
   &:hover {
-    transform: scale(1.05); // Efecto suave al pasar el mouse
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    transform: scale(1.05);
   }
 
   i,
@@ -1286,20 +1287,27 @@ button[type="submit"].btn-large,
 
 /* 🎯 Badges específicos por tipo de estado */
 .badge-destacado {
-  background-color: @primary-accent; // Turquesa (producto importante)
+  background-color: #00bcd4; // Cyan
+  color: #081c1b;
+  box-shadow: 0 0 8px fade(#00bcd4, 50%);
 }
 
 .badge-nuevo {
-  background-color: #2e7d32; // Verde (producto recién agregado)
+  background-color: #2e7d32; // Verde oscuro
+  color: #fff;
+  box-shadow: 0 0 8px fade(#2e7d32, 40%);
 }
 
 .badge-bajo-stock {
-  background-color: #f4511e; // Naranja intenso (alerta de inventario bajo)
+  background-color: #f4511e; // Naranja intenso
+  color: #fff;
+  box-shadow: 0 0 8px fade(#f4511e, 40%);
 }
 
 .badge-popular {
-  background-color: #ffc107; // Amarillo vibrante
-  color: #121212; // Contraste en fondo claro
+  background-color: #ffc107; // Amarillo
+  color: #121212;
+  box-shadow: 0 0 8px fade(#ffc107, 40%);
 }
 /* ══════════════════════════════════════
  👤 MENÚ DE USUARIO + IDENTIDAD DE ROL

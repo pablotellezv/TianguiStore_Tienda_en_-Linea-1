@@ -210,3 +210,28 @@ exports.obtenerProductosDelPedido = async (req, res) => {
     res.status(500).json({ mensaje: "Error al obtener productos del pedido" });
   }
 };
+
+/**
+ * 🗂️ GET /admin/listado
+ * Listar todos los pedidos (para administradores), con filtros y paginación
+ */
+exports.listarTodosLosPedidos = async (req, res) => {
+  try {
+    const { page = 1, limite = 30, estado, fecha_inicio, fecha_fin } = req.query;
+    const offset = (page - 1) * limite;
+
+    const pedidos = await pedidoModel.obtenerPedidosPaginadosYFiltrados({
+      estado,
+      fecha_inicio,
+      fecha_fin,
+      limite: parseInt(limite),
+      offset: parseInt(offset)
+    });
+
+    res.status(200).json(pedidos);
+  } catch (error) {
+    console.error("❌ Error al listar todos los pedidos:", error);
+    res.status(500).json({ mensaje: "No se pudieron obtener los pedidos." });
+  }
+};
+

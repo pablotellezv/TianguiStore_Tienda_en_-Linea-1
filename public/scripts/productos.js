@@ -55,7 +55,9 @@ function mostrarPagina(num) {
   const fin = inicio + productosPorPagina;
   const productosPagina = productosGlobal.slice(inicio, fin);
 
-  productosPagina.forEach((producto) => renderizarProducto(producto, contenedor));
+  productosPagina.forEach((producto) =>
+    renderizarProducto(producto, contenedor)
+  );
   asignarEventosAgregar();
 }
 
@@ -70,7 +72,8 @@ function generarPaginacion() {
 
   for (let i = 1; i <= totalPaginas; i++) {
     const li = document.createElement("li");
-    li.className = i === paginaActual ? "active amber darken-3" : "waves-effect";
+    li.className =
+      i === paginaActual ? "active amber darken-3" : "waves-effect";
 
     const a = document.createElement("a");
     a.href = "#!";
@@ -98,7 +101,7 @@ function renderizarProducto(producto, contenedor) {
     stock = 0,
     imagen_url,
     es_nuevo = false,
-    es_popular = false
+    es_popular = false,
   } = producto;
 
   const imagen = (imagen_url || "/imagenes/default.png")
@@ -127,25 +130,59 @@ function renderizarProducto(producto, contenedor) {
     img.src = "/imagenes/default.png";
   };
 
-  const badge = document.createElement("span");
-  badge.classList.add("badge-etiqueta");
+  // 🏷️ Contenedor de múltiples badges
+  const badgesContenedor = document.createElement("div");
+  badgesContenedor.classList.add("badges-contenedor");
 
+  // 🟠 Bajo stock
   if (stock > 0 && stock <= 10) {
-    badge.classList.add("badge-bajo-stock");
+    const badge = document.createElement("span");
+    badge.className = "badge-etiqueta badge-bajo-stock";
     badge.title = "Quedan pocas unidades";
-    badge.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Bajo stock`;
-  } else if (es_popular) {
-    badge.classList.add("badge-popular");
-    badge.title = "Producto popular";
-    badge.innerHTML = `<i class="fas fa-fire"></i> Popular`;
-  } else if (es_nuevo) {
-    badge.classList.add("badge-nuevo");
-    badge.title = "Nuevo producto";
-    badge.innerHTML = `<i class="fas fa-star"></i> Nuevo`;
+    badge.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ¡Últimos!`;
+    badge.style.marginRight = "6px";
+    badge.style.marginBottom = "6px";
+    badgesContenedor.appendChild(badge);
   }
 
+  // 🔥 Popular
+  if (es_popular) {
+    const badge = document.createElement("span");
+    badge.className = "badge-etiqueta badge-popular";
+    badge.title = "Producto popular";
+    badge.innerHTML = `<i class="fas fa-fire"></i> Popular`;
+    badge.style.marginRight = "6px";
+    badge.style.marginBottom = "6px";
+    badgesContenedor.appendChild(badge);
+  }
+
+  // ✨ Nuevo
+  if (es_nuevo) {
+    const badge = document.createElement("span");
+    badge.className = "badge-etiqueta badge-nuevo";
+    badge.title = "Nuevo producto";
+    badge.innerHTML = `<i class="fas fa-star"></i> Nuevo`;
+    badge.style.marginRight = "6px";
+    badge.style.marginBottom = "6px";
+    badgesContenedor.appendChild(badge);
+  }
+
+  // 🌟 Destacado
+  if (producto.destacado) {
+    const badge = document.createElement("span");
+    badge.className = "badge-etiqueta badge-destacado";
+    badge.title = "Producto destacado";
+    badge.innerHTML = `<i class="fas fa-certificate"></i> Destacado`;
+    badge.style.marginRight = "6px";
+    badge.style.marginBottom = "6px";
+    badgesContenedor.appendChild(badge);
+  }
+
+  // Añade los badges al contenedor de imagen si existen
   linkImagen.append(img);
-  if (badge.innerHTML) linkImagen.append(badge);
+  if (badgesContenedor.childNodes.length > 0) {
+    linkImagen.appendChild(badgesContenedor);
+  }
 
   const cardContent = document.createElement("section");
   cardContent.className = "card-content";
@@ -183,7 +220,8 @@ function renderizarProducto(producto, contenedor) {
   cardAction.className = "card-action center-align";
 
   const btn = document.createElement("button");
-  btn.className = "btn btn-agregar amber darken-2 waves-effect waves-light z-depth-1";
+  btn.className =
+    "btn btn-agregar amber darken-2 waves-effect waves-light z-depth-1";
   btn.setAttribute("aria-label", `Agregar ${nombre} al carrito`);
   btn.innerHTML = `<i class="fas fa-cart-plus left"></i> Agregar`;
   btn.dataset.id = id;
@@ -231,7 +269,9 @@ function agregarAlCarrito(id, nombre, precio, imagen_url) {
 function actualizarContadorCarrito() {
   const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
   const total = carrito.reduce((acc, p) => acc + (p.cantidad || 0), 0);
-  document.querySelectorAll("#contador-carrito").forEach((el) => (el.textContent = total));
+  document
+    .querySelectorAll("#contador-carrito")
+    .forEach((el) => (el.textContent = total));
 }
 
 /* ══════════════════════════════════════

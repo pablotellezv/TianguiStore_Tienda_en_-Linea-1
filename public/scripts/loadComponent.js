@@ -26,7 +26,8 @@ async function cargarNavbar() {
   if (!contenedor) return;
 
   try {
-    const res = await fetch("./componentes/navbar.html");
+    const res = await fetch("/componentes/navbar.html");
+
     if (!res.ok) throw new Error("No se pudo cargar navbar.html");
 
     contenedor.innerHTML = await res.text();
@@ -46,7 +47,8 @@ async function cargarFooter() {
   if (!contenedor) return;
 
   try {
-    const res = await fetch("./componentes/footer.html");
+    const res = await fetch("/componentes/footer.html");
+
     if (!res.ok) throw new Error("No se pudo cargar footer.html");
 
     contenedor.innerHTML = await res.text();
@@ -214,7 +216,7 @@ function generarBloqueUsuario(usuario) {
   const nombre = escapeHTML(usuario.nombre || usuario.correo || "Usuario");
   const rol = (usuario.rol || "cliente").toLowerCase();
   const nivel = escapeHTML(usuario.nivel || "Básico");
-  const foto = usuario.fotoPerfil || "./imagenes/default_profile.png";
+  const foto = usuario.fotoPerfil || "/imagenes/default_profile.png";
 
   const iconosRol = {
     admin: "fas fa-user-shield",
@@ -255,7 +257,17 @@ function generarDropdownUsuario(permisos) {
     ${permisos.usuarios?.leer ? `<li><a href="usuarios.html"><i class="fas fa-users" style="color:#29b6f6;"></i> Usuarios</a></li>` : ""}
     ${permisos.configuracion?.leer ? `<li><a href="configuracion.html"><i class="fas fa-sliders-h" style="color:#ff8f00;"></i> Configuración</a></li>` : ""}
     ${permisos.reportes?.exportar ? `<li><a href="metricas.html"><i class="fas fa-chart-bar" style="color:#26a69a;"></i> Métricas</a></li>` : ""}
-    ${permisos.pedidos?.leer ? `<li><a href="misPedidos.html"><i class="fas fa-box-open" style="color:#ffa000;"></i> Pedidos</a></li>` : ""}
+    ${
+      permisos.pedidos?.leer
+        ? `
+  <li>
+    <a href="${permisos.admin && usuario.rol === "admin" ? "admin/pedidos.html" : "misPedidos.html"}">
+      <i class="fas fa-box-open" style="color:#ffa000;"></i> Pedidos
+    </a>
+  </li>`
+        : ""
+    }
+
     <li class="divider" tabindex="-1"></li>
     <li><a href="#" id="menu-logout"><i class="fas fa-sign-out-alt red-text"></i> Cerrar sesión</a></li>
   `;
@@ -266,13 +278,25 @@ function mostrarMenuPedidosSiSesionActiva() {
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
   const puedeVerPedidos = usuario?.permisos?.pedidos?.leer === true;
 
-  document
-    .getElementById("nav-pedidos")
-    ?.style.setProperty("display", puedeVerPedidos ? "flex" : "none");
-  document
-    .getElementById("sidenav-pedidos")
-    ?.style.setProperty("display", puedeVerPedidos ? "block" : "none");
+  const linkNavPedidos = document.getElementById("link-nav-pedidos");
+  const linkDropdownPedidos = document.getElementById("link-dropdown-pedidos");
+  const linkSidenavPedidos = document.getElementById("link-sidenav-pedidos");
+
+  if (!puedeVerPedidos) return;
+
+  const destino = usuario?.rol === "admin" ? "admin/pedidos.html" : "misPedidos.html";
+
+  // Actualiza hrefs dinámicamente según rol
+  linkNavPedidos?.setAttribute("href", destino);
+  linkDropdownPedidos?.setAttribute("href", destino);
+  linkSidenavPedidos?.setAttribute("href", destino);
+
+  // Asegura que los enlaces estén visibles
+  document.getElementById("nav-pedidos")?.style.setProperty("display", "flex");
+  document.getElementById("dropdown-pedidos")?.style.setProperty("display", "block");
+  document.getElementById("sidenav-pedidos")?.style.setProperty("display", "block");
 }
+
 
 /* ══════════════════════════════════════
    🔓 CIERRE DE SESIÓN Y LIMPIEZA LOCAL
