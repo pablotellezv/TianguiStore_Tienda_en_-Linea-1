@@ -119,6 +119,10 @@ async function verificarUsuario(id) {
   if (!id || isNaN(id)) throw new Error("ID inválido");
   await pool.query(`UPDATE usuarios SET verificado = 1 WHERE usuario_id = ?`, [parseInt(id)]);
 }
+async function actualizarAccesoUsuario(id) {
+  if (!id || isNaN(id)) throw new Error("ID inválido");
+  await pool.query(`UPDATE usuarios SET usuarios.ultima_conexion = CURRENT_TIMESTAMP() WHERE usuario_id = ?`, [parseInt(id)]);
+}
 
 /* ══════════════════════════════════════
    🔐 Cambiar contraseña
@@ -185,6 +189,7 @@ module.exports = {
   buscarUsuarioPorId,
   obtenerTodos,
   existeCorreo,
+  actualizarAccesoUsuario,
   crearUsuario,
   activarUsuario,
   desactivarUsuario,

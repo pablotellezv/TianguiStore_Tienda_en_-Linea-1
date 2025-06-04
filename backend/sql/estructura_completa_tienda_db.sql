@@ -338,7 +338,6 @@ SELECT 'OK - estados_pedido' AS modulo, COUNT(*) AS registros FROM estados_pedid
 -- Define roles, perfiles extendidos de usuarios, sistema de verificación,
 -- asociación a sucursales, postulaciones y soporte para fidelización.
 -- =====================================================================
-
 -- 🧑‍⚖️ Tabla: roles
 CREATE TABLE IF NOT EXISTS roles (
   rol_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -686,7 +685,6 @@ CREATE TABLE IF NOT EXISTS valoraciones (
 -- ════════════════════════════════════════════════════════════════════
 -- 📦 📦 PRODUCTOS (CATÁLOGO PRINCIPAL, CON SOPORTE PARA BORRADO LÓGICO)
 -- ════════════════════════════════════════════════════════════════════
-DROP TABLE IF EXISTS productos;
 CREATE TABLE IF NOT EXISTS productos (
   producto_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -1870,7 +1868,6 @@ END;
 -- ════════════════════════════════════════════════════════════════════
 -- 📦 🔄 MANTENIMIENTO AUTOMÁTICO: EXPIRAR PUNTOS
 -- ════════════════════════════════════════════════════════════════════
-
 
 -- Evita eliminación física de usuarios
 CREATE TRIGGER trg_proteger_borrado_usuarios
@@ -3803,10 +3800,8 @@ CREATE TRIGGER trg_usuario_login
 AFTER UPDATE ON usuarios
 FOR EACH ROW
 BEGIN
-  IF NEW.ultima_conexion IS NOT NULL AND OLD.ultima_conexion IS NULL THEN
     INSERT INTO actividad_usuario (usuario_id, tipo_actividad, descripcion, modulo)
     VALUES (NEW.usuario_id, 'inicio_sesion', 'Inicio de sesión del usuario', 'autenticacion');
-  END IF;
 END;
 //
 
