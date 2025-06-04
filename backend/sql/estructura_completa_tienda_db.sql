@@ -2311,10 +2311,6 @@ DROP PROCEDURE IF EXISTS sp_crear_pedido_completo;
 DELIMITER //
 
 CREATE PROCEDURE sp_crear_pedido_completo(
-
-DELIMITER //
-
-CREATE PROCEDURE sp_crear_pedido_completo(
   IN p_usuario_id INT,
   IN p_total DECIMAL(10,2),
   IN p_metodo_pago ENUM('efectivo','tarjeta','transferencia','codi','paypal'),
@@ -2481,11 +2477,9 @@ BEGIN
   SELECT v_pedido_id AS pedido_id;
 END;
 //
-END;
-//
+
 DELIMITER ;
 
-  -- 🏆 SP: Crear pedido completo
   -- 🏆 SP: Crear pedido completo
 
 
