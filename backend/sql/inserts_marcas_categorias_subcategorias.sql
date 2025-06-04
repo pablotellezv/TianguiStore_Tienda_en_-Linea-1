@@ -32,3 +32,5 @@ INSERT INTO subcategorias (subcategoria_id, categoria_id, nombre_subcategoria) V
 (8, 3, 'ESP32'),
 (9, 3, 'STM32'),
 (10, 3, 'Raspberry Pi Pico');
+
+
