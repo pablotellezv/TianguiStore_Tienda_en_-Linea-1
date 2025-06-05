@@ -13,22 +13,6 @@
 /* 🎨 Colores utilitarios adicionales */
 /* 📏 Breakpoints para diseño responsive */
 /* 🎭 Z-index base para capas */
-.modal-footer {
-  background-color: transparent;
-  border-top: none;
-  box-shadow: none;
-  padding: 1rem 1.5rem;
-  display: flex;
-  justify-content: flex-end;
-}
-.modal-footer .btn-flat {
-  color: #d4a03f;
-  font-weight: 600;
-  transition: color 0.2s ease;
-}
-.modal-footer .btn-flat:hover {
-  color: #ddb569;
-}
 /* ============================================================================
    🧱 BASE - Estilo base para todo el documento HTML
    Aplica tipografía, colores de fondo, estructura global y animaciones suaves
@@ -1276,6 +1260,58 @@ button[type="submit"].btn-large svg,
 }
 .badge-rol.sin-rol i {
   color: #ffffff !important;
+}
+/* ============================================================================
+   🧾 ADMIN PEDIDOS - Estilo específico para la vista de pedidos (admin)
+============================================================================ */
+/* Estilo del modal glass (detalle de pedido) */
+.modal-glass {
+  background-color: rgba(0, 0, 0, 0.6);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-radius: 1.25rem;
+  padding: 20px;
+  color: #e0e0e0;
+}
+@supports not (backdrop-filter: blur(12px)) {
+  .modal-glass {
+    background-color: rgba(0, 0, 0, 0.85);
+  }
+}
+.modal-content h5,
+.modal-content p,
+.modal-content h6 {
+  color: #e0e0e0;
+}
+.modal-content ul.collection {
+  background-color: transparent;
+  border: none;
+}
+.modal-content .collection-item {
+  background-color: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: #e0e0e0;
+}
+/* Ícono de botón de filtro */
+.btn-filtrar-icon i {
+  vertical-align: middle;
+  margin-right: 5px;
+}
+.modal .modal-footer {
+  background-color: transparent !important;
+  border-top: none;
+  box-shadow: none;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+.modal .modal-footer .btn-flat {
+  color: #d4a03f;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+.modal .modal-footer .btn-flat:hover {
+  color: #ddb569;
 }
 /* ============================================================================
    🎞️ ANIMACIONES - TianguiStore

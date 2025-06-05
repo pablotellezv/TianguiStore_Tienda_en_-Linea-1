@@ -69,10 +69,7 @@ router.post(
   "/archivos",
   verificarAutenticacion,
   permitirRoles("admin", "soporte"),
-  upload.fields([
-    { name: "imagenes", maxCount: 5 },
-    { name: "modelo3d", maxCount: 1 }
-  ]),
+  upload,
   productosSchema,
   validarResultados,
   productosController.agregarProductoConArchivos

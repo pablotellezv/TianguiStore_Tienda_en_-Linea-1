@@ -170,12 +170,14 @@ async function verDetalle(pedido_id) {
 
     document.getElementById("detalle-cliente").textContent = detalle.cliente;
     document.getElementById("detalle-total").textContent =
-      `$${(+detalle.total).toFixed(2)}`;
+      `${(+detalle.total).toFixed(2)}`;
     document.getElementById("detalle-fecha").textContent = new Date(
       detalle.fecha_pedido
     ).toLocaleString("es-MX");
+    const direccion = detalle.direccion_entrega;
     document.getElementById("detalle-direccion").textContent =
-      detalle.direccion_envio || "(No proporcionada)";
+  direccion && direccion.trim().length > 0 ? direccion : "(No proporcionada)";
+
     document.getElementById("detalle-metodo").textContent = detalle.metodo_pago;
 
     document.getElementById("detalle-productos").innerHTML = detalle.productos

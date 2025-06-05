@@ -67,24 +67,7 @@
 @z-toast: 1100;
 @z-fixed: 1200;
 
-.modal-footer {
-  background-color: transparent;
-  border-top: none;
-  box-shadow: none;
-  padding: 1rem 1.5rem;
-  display: flex;
-  justify-content: flex-end;
 
-  .btn-flat {
-    color: @secondary-accent;
-    font-weight: 600;
-    transition: color 0.2s ease;
-
-    &:hover {
-      color: lighten(@secondary-accent, 10%);
-    }
-  }
-}
 
 /* ============================================================================
    🧱 BASE - Estilo base para todo el documento HTML
@@ -1544,6 +1527,74 @@ button[type="submit"].btn-large,
 }
 
 /* ============================================================================
+   🧾 ADMIN PEDIDOS - Estilo específico para la vista de pedidos (admin)
+============================================================================ */
+
+/* Estilo del modal glass (detalle de pedido) */
+.modal-glass {
+  background-color: rgba(0, 0, 0, 0.6);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+
+  // Fallback visual si el blur no es soportado
+  @supports not (backdrop-filter: blur(12px)) {
+    background-color: rgba(0, 0, 0, 0.85);
+  }
+
+  border-radius: @border-radius-lg;
+  padding: 20px;
+  color: @text-main;
+}
+
+
+.modal-content {
+  h5,
+  p,
+  h6 {
+    color: @text-main;
+  }
+
+  ul.collection {
+    background-color: transparent;
+    border: none;
+  }
+
+  .collection-item {
+    background-color: rgba(255, 255, 255, 0.08);
+    border: none;
+    color: @text-main;
+  }
+}
+
+/* Ícono de botón de filtro */
+.btn-filtrar-icon i {
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+
+.modal .modal-footer {
+  background-color: transparent !important;
+  border-top: none;
+  box-shadow: none;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+
+  .btn-flat {
+    color: @secondary-accent;
+    font-weight: 600;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: lighten(@secondary-accent, 10%);
+    }
+  }
+}
+
+
+
+/* ============================================================================
    🎞️ ANIMACIONES - TianguiStore
    Animaciones modernas y suaves para glassmorphism oscuro profesional.
 ============================================================================ */
@@ -1640,3 +1691,5 @@ button[type="submit"].btn-large,
     transform: scale(1);
   }
 }
+
+
