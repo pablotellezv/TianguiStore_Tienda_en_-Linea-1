@@ -280,25 +280,29 @@ async function obtenerPedidosPaginadosYFiltrados({
     totalPaginas: Math.ceil(total / limite),
   };
 }
-async function obtenerDetalleCompletoPedido(pedido_id, usuario_id, rol = "cliente") {
+async function obtenerDetalleCompletoPedido(
+  pedido_id,
+  usuario_id,
+  rol = "cliente"
+) {
   const isAdmin = ["admin", "soporte"].includes(rol);
 
   const pedidoQuery = `
-    SELECT 
-      p.pedido_id,
-      p.fecha_pedido,
-      p.total,
-      p.metodo_pago,
-      p.direccion_envio,
-      p.cupon,
-      ep.estado_nombre AS estado,
-      CONCAT(u.nombre, ' ', u.apellido_paterno) AS cliente
-    FROM pedidos p
-    JOIN usuarios u ON p.usuario_id = u.usuario_id
-    JOIN estados_pedido ep ON ep.estado_id = p.estado_id
-    WHERE p.pedido_id = ?
-    ${isAdmin ? "" : "AND p.usuario_id = ?"}
-  `;
+  SELECT 
+    p.pedido_id,
+    p.fecha_pedido,
+    p.total,
+    p.metodo_pago,
+    p.direccion_entrega,
+    p.cupon,
+    ep.estado_nombre AS estado,
+    CONCAT(u.nombre, ' ', u.apellido_paterno) AS cliente
+  FROM pedidos p
+  JOIN usuarios u ON p.usuario_id = u.usuario_id
+  JOIN estados_pedido ep ON ep.estado_id = p.estado_id
+  WHERE p.pedido_id = ?
+  ${isAdmin ? "" : "AND p.usuario_id = ?"}
+`;
 
   const paramsPedido = isAdmin ? [pedido_id] : [pedido_id, usuario_id];
   const [pedidoRows] = await db.query(pedidoQuery, paramsPedido);
@@ -315,7 +319,7 @@ async function obtenerDetalleCompletoPedido(pedido_id, usuario_id, rol = "client
 
   return {
     ...pedidoRows[0],
-    productos
+    productos,
   };
 }
 
@@ -331,5 +335,5 @@ module.exports = {
   limpiarCarrito,
   obtenerCarrito,
   obtenerPedidosPaginadosYFiltrados,
-  obtenerDetalleCompletoPedido
+  obtenerDetalleCompletoPedido,
 };

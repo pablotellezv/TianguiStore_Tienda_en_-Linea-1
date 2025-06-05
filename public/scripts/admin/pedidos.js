@@ -1,49 +1,70 @@
 // 📦 admin/pedidos.js
-document.addEventListener("DOMContentLoaded", () => {
-  M.AutoInit();
-  M.Modal.init(document.querySelectorAll(".modal"));
-  cargarPedidos(); // primera carga
 
-  document.getElementById("btn-filtrar").addEventListener("click", () => {
-    cargarPedidos(1); // aplica filtros desde página 1
-  });
+document.addEventListener("DOMContentLoaded", () => {
+  const token = localStorage.getItem("token");
+  const usuario = JSON.parse(localStorage.getItem("usuario") || "{}");
+
+  if (!token || !usuario?.usuario_id || !usuario?.permisos?.pedidos?.leer) {
+    console.warn("⛔ Acceso denegado o sesión inválida.");
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
+    window.location.href = "/index.html";
+    return;
+  }
+
+  M.AutoInit();
+
+  const modalEl = document.getElementById("modal-detalle-pedido");
+  if (modalEl && !M.Modal.getInstance(modalEl)) {
+    M.Modal.init(modalEl, {
+      opacity: 0.6,
+      endingTop: "10%",
+      inDuration: 300,
+      outDuration: 200,
+    });
+  }
+
+  document
+    .getElementById("btn-filtrar")
+    ?.addEventListener("click", () => cargarPedidos(1));
+  cargarPedidos(); // Primera carga
 });
 
 let paginaActual = 1;
 const pedidosPorPagina = 30;
+
 async function cargarPedidos(pagina = 1) {
   const tabla = document.getElementById("tabla-pedidos");
   const paginacion = document.getElementById("paginacion-pedidos");
   const token = localStorage.getItem("token");
 
-  tabla.innerHTML = `<tr><td colspan="6">Cargando pedidos...</td></tr>`;
+  if (!tabla || !paginacion || !token) return;
+
+  tabla.innerHTML = `<tr><td colspan="6">⏳ Cargando pedidos...</td></tr>`;
   paginacion.innerHTML = "";
 
-  const fechaInicio = document.getElementById("fecha-inicio").value;
-  const fechaFin = document.getElementById("fecha-fin").value;
-  const estado = document.getElementById("estado-filtro").value;
+  const fechaInicio = document.getElementById("fecha-inicio")?.value || "";
+  const fechaFin = document.getElementById("fecha-fin")?.value || "";
+  const estado = document.getElementById("estado-filtro")?.value || "";
 
   const params = new URLSearchParams({
     page: pagina,
     limite: pedidosPorPagina,
   });
-  if (fechaInicio) params.append("fecha_inicio", fechaInicio);
-  if (fechaFin) params.append("fecha_fin", fechaFin);
-  if (estado) params.append("estado", estado);
+
+  if (fechaInicio)
+    params.append("fecha_inicio", encodeURIComponent(fechaInicio));
+  if (fechaFin) params.append("fecha_fin", encodeURIComponent(fechaFin));
+  if (estado) params.append("estado", encodeURIComponent(estado));
 
   try {
     const res = await fetch(`/pedidos/admin/listado?${params.toString()}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     });
 
     if (res.status === 401) {
-      M.toast({
-        html: "⚠️ Sesión expirada. Por favor inicia sesión nuevamente.",
-        classes: "red darken-3",
-      });
-      setTimeout(() => (window.location.href = "/login.html"), 1500);
+      alert("⚠️ Tu sesión ha expirado.");
+      window.location.href = "/index.html";
       return;
     }
 
@@ -53,7 +74,7 @@ async function cargarPedidos(pagina = 1) {
     paginaActual = actual;
 
     if (!pedidos.length) {
-      tabla.innerHTML = `<tr><td colspan="6">No hay pedidos que coincidan con los filtros.</td></tr>`;
+      tabla.innerHTML = `<tr><td colspan="6">📭 No hay pedidos con los filtros aplicados.</td></tr>`;
       return;
     }
 
@@ -62,13 +83,14 @@ async function cargarPedidos(pagina = 1) {
         (p) => `
       <tr>
         <td>${p.pedido_id}</td>
-        <td>${p.cliente}</td>
-        <td>${new Date(p.fecha).toLocaleString()}</td>
-        <td>$${p.total.toFixed(2)}</td>
+        <td>${p.cliente || "Desconocido"}</td>
+        <td>${new Date(p.fecha).toLocaleString("es-MX")}</td>
+        <td>$${(+p.total).toFixed(2)}</td>
         <td><span class="new badge ${colorEstado(p.estado)}" data-badge-caption="${p.estado}"></span></td>
         <td>
-          <a href="#" onclick="verDetalle(${p.pedido_id})" title="Ver detalle">
-            <i class="material-icons amber-text">visibility</i>
+          <a href="#modal-detalle-pedido" class="modal-trigger detalle-btn" data-id="${p.pedido_id}" title="Ver detalle">
+            <i class="material-icons amber-text text-darken-3" title="Ver detalle">visibility</i>
+
           </a>
         </td>
       </tr>
@@ -77,17 +99,27 @@ async function cargarPedidos(pagina = 1) {
       .join("");
 
     generarPaginacion(totalPaginas, paginaActual);
+
+    document.querySelectorAll(".detalle-btn").forEach((el) => {
+      el.addEventListener("click", (e) =>
+        verDetalle(e.currentTarget.dataset.id)
+      );
+    });
   } catch (err) {
-    tabla.innerHTML = `<tr><td colspan="6">Error: ${err.message}</td></tr>`;
+    console.error("❌ Error al cargar pedidos:", err);
+    tabla.innerHTML = `<tr><td colspan="6">❌ ${err.message}</td></tr>`;
   }
 }
 
 function generarPaginacion(total, actual) {
   const paginacion = document.getElementById("paginacion-pedidos");
+  paginacion.innerHTML = "";
+
   for (let i = 1; i <= total; i++) {
     const li = document.createElement("li");
     li.className = i === actual ? "active amber darken-2" : "waves-effect";
-    li.innerHTML = `<a href="#!" onclick="cargarPedidos(${i})">${i}</a>`;
+    li.innerHTML = `<a href="#!" data-page="${i}">${i}</a>`;
+    li.querySelector("a").addEventListener("click", () => cargarPedidos(i));
     paginacion.appendChild(li);
   }
 }
@@ -107,62 +139,64 @@ function colorEstado(estado) {
   }
 }
 
-function verDetalle(id) {
-  M.toast({ html: `🔎 Ver detalle aún no implementado (ID ${id})` });
-  // En el futuro: abrir modal o redirigir a detalle.html?id=...
-}
-
 async function verDetalle(pedido_id) {
-  const modal = M.Modal.getInstance(
-    document.getElementById("modal-detalle-pedido")
-  );
   const token = localStorage.getItem("token");
+  const modalEl = document.getElementById("modal-detalle-pedido");
+  const modal = M.Modal.getInstance(modalEl);
 
   document.getElementById("detalle-id").textContent = pedido_id;
+  document.getElementById("detalle-cliente").textContent = "Cargando...";
+  document.getElementById("detalle-total").textContent = "...";
+  document.getElementById("detalle-fecha").textContent = "...";
+  document.getElementById("detalle-direccion").textContent = "...";
+  document.getElementById("detalle-metodo").textContent = "...";
   document.getElementById("detalle-productos").innerHTML =
-    "<li class='collection-item'>Cargando productos...</li>";
+    "<li class='collection-item'>⏳ Cargando productos...</li>";
 
   try {
-    const res = await fetch(`/pedidos/${pedido_id}/productos`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const res = await fetch(`/pedidos/${pedido_id}/detalle`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
 
     if (res.status === 401) {
-      M.toast({
-        html: "⚠️ Sesión expirada. Por favor inicia sesión nuevamente.",
-        classes: "red darken-3",
-      });
-      setTimeout(() => (window.location.href = "/login.html"), 1500);
+      alert("⚠️ Tu sesión ha expirado.");
+      window.location.href = "/index.html";
       return;
     }
 
-    if (!res.ok) throw new Error("No autorizado o error al obtener productos");
+    if (!res.ok) throw new Error("No autorizado o pedido no encontrado");
 
-    const productos = await res.json();
+    const detalle = await res.json();
 
-    if (!productos || productos.length === 0) {
-      document.getElementById("detalle-productos").innerHTML =
-        "<li class='collection-item'>Sin productos.</li>";
-    } else {
-      const items = productos
-        .map(
-          (p) => `
+    document.getElementById("detalle-cliente").textContent = detalle.cliente;
+    document.getElementById("detalle-total").textContent =
+      `$${(+detalle.total).toFixed(2)}`;
+    document.getElementById("detalle-fecha").textContent = new Date(
+      detalle.fecha_pedido
+    ).toLocaleString("es-MX");
+    document.getElementById("detalle-direccion").textContent =
+      detalle.direccion_envio || "(No proporcionada)";
+    document.getElementById("detalle-metodo").textContent = detalle.metodo_pago;
+
+    document.getElementById("detalle-productos").innerHTML = detalle.productos
+      .length
+      ? detalle.productos
+          .map((p) => {
+            const precio = parseFloat(p.precio_unitario) || 0;
+            const subtotal = precio * (parseInt(p.cantidad) || 0);
+            return `
         <li class="collection-item">
-          <span class="title"><strong>${p.nombre}</strong></span>
-          <br>
-          Cantidad: ${p.cantidad}, Precio unitario: $${p.precio_unitario.toFixed(2)}, 
-          Subtotal: $${(p.cantidad * p.precio_unitario).toFixed(2)}
-        </li>
-      `
-        )
-        .join("");
-      document.getElementById("detalle-productos").innerHTML = items;
-    }
+          <strong>${p.nombre}</strong><br>
+          Cantidad: ${p.cantidad}, Precio: $${precio.toFixed(2)}, 
+          Subtotal: $${subtotal.toFixed(2)}
+        </li>`;
+          })
+          .join("")
+      : "<li class='collection-item'>Sin productos.</li>";
 
     modal.open();
   } catch (err) {
+    console.error("❌ Error al cargar detalle:", err);
     document.getElementById("detalle-productos").innerHTML =
       `<li class='collection-item red-text'>${err.message}</li>`;
   }

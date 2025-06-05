@@ -13,6 +13,22 @@
 /* 🎨 Colores utilitarios adicionales */
 /* 📏 Breakpoints para diseño responsive */
 /* 🎭 Z-index base para capas */
+.modal-footer {
+  background-color: transparent;
+  border-top: none;
+  box-shadow: none;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+.modal-footer .btn-flat {
+  color: #d4a03f;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+.modal-footer .btn-flat:hover {
+  color: #ddb569;
+}
 /* ============================================================================
    🧱 BASE - Estilo base para todo el documento HTML
    Aplica tipografía, colores de fondo, estructura global y animaciones suaves
@@ -21,9 +37,10 @@
 body {
   background-color: #081c1b;
   background-image: url("../imagenes/patron_dark.png");
-  background-size: 160px;
-  background-attachment: fixed;
   background-repeat: repeat;
+  background-size: 320px auto;
+  background-position: center top;
+  background-attachment: fixed;
   color: #e0e0e0;
   font-family: "Roboto", sans-serif;
   margin: 0;
@@ -511,222 +528,118 @@ nav .collapsible-header i {
   display: none;
 }
 /* ============================================================================
-   🧾 TianguiStore - Formulario Glassmorphism Ceremonial con Fondo Personalizado
-   Campos elegantes, accesibles, con fondo tipo patrón centrado para formularios
+   🎴 Formulario con fondo ceremonial mejorado y contenido delimitado
 ============================================================================ */
 .formulario-wrapper {
-  min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 3rem;
-  width: 90vw;
-  max-width: 1200px;
+  width: 100%;
+  max-width: 960px;
   margin: 0 auto;
+  padding: 2.5rem 2rem;
   background-color: rgba(14, 34, 33, 0.9);
-  background-image: url("../imagenes/formulario_patron.png");
+  background-image: url("/imagenes/formulario_patron.png");
+  background-size: 200px auto;
   background-repeat: repeat;
-  background-position: center center;
-  background-size: 140px auto;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background-position: center;
   border-radius: 1.25rem;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  animation: fadeIn 0.6s ease-in-out both;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #e0e0e0;
+  animation: fadeIn 0.6s ease-in-out;
+  overflow: hidden;
+  position: relative;
+}
+.formulario-wrapper h2.intro-title,
+.formulario-wrapper h4.intro-title,
+.formulario-wrapper h4.center-align {
+  font-size: 2.2rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 2rem;
   color: #e0e0e0;
 }
-.formulario-wrapper h2.intro-title {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.6rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  margin-bottom: 2.5rem;
-}
-.formulario-wrapper h2.intro-title i {
-  font-size: 2.4rem;
-  margin-right: 0.6rem;
+.formulario-wrapper h2.intro-title i,
+.formulario-wrapper h4.intro-title i,
+.formulario-wrapper h4.center-align i {
   color: #d4a03f;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-/* Distribución columnas para aprovechar espacio */
-.formulario-wrapper .input-field.col.s12.m6 {
-  width: 48%;
-  margin-right: 4%;
-  float: left;
-}
-.formulario-wrapper .input-field.col.s12.m6:nth-child(even) {
-  margin-right: 0;
-}
-.formulario-wrapper .input-field.col.s12.m4 {
-  width: 30%;
-  margin-right: 5%;
-  float: left;
-}
-.formulario-wrapper .input-field.col.s12.m4:nth-child(3n) {
-  margin-right: 0;
-}
-.formulario-wrapper .input-field.col.s12.m6.offset-m3 {
-  width: 96%;
-  margin-right: 0;
-  float: none;
-  clear: both;
-}
-/* Responsive para móviles */
-@media screen and (max-width: 600px) {
-  .formulario-wrapper {
-    padding: 2rem 1.5rem;
-    width: 95vw;
-    max-width: 95vw;
-    background-size: 180px auto;
-  }
-  .formulario-wrapper h2.intro-title {
-    font-size: 2.2rem;
-  }
-  .formulario-wrapper h2.intro-title i {
-    font-size: 2rem;
-    margin-right: 0.5rem;
-  }
-  .formulario-wrapper .input-field.col.s12.m6,
-  .formulario-wrapper .input-field.col.s12.m4,
-  .formulario-wrapper .input-field.col.s12.m6.offset-m3 {
-    width: 100% !important;
-    margin-right: 0 !important;
-    float: none !important;
-    clear: none !important;
-  }
+  margin-right: 0.5rem;
 }
 /* ============================================================================
-   🎨 Estilos base para inputs y select
+   🖊️ Campos de entrada y selects
 ============================================================================ */
 .input-field {
-  position: relative;
-  margin-bottom: 2rem;
-}
-.input-field .prefix {
-  color: #d4a03f !important;
-  opacity: 0.95;
-  font-size: 1.2rem;
-  margin-right: 0.6rem;
-  transition: color 0.3s ease;
+  margin-bottom: 1.8rem;
 }
 .input-field label {
   color: #d4a03f;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 500;
-  margin-left: 0.1rem;
-  user-select: none;
   transition: color 0.3s ease;
+}
+.input-field input[type],
+.input-field textarea,
+.input-field .select-wrapper input.select-dropdown {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  font-size: 1rem;
+  background-color: rgba(14, 34, 33, 0.25);
+  border: none;
+  border-bottom: 2px solid rgba(176, 176, 176, 0.35);
+  border-radius: 0.75rem;
+  color: #e0e0e0;
+  transition: all 0.3s ease;
+}
+.input-field input[type]::placeholder,
+.input-field textarea::placeholder,
+.input-field .select-wrapper input.select-dropdown::placeholder {
+  color: rgba(176, 176, 176, 0.45);
+  font-style: italic;
+}
+.input-field input[type]:focus,
+.input-field textarea:focus,
+.input-field .select-wrapper input.select-dropdown:focus {
+  background-color: rgba(0, 172, 193, 0.08);
+  border-bottom: 2px solid #00acc1;
+  outline: none;
+}
+.input-field input[type]:disabled,
+.input-field textarea:disabled,
+.input-field .select-wrapper input.select-dropdown:disabled {
+  background-color: rgba(14, 34, 33, 0.1);
+  border-bottom: 1px dashed rgba(176, 176, 176, 0.3);
+  color: rgba(176, 176, 176, 0.6);
 }
 .input-field input:focus + label,
 .input-field textarea:focus + label {
   color: #00acc1;
 }
-.input-field input[type="date"]::-webkit-calendar-picker-indicator,
-.input-field input[type="time"]::-webkit-calendar-picker-indicator {
-  filter: invert(100%);
-}
-input[type],
-textarea,
-.select-wrapper input.select-dropdown {
-  width: 100%;
-  padding: 0.7rem 0.5rem;
-  font-size: 1rem;
-  font-weight: 400;
-  color: #e0e0e0;
-  background: rgba(14, 34, 33, 0.3);
-  border: none;
-  border-bottom: 1.5px solid rgba(212, 160, 63, 0.35);
-  border-radius: 0.75rem;
-  letter-spacing: 0.2px;
-  transition: border-bottom 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
-}
-input[type]::placeholder,
-textarea::placeholder,
-.select-wrapper input.select-dropdown::placeholder {
-  color: rgba(176, 176, 176, 0.4);
-  font-style: italic;
-}
-input[type]:focus,
-textarea:focus,
-.select-wrapper input.select-dropdown:focus {
-  background: rgba(0, 172, 193, 0.1);
-  border-bottom: 2px solid #d4a03f;
-  box-shadow: 0 1px 0 0 #d4a03f;
-  outline: none;
-}
-input[type]:hover:not(:disabled):not(:focus),
-textarea:hover:not(:disabled):not(:focus),
-.select-wrapper input.select-dropdown:hover:not(:disabled):not(:focus) {
-  border-bottom: 1.5px solid rgba(0, 172, 193, 0.5);
-}
-input[type]:disabled,
-textarea:disabled,
-.select-wrapper input.select-dropdown:disabled {
-  background-color: rgba(14, 34, 33, 0.12);
-  color: rgba(176, 176, 176, 0.5);
-  cursor: not-allowed;
-  border-bottom: 1px dashed rgba(176, 176, 176, 0.25);
-}
-/* Validaciones visuales */
+/* ✅ Validación visual */
 input.valid,
 textarea.valid {
-  border-bottom: 2px solid #6ec071 !important;
-  box-shadow: 0 1px 0 0 #6ec071 !important;
+  border-bottom: 2px solid #4caf50 !important;
 }
 input.invalid,
 textarea.invalid {
-  border-bottom: 2px solid #f6675d !important;
-  box-shadow: 0 1px 0 0 #f6675d !important;
+  border-bottom: 2px solid #f44336 !important;
 }
-/* Autofill */
-input:-webkit-autofill,
-textarea:-webkit-autofill,
-select:-webkit-autofill {
-  transition: background-color 5000s ease-in-out 0s;
-  -webkit-text-fill-color: #e0e0e0 !important;
-  box-shadow: 0 0 0 1000px rgba(14, 34, 33, 0.18) inset !important;
-  border-bottom: 1px solid rgba(0, 172, 193, 0.4) !important;
-}
-/* Toggle de visibilidad contraseña */
-.toggle-password {
-  position: absolute;
-  top: 50%;
-  right: 0.75rem;
-  transform: translateY(-50%);
-  z-index: 2;
-  cursor: pointer;
-  color: #b0b0b0;
-  font-size: 1.2rem;
-  opacity: 0.7;
-  user-select: none;
-  transition: color 0.3s ease, transform 0.2s ease;
-}
-.toggle-password:hover {
-  color: #00acc1;
-  opacity: 1;
-}
-.toggle-password:active {
-  transform: translateY(-50%) scale(0.95);
-}
-/* Select personalizado */
+/* 🔽 Dropdown personalizado */
 .select-dropdown {
-  background: rgba(8, 28, 27, 0.85) !important;
-  backdrop-filter: blur(16px);
+  background-color: rgba(14, 34, 33, 0.85) !important;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 0.75rem;
-  color: #e0e0e0 !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  padding: 0.5rem 0.75rem;
+  color: #e0e0e0 !important;
   font-size: 1rem;
-  padding: 0.25rem 0;
-  z-index: 1000;
-  overflow: hidden;
 }
 .select-dropdown.dropdown-content {
-  max-height: 300px;
+  max-height: 280px;
   overflow-y: auto;
+  background-color: rgba(14, 34, 33, 0.95);
   scrollbar-width: thin;
   scrollbar-color: #00acc1 transparent;
 }
@@ -735,25 +648,77 @@ select:-webkit-autofill {
   padding: 0.75rem 1rem;
   font-weight: 500;
   color: #e0e0e0;
-  transition: background 0.15s, color 0.15s;
   border-radius: 0.75rem;
+  transition: background 0.15s;
 }
-.select-dropdown.dropdown-content li:hover > span,
-.select-dropdown.dropdown-content li.selected > span {
-  background-color: rgba(0, 172, 193, 0.2) !important;
-  color: white !important;
+.select-dropdown.dropdown-content li:hover > span {
+  background-color: rgba(0, 172, 193, 0.25);
+  color: white;
 }
-.select-dropdown.dropdown-content li {
-  -webkit-tap-highlight-color: transparent;
+/* 👁 Toggle visibilidad de contraseña */
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  color: rgba(176, 176, 176, 0.6);
+  cursor: pointer;
+  transition: color 0.2s ease;
 }
-.select-wrapper input.select-dropdown:focus {
-  border-bottom: 2px solid #d4a03f !important;
-  box-shadow: 0 1px 0 0 #d4a03f !important;
-  background-color: transparent !important;
-  color: #e0e0e0 !important;
+.toggle-password:hover {
+  color: #00acc1;
 }
-.select-wrapper input.select-dropdown:focus + label {
-  color: #d4a03f !important;
+/* 📱 Responsive */
+@media screen and (max-width: 600px) {
+  .formulario-wrapper {
+    padding: 2rem 1rem;
+    background-size: 240px auto;
+  }
+  .formulario-wrapper h2.intro-title,
+  .formulario-wrapper h4.intro-title,
+  .formulario-wrapper h4.center-align {
+    font-size: 1.9rem;
+  }
+}
+/* ============================================================================
+   👁 Toggle visibilidad de contraseña
+============================================================================ */
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  color: rgba(176, 176, 176, 0.6);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.toggle-password:hover {
+  color: #00acc1;
+}
+/* ============================================================================
+   📱 Responsive
+============================================================================ */
+@media screen and (max-width: 600px) {
+  .formulario-wrapper {
+    padding: 2rem 1rem;
+    background-size: 200px auto;
+  }
+  .formulario-wrapper h2.intro-title {
+    font-size: 1.9rem;
+  }
+}
+.glass-card {
+  background: linear-gradient(rgba(14, 34, 33, 0.92), rgba(14, 34, 33, 0.92)), url("/imagenes/formulario_patron.png");
+  background-repeat: repeat;
+  background-position: center center;
+  background-size: 200px auto;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  padding: 2.5rem;
+  overflow: hidden;
+  color: #e0e0e0;
 }
 /* ============================================================================
    🔒 TianguiStore - Login Card Estilo Mexica Glassmorphism

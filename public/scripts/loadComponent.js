@@ -216,7 +216,10 @@ function generarBloqueUsuario(usuario) {
   const nombre = escapeHTML(usuario.nombre || usuario.correo || "Usuario");
   const rol = (usuario.rol || "cliente").toLowerCase();
   const nivel = escapeHTML(usuario.nivel || "Básico");
-  const foto = usuario.fotoPerfil || "/imagenes/default_profile.png";
+  let foto = usuario.fotoPerfil;
+  if (!foto || typeof foto !== "string" || !foto.startsWith("/")) {
+    foto = "/imagenes/default_profile.png";
+  }
 
   const iconosRol = {
     admin: "fas fa-user-shield",
@@ -261,7 +264,7 @@ function generarDropdownUsuario(permisos) {
       permisos.pedidos?.leer
         ? `
   <li>
-    <a href="${permisos.admin && usuario.rol === "admin" ? "admin/pedidos.html" : "misPedidos.html"}">
+    <a href="${permisos.admin && usuario.rol === "admin" ? "/admin/pedidos.html" : "/misPedidos.html"}">
       <i class="fas fa-box-open" style="color:#ffa000;"></i> Pedidos
     </a>
   </li>`
@@ -284,7 +287,8 @@ function mostrarMenuPedidosSiSesionActiva() {
 
   if (!puedeVerPedidos) return;
 
-  const destino = usuario?.rol === "admin" ? "admin/pedidos.html" : "misPedidos.html";
+  const destino =
+    usuario?.rol === "admin" ? "/admin/pedidos.html" : "/misPedidos.html";
 
   // Actualiza hrefs dinámicamente según rol
   linkNavPedidos?.setAttribute("href", destino);
@@ -293,10 +297,13 @@ function mostrarMenuPedidosSiSesionActiva() {
 
   // Asegura que los enlaces estén visibles
   document.getElementById("nav-pedidos")?.style.setProperty("display", "flex");
-  document.getElementById("dropdown-pedidos")?.style.setProperty("display", "block");
-  document.getElementById("sidenav-pedidos")?.style.setProperty("display", "block");
+  document
+    .getElementById("dropdown-pedidos")
+    ?.style.setProperty("display", "block");
+  document
+    .getElementById("sidenav-pedidos")
+    ?.style.setProperty("display", "block");
 }
-
 
 /* ══════════════════════════════════════
    🔓 CIERRE DE SESIÓN Y LIMPIEZA LOCAL
@@ -309,7 +316,7 @@ function asignarLogout(ids) {
       html: "Sesión cerrada exitosamente",
       classes: "rounded amber darken-3",
     });
-    window.location.href = "login.html";
+    window.location.href = "/login.html";
   };
 
   ids.forEach((id) => {

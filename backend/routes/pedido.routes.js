@@ -1,4 +1,4 @@
-// 📁 routes/pedidos.js
+// 📁 routes/pedido.routes.js
 const express = require("express");
 const router = express.Router();
 
@@ -11,6 +11,7 @@ const {
   crearPedidoDesdeCarrito,
   obtenerProductosDelPedido,
   listarTodosLosPedidos,
+  obtenerDetalleCompleto
 } = require("../controllers/pedidoController");
 
 // 🔐 Middlewares de seguridad
@@ -40,6 +41,10 @@ router.get("/mis", verificarAutenticacion, obtenerMisPedidos);
 
 // 🔍 Obtener productos de un pedido específico
 router.get("/:id/productos", verificarAutenticacion, obtenerProductosDelPedido);
+
+// 📋 Obtener detalle completo de un pedido (cliente, fecha, total, productos…)
+router.get("/:id/detalle", verificarAutenticacion, obtenerDetalleCompleto);
+
 // 🗂️ Obtener todos los pedidos con filtros y paginación (solo admin)
 router.get(
   "/admin/listado",

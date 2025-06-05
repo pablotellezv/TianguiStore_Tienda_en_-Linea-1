@@ -67,6 +67,25 @@
 @z-toast: 1100;
 @z-fixed: 1200;
 
+.modal-footer {
+  background-color: transparent;
+  border-top: none;
+  box-shadow: none;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+
+  .btn-flat {
+    color: @secondary-accent;
+    font-weight: 600;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: lighten(@secondary-accent, 10%);
+    }
+  }
+}
+
 /* ============================================================================
    🧱 BASE - Estilo base para todo el documento HTML
    Aplica tipografía, colores de fondo, estructura global y animaciones suaves
@@ -75,18 +94,20 @@
 /* 🌌 Estilo general del cuerpo */
 body {
   background-color: @dark-bg; // Fondo oscuro principal
-  background-image: url("../imagenes/patron_dark.png"); // Patrón decorativo personalizado
-  background-size: 160px; // Tamaño del patrón (repetido en mosaico)
-  background-attachment: fixed; // El fondo no se desplaza al hacer scroll
-  background-repeat: repeat; // El patrón se repite en ambas direcciones
-  color: @text-main; // Color de texto base para máxima legibilidad en modo oscuro
-  font-family: "Roboto", sans-serif; // Tipografía principal
+  background-image: url("../imagenes/patron_dark.png"); // Patrón decorativo Mexica
+  background-repeat: repeat; // Se repite en ambas direcciones
+  background-size: 320px auto; // Tamaño adaptado al nuevo diseño seamless
+  background-position: center top; // Centrado arriba
+  background-attachment: fixed; // Permite efecto parallax ligero al hacer scroll
+
+  color: @text-main;
+  font-family: "Roboto", sans-serif;
   margin: 0;
   padding: 0;
-  line-height: 1.6; // Espaciado entre líneas para mejor lectura
-  animation: fadeIn 0.6s ease-in-out; // Animación suave al cargar
-  scroll-behavior: smooth; // Desplazamiento suave al hacer scroll o usar anchors
-  font-size: 16px; // Tamaño base que escala con rem
+  line-height: 1.6;
+  animation: fadeIn 0.6s ease-in-out;
+  scroll-behavior: smooth;
+  font-size: 16px;
 }
 
 /* 🔗 Enlaces */
@@ -648,253 +669,128 @@ nav {
   }
 }
 /* ============================================================================
-   🧾 TianguiStore - Formulario Glassmorphism Ceremonial con Fondo Personalizado
-   Campos elegantes, accesibles, con fondo tipo patrón centrado para formularios
+   🎴 Formulario con fondo ceremonial mejorado y contenido delimitado
 ============================================================================ */
-
 .formulario-wrapper {
-  min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 3rem;
-  width: 90vw;
-  max-width: 1200px;
+
+  width: 100%;
+  max-width: 960px;
   margin: 0 auto;
+  padding: 2.5rem 2rem;
 
   background-color: fade(@glass-bg, 90%);
-  background-image: url("../imagenes/formulario_patron.png");
+  background-image: url("/imagenes/formulario_patron.png");
+  background-size: 200px auto;
   background-repeat: repeat;
-  background-position: center center;
-  background-size: 140px auto;
-
-  backdrop-filter: blur(@glass-blur);
-  -webkit-backdrop-filter: blur(@glass-blur);
+  background-position: center;
 
   border-radius: @border-radius-lg;
   box-shadow: @shadow-glass;
-  animation: fadeIn 0.6s ease-in-out both;
-  color: @text-main;
+  backdrop-filter: blur(@glass-blur);
+  -webkit-backdrop-filter: blur(@glass-blur);
 
-  h2.intro-title {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.6rem;
+  color: @text-main;
+  animation: fadeIn 0.6s ease-in-out;
+
+  overflow: hidden;
+  position: relative;
+
+  h2.intro-title,
+  h4.intro-title,
+  h4.center-align {
+    font-size: 2.2rem;
     font-weight: 700;
-    letter-spacing: 0.5px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    margin-bottom: 2.5rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    color: @text-main;
 
     i {
-      font-size: 2.4rem;
-      margin-right: 0.6rem;
       color: @secondary-accent;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      margin-right: 0.5rem;
     }
-  }
-}
-
-/* Distribución columnas para aprovechar espacio */
-.formulario-wrapper .input-field.col.s12.m6 {
-  width: 48%;
-  margin-right: 4%;
-  float: left;
-}
-
-.formulario-wrapper .input-field.col.s12.m6:nth-child(even) {
-  margin-right: 0;
-}
-
-.formulario-wrapper .input-field.col.s12.m4 {
-  width: 30%;
-  margin-right: 5%;
-  float: left;
-}
-
-.formulario-wrapper .input-field.col.s12.m4:nth-child(3n) {
-  margin-right: 0;
-}
-
-.formulario-wrapper .input-field.col.s12.m6.offset-m3 {
-  width: 96%;
-  margin-right: 0;
-  float: none;
-  clear: both;
-}
-
-/* Responsive para móviles */
-@media screen and (max-width: @screen-sm) {
-  .formulario-wrapper {
-    padding: 2rem 1.5rem;
-    width: 95vw;
-    max-width: 95vw;
-    background-size: 180px auto;
-
-    h2.intro-title {
-      font-size: 2.2rem;
-
-      i {
-        font-size: 2rem;
-        margin-right: 0.5rem;
-      }
-    }
-  }
-
-  .formulario-wrapper .input-field.col.s12.m6,
-  .formulario-wrapper .input-field.col.s12.m4,
-  .formulario-wrapper .input-field.col.s12.m6.offset-m3 {
-    width: 100% !important;
-    margin-right: 0 !important;
-    float: none !important;
-    clear: none !important;
   }
 }
 
 /* ============================================================================
-   🎨 Estilos base para inputs y select
+   🖊️ Campos de entrada y selects
 ============================================================================ */
-
 .input-field {
-  position: relative;
-  margin-bottom: 2rem;
-
-  .prefix {
-    color: @secondary-accent !important;
-    opacity: 0.95;
-    font-size: 1.2rem;
-    margin-right: 0.6rem;
-    transition: color @transition-time ease;
-  }
+  margin-bottom: 1.8rem;
 
   label {
     color: @secondary-accent;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 500;
-    margin-left: 0.1rem;
-    user-select: none;
     transition: color @transition-time ease;
+  }
+
+  input[type],
+  textarea,
+  .select-wrapper input.select-dropdown {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    font-size: 1rem;
+    background-color: fade(@glass-bg, 25%);
+    border: none;
+    border-bottom: 2px solid fade(@text-muted, 35%);
+    border-radius: @border-radius;
+    color: @text-main;
+    transition: all @transition-time ease;
+
+    &::placeholder {
+      color: fade(@text-muted, 45%);
+      font-style: italic;
+    }
+
+    &:focus {
+      background-color: fade(@primary-accent, 8%);
+      border-bottom: 2px solid @primary-accent;
+      outline: none;
+    }
+
+    &:disabled {
+      background-color: fade(@glass-bg, 10%);
+      border-bottom: 1px dashed fade(@text-muted, 30%);
+      color: fade(@text-muted, 60%);
+    }
   }
 
   input:focus + label,
   textarea:focus + label {
     color: @primary-accent;
   }
-
-  input[type="date"]::-webkit-calendar-picker-indicator,
-  input[type="time"]::-webkit-calendar-picker-indicator {
-    filter: invert(100%);
-  }
 }
 
-input[type],
-textarea,
-.select-wrapper input.select-dropdown {
-  width: 100%;
-  padding: 0.7rem 0.5rem;
-  font-size: 1rem;
-  font-weight: 400;
-  color: @text-main;
-  background: fade(@glass-bg, 30%);
-  border: none;
-  border-bottom: 1.5px solid fade(@secondary-accent, 35%);
-  border-radius: @border-radius;
-  letter-spacing: 0.2px;
-  transition:
-    border-bottom @transition-time ease,
-    background @transition-time ease,
-    box-shadow @transition-time ease;
-
-  &::placeholder {
-    color: fade(@text-muted, 40%);
-    font-style: italic;
-  }
-
-  &:focus {
-    background: fade(@primary-accent, 10%);
-    border-bottom: 2px solid @secondary-accent;
-    box-shadow: 0 1px 0 0 @secondary-accent;
-    outline: none;
-  }
-
-  &:hover:not(:disabled):not(:focus) {
-    border-bottom: 1.5px solid fade(@primary-accent, 50%);
-  }
-
-  &:disabled {
-    background-color: fade(@glass-bg, 12%);
-    color: fade(@text-muted, 50%);
-    cursor: not-allowed;
-    border-bottom: 1px dashed fade(@text-muted, 25%);
-  }
-}
-
-/* Validaciones visuales */
+/* ✅ Validación visual */
 input.valid,
 textarea.valid {
-  border-bottom: 2px solid lighten(@success-color, 10%) !important;
-  box-shadow: 0 1px 0 0 lighten(@success-color, 10%) !important;
+  border-bottom: 2px solid @success-color !important;
 }
 
 input.invalid,
 textarea.invalid {
-  border-bottom: 2px solid lighten(@error-color, 8%) !important;
-  box-shadow: 0 1px 0 0 lighten(@error-color, 8%) !important;
+  border-bottom: 2px solid @error-color !important;
 }
 
-/* Autofill */
-input:-webkit-autofill,
-textarea:-webkit-autofill,
-select:-webkit-autofill {
-  transition: background-color 5000s ease-in-out 0s;
-  -webkit-text-fill-color: @text-main !important;
-  box-shadow: 0 0 0 1000px fade(@glass-bg, 18%) inset !important;
-  border-bottom: 1px solid fade(@primary-accent, 40%) !important;
-}
-
-/* Toggle de visibilidad contraseña */
-.toggle-password {
-  position: absolute;
-  top: 50%;
-  right: 0.75rem;
-  transform: translateY(-50%);
-  z-index: 2;
-  cursor: pointer;
-  color: @text-muted;
-  font-size: 1.2rem;
-  opacity: 0.7;
-  user-select: none;
-  transition:
-    color @transition-time ease,
-    transform 0.2s ease;
-
-  &:hover {
-    color: @primary-accent;
-    opacity: 1;
-  }
-
-  &:active {
-    transform: translateY(-50%) scale(0.95);
-  }
-}
-
-/* Select personalizado */
+/* 🔽 Dropdown personalizado */
 .select-dropdown {
-  background: fade(@panel-bg, 85%) !important;
-  backdrop-filter: blur(@glass-blur);
+  background-color: fade(@glass-bg, 85%) !important;
   border: 1px solid @glass-border;
   border-radius: @border-radius;
-  color: @text-main !important;
   box-shadow: @shadow-glass;
+  padding: 0.5rem 0.75rem;
+  color: @text-main !important;
   font-size: 1rem;
-  padding: 0.25rem 0;
-  z-index: @z-dropdown;
-  overflow: hidden;
 }
 
 .select-dropdown.dropdown-content {
-  max-height: 300px;
+  max-height: 280px;
   overflow-y: auto;
+  background-color: fade(@glass-bg, 95%);
   scrollbar-width: thin;
   scrollbar-color: @primary-accent transparent;
 
@@ -903,32 +799,91 @@ select:-webkit-autofill {
     padding: 0.75rem 1rem;
     font-weight: 500;
     color: @text-main;
-    transition:
-      background @transition-fast,
-      color @transition-fast;
     border-radius: @border-radius;
+    transition: background @transition-fast;
   }
 
-  li:hover > span,
-  li.selected > span {
-    background-color: fade(@primary-accent, 20%) !important;
-    color: white !important;
-  }
-
-  li {
-    -webkit-tap-highlight-color: transparent;
+  li:hover > span {
+    background-color: fade(@primary-accent, 25%);
+    color: white;
   }
 }
 
-.select-wrapper input.select-dropdown:focus {
-  border-bottom: 2px solid @secondary-accent !important;
-  box-shadow: 0 1px 0 0 @secondary-accent !important;
-  background-color: transparent !important;
-  color: @text-main !important;
+/* 👁 Toggle visibilidad de contraseña */
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  color: fade(@text-muted, 60%);
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: @primary-accent;
+  }
 }
 
-.select-wrapper input.select-dropdown:focus + label {
-  color: @secondary-accent !important;
+/* 📱 Responsive */
+@media screen and (max-width: 600px) {
+  .formulario-wrapper {
+    padding: 2rem 1rem;
+    background-size: 240px auto;
+
+    h2.intro-title,
+    h4.intro-title,
+    h4.center-align {
+      font-size: 1.9rem;
+    }
+  }
+}
+
+/* ============================================================================
+   👁 Toggle visibilidad de contraseña
+============================================================================ */
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  color: fade(@text-muted, 60%);
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: @primary-accent;
+  }
+}
+
+/* ============================================================================
+   📱 Responsive
+============================================================================ */
+@media screen and (max-width: 600px) {
+  .formulario-wrapper {
+    padding: 2rem 1rem;
+    background-size: 200px auto; // ⬆️ Mantiene legibilidad en móviles
+
+    h2.intro-title {
+      font-size: 1.9rem;
+    }
+  }
+}
+
+.glass-card {
+  background:
+    linear-gradient(rgba(14, 34, 33, 0.92), rgba(14, 34, 33, 0.92)),
+    url("/imagenes/formulario_patron.png");
+  background-repeat: repeat;
+  background-position: center center;
+  background-size: 200px auto;
+
+  backdrop-filter: blur(@glass-blur);
+  -webkit-backdrop-filter: blur(@glass-blur);
+  border-radius: @border-radius-lg;
+  box-shadow: @shadow-glass;
+  padding: 2.5rem;
+  overflow: hidden;
+  color: @text-main;
 }
 
 /* ============================================================================
