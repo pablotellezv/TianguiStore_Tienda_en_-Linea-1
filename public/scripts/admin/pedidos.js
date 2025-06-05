@@ -13,6 +13,32 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   M.AutoInit();
+const datepickerOptions = {
+  format: "yyyy-mm-dd",
+  autoClose: true,
+  i18n: {
+    cancel: "Cancelar",
+    clear: "Limpiar",
+    done: "Aceptar",
+    months: [
+      "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ],
+    monthsShort: [
+      "Ene", "Feb", "Mar", "Abr", "May", "Jun",
+      "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"
+    ],
+    weekdays: [
+      "Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"
+    ],
+    weekdaysShort: ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"],
+    weekdaysAbbrev: ["D", "L", "M", "M", "J", "V", "S"]
+  }
+};
+
+document.querySelectorAll(".datepicker").forEach((el) => {
+  M.Datepicker.init(el, datepickerOptions);
+});
 
   const modalEl = document.getElementById("modal-detalle-pedido");
   if (modalEl && !M.Modal.getInstance(modalEl)) {

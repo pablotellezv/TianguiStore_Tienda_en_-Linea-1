@@ -1592,6 +1592,53 @@ button[type="submit"].btn-large,
   }
 }
 
+.datepicker-modal {
+  background-color: fade(@glass-bg, 92%) !important;
+  backdrop-filter: blur(@glass-blur);
+  -webkit-backdrop-filter: blur(@glass-blur);
+  border-radius: @border-radius-lg;
+  box-shadow: @shadow-glass;
+  color: @text-main;
+  overflow: hidden;
+}
+
+.datepicker-date-display {
+  background-color: fade(@glass-bg, 85%) !important;
+  color: @secondary-accent !important;
+  border-bottom: 1px solid fade(@glass-border, 10%);
+}
+
+.datepicker-controls,
+.datepicker-calendar-container {
+  background-color: fade(@glass-bg, 92%) !important;
+  color: @text-main;
+
+  .datepicker-table td,
+  .datepicker-table th {
+    color: @text-main !important;
+
+    &:hover {
+      background-color: fade(@primary-accent, 15%);
+    }
+
+    &.is-selected {
+      background-color: @primary-accent;
+      color: @dark-bg !important;
+    }
+  }
+
+  .datepicker-day-button {
+    border-radius: 50%;
+    transition: all 0.3s ease;
+  }
+}
+
+.datepicker-controls button {
+  color: @secondary-accent !important;
+  &:hover {
+    background-color: fade(@secondary-accent, 10%);
+  }
+}
 
 
 /* ============================================================================

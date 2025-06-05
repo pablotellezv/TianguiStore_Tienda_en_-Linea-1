@@ -1313,6 +1313,55 @@ button[type="submit"].btn-large svg,
 .modal .modal-footer .btn-flat:hover {
   color: #ddb569;
 }
+.datepicker-modal {
+  background-color: rgba(14, 34, 33, 0.92) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  color: #e0e0e0;
+  overflow: hidden;
+}
+.datepicker-date-display {
+  background-color: rgba(14, 34, 33, 0.85) !important;
+  color: #d4a03f !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.datepicker-controls,
+.datepicker-calendar-container {
+  background-color: rgba(14, 34, 33, 0.92) !important;
+  color: #e0e0e0;
+}
+.datepicker-controls .datepicker-table td,
+.datepicker-calendar-container .datepicker-table td,
+.datepicker-controls .datepicker-table th,
+.datepicker-calendar-container .datepicker-table th {
+  color: #e0e0e0 !important;
+}
+.datepicker-controls .datepicker-table td:hover,
+.datepicker-calendar-container .datepicker-table td:hover,
+.datepicker-controls .datepicker-table th:hover,
+.datepicker-calendar-container .datepicker-table th:hover {
+  background-color: rgba(0, 172, 193, 0.15);
+}
+.datepicker-controls .datepicker-table td.is-selected,
+.datepicker-calendar-container .datepicker-table td.is-selected,
+.datepicker-controls .datepicker-table th.is-selected,
+.datepicker-calendar-container .datepicker-table th.is-selected {
+  background-color: #00acc1;
+  color: #081c1b !important;
+}
+.datepicker-controls .datepicker-day-button,
+.datepicker-calendar-container .datepicker-day-button {
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+.datepicker-controls button {
+  color: #d4a03f !important;
+}
+.datepicker-controls button:hover {
+  background-color: rgba(212, 160, 63, 0.1);
+}
 /* ============================================================================
    🎞️ ANIMACIONES - TianguiStore
    Animaciones modernas y suaves para glassmorphism oscuro profesional.
