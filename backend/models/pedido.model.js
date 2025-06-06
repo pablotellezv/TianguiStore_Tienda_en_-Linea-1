@@ -75,12 +75,17 @@ async function crearPedidoConSP({
       resultado?.[0]?.pedido_id || resultado?.[0]?.[0]?.pedido_id || null;
 
     if (!pedido_id) {
-      throw new Error("⚠️ El procedimiento almacenado no devolvió un ID válido.");
+      throw new Error(
+        "⚠️ El procedimiento almacenado no devolvió un ID válido."
+      );
     }
 
     return pedido_id;
   } catch (error) {
-    const mensajeOriginal = error?.sqlMessage || error?.message || "Error desconocido al registrar pedido.";
+    const mensajeOriginal =
+      error?.sqlMessage ||
+      error?.message ||
+      "Error desconocido al registrar pedido.";
     const sqlstate = error?.sqlState || null;
     const errno = error?.errno || null;
 
@@ -133,17 +138,16 @@ async function crearPedidoConSP({
 }
 
 async function actualizarEstadoPedido(pedido_id, estado_id) {
-  await db.query(
-    `UPDATE pedidos SET estado_id = ? WHERE pedido_id = ?`,
-    [parseInt(estado_id), parseInt(pedido_id)]
-  );
+  await db.query(`UPDATE pedidos SET estado_id = ? WHERE pedido_id = ?`, [
+    parseInt(estado_id),
+    parseInt(pedido_id),
+  ]);
 }
 
 async function borrarPedidoLogico(pedido_id) {
-  await db.query(
-    `UPDATE pedidos SET borrado_logico = 1 WHERE pedido_id = ?`,
-    [parseInt(pedido_id)]
-  );
+  await db.query(`UPDATE pedidos SET borrado_logico = 1 WHERE pedido_id = ?`, [
+    parseInt(pedido_id),
+  ]);
 }
 
 async function obtenerPedidoPorId(pedido_id, usuario_id) {
@@ -155,7 +159,11 @@ async function obtenerPedidoPorId(pedido_id, usuario_id) {
   return rows[0] || null;
 }
 
-async function obtenerProductosPorPedido(pedido_id, usuario_id, rol = "cliente") {
+async function obtenerProductosPorPedido(
+  pedido_id,
+  usuario_id,
+  rol = "cliente"
+) {
   const isAdmin = ["admin", "soporte"].includes(rol);
 
   const query = `
@@ -204,7 +212,115 @@ async function calcularTotalCarrito(usuario_id) {
 }
 
 async function limpiarCarrito(usuario_id) {
-  await db.query(`DELETE FROM carrito WHERE usuario_id = ?`, [parseInt(usuario_id)]);
+  await db.query(`DELETE FROM carrito WHERE usuario_id = ?`, [
+    parseInt(usuario_id),
+  ]);
+}
+
+async function obtenerPedidosPaginadosYFiltrados({
+  estado,
+  fecha_inicio,
+  fecha_fin,
+  limite,
+  offset,
+}) {
+  let sql = `
+    SELECT p.pedido_id,
+           CONCAT(u.nombre, ' ', u.apellido_paterno) AS cliente,
+           p.fecha_pedido AS fecha,
+           p.total,
+           e.estado_nombre AS estado
+    FROM pedidos p
+    JOIN usuarios u ON p.usuario_id = u.usuario_id
+    JOIN estados_pedido e ON p.estado_id = e.estado_id
+    WHERE p.borrado_logico = 0
+  `;
+  const params = [];
+
+  if (estado) {
+    sql += " AND e.estado_nombre = ?";
+    params.push(estado);
+  }
+
+  if (fecha_inicio && fecha_fin) {
+    sql += " AND DATE(p.fecha_pedido) BETWEEN ? AND ?";
+    params.push(fecha_inicio, fecha_fin);
+  }
+
+  sql += " ORDER BY p.fecha_pedido DESC LIMIT ? OFFSET ?";
+  params.push(limite, offset);
+
+  const [pedidos] = await db.query(sql, params);
+
+  // Consulta para contar total con mismos filtros
+  let sqlCount = `
+    SELECT COUNT(*) AS total
+    FROM pedidos p
+    JOIN estados_pedido e ON p.estado_id = e.estado_id
+    WHERE p.borrado_logico = 0
+  `;
+  const paramsCount = [];
+
+  if (estado) {
+    sqlCount += " AND e.estado_nombre = ?";
+    paramsCount.push(estado);
+  }
+
+  if (fecha_inicio && fecha_fin) {
+    sqlCount += " AND DATE(p.fecha_pedido) BETWEEN ? AND ?";
+    paramsCount.push(fecha_inicio, fecha_fin);
+  }
+
+  const [[{ total }]] = await db.query(sqlCount, paramsCount);
+
+  return {
+    pedidos,
+    total,
+    paginaActual: Math.floor(offset / limite) + 1,
+    totalPaginas: Math.ceil(total / limite),
+  };
+}
+async function obtenerDetalleCompletoPedido(
+  pedido_id,
+  usuario_id,
+  rol = "cliente"
+) {
+  const isAdmin = ["admin", "soporte"].includes(rol);
+
+  const pedidoQuery = `
+  SELECT 
+    p.pedido_id,
+    p.fecha_pedido,
+    p.total,
+    p.metodo_pago,
+    p.direccion_entrega,
+    p.cupon,
+    ep.estado_nombre AS estado,
+    CONCAT(u.nombre, ' ', u.apellido_paterno) AS cliente
+  FROM pedidos p
+  JOIN usuarios u ON p.usuario_id = u.usuario_id
+  JOIN estados_pedido ep ON ep.estado_id = p.estado_id
+  WHERE p.pedido_id = ?
+  ${isAdmin ? "" : "AND p.usuario_id = ?"}
+`;
+
+  const paramsPedido = isAdmin ? [pedido_id] : [pedido_id, usuario_id];
+  const [pedidoRows] = await db.query(pedidoQuery, paramsPedido);
+
+  if (pedidoRows.length === 0) return null;
+
+  const productosQuery = `
+    SELECT dp.producto_id, p.nombre, dp.cantidad, dp.precio_unitario
+    FROM detalle_pedido dp
+    JOIN productos p ON dp.producto_id = p.producto_id
+    WHERE dp.pedido_id = ?
+  `;
+  const [productos] = await db.query(productosQuery, [pedido_id]);
+
+  return {
+    ...pedidoRows[0],
+    productos,
+  };
 }
 
 module.exports = {
@@ -218,4 +334,6 @@ module.exports = {
   calcularTotalCarrito,
   limpiarCarrito,
   obtenerCarrito,
+  obtenerPedidosPaginadosYFiltrados,
+  obtenerDetalleCompletoPedido,
 };

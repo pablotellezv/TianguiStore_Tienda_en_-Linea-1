@@ -1,7 +1,7 @@
 /**
  * 📦 productos.js
- * Muestra productos con tarjetas glassmorphism + paginación.
- * Autor: I.S.C. Erick Renato Vega Ceron | Estilo Dark Glassmorphism Mexica | Mayo 2025
+ * Renderiza tarjetas de productos con estilo dark-glassmorphism y paginación.
+ * Autor: I.S.C. Erick Renato Vega Ceron | Optimización Junio 2025
  */
 
 let productosGlobal = [];
@@ -13,9 +13,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   actualizarContadorCarrito();
 });
 
-/* ════════════════════════════════════════════
- * 🔄 Cargar productos desde API y mostrar primera página
- * ════════════════════════════════════════════ */
+/* ══════════════════════════════════════
+ * 🔄 Carga de productos desde el backend
+ * ══════════════════════════════════════ */
 async function cargarProductos() {
   const contenedor = document.getElementById("productos-container");
   const paginacion = document.getElementById("paginacion-productos");
@@ -26,6 +26,9 @@ async function cargarProductos() {
     if (!res.ok) throw new Error("No se pudo obtener el listado de productos.");
 
     productosGlobal = await res.json();
+
+    console.log("✅ Productos recibidos:", productosGlobal); // 🔍 Depuración
+
     if (!Array.isArray(productosGlobal) || productosGlobal.length === 0) {
       contenedor.innerHTML = `<p class="center-align grey-text text-lighten-2">No hay productos disponibles.</p>`;
       paginacion.innerHTML = "";
@@ -41,9 +44,9 @@ async function cargarProductos() {
   }
 }
 
-/* ════════════════════════════════════════════
+/* ══════════════════════════════════════
  * 📄 Mostrar productos por página
- * ════════════════════════════════════════════ */
+ * ══════════════════════════════════════ */
 function mostrarPagina(num) {
   const contenedor = document.getElementById("productos-container");
   contenedor.innerHTML = "";
@@ -58,9 +61,9 @@ function mostrarPagina(num) {
   asignarEventosAgregar();
 }
 
-/* ════════════════════════════════════════════
+/* ══════════════════════════════════════
  * 🔢 Crear paginación dinámica
- * ════════════════════════════════════════════ */
+ * ══════════════════════════════════════ */
 function generarPaginacion() {
   const paginacion = document.getElementById("paginacion-productos");
   paginacion.innerHTML = "";
@@ -71,6 +74,7 @@ function generarPaginacion() {
     const li = document.createElement("li");
     li.className =
       i === paginaActual ? "active amber darken-3" : "waves-effect";
+
     const a = document.createElement("a");
     a.href = "#!";
     a.textContent = i;
@@ -79,29 +83,29 @@ function generarPaginacion() {
       mostrarPagina(paginaActual);
       generarPaginacion();
     });
+
     li.appendChild(a);
     paginacion.appendChild(li);
   }
 }
 
-/* ════════════════════════════════════════════
- * 🧱 Renderizar una tarjeta de producto estilo dark glass
- * ════════════════════════════════════════════ */
+/* ══════════════════════════════════════
+ * 🎨 Renderizar tarjeta individual de producto
+ * ══════════════════════════════════════ */
 function renderizarProducto(producto, contenedor) {
   const {
     producto_id: id,
     nombre = "Producto sin nombre",
-    descripcion = "Sin descripción",
+    descripcion = "Sin descripción disponible",
     precio = 0,
     stock = 0,
     imagen_url,
+    es_nuevo = false,
+    es_popular = false,
   } = producto;
 
-  let imagen =
-    imagen_url && imagen_url.trim()
-      ? imagen_url.trim()
-      : "/imagenes/default.png";
-  imagen = imagen
+  const imagen = (imagen_url || "/imagenes/default.png")
+    .trim()
     .replace(/\\/g, "/")
     .replace(/^public/, "")
     .replace(/^\/?/, "/");
@@ -109,14 +113,8 @@ function renderizarProducto(producto, contenedor) {
   const tarjeta = document.createElement("div");
   tarjeta.className = "col s12 m6 l4";
 
-  const card = document.createElement("div");
-  card.classList.add(
-    "card",
-    "glass-card",
-    "product-card",
-    "hoverable",
-    "z-depth-4"
-  );
+  const card = document.createElement("article");
+  card.className = "card product-card hoverable z-depth-4";
 
   const cardImage = document.createElement("div");
   cardImage.className = "card-image";
@@ -129,10 +127,8 @@ function renderizarProducto(producto, contenedor) {
   const img = document.createElement("img");
   img.src = imagen;
   img.alt = `Imagen de ${nombre}`;
-  img.className = "responsive-img";
+  img.className = "responsive-img product-img";
   img.loading = "lazy";
-  img.style.height = "180px";
-  img.style.objectFit = "cover";
   img.onerror = () => {
     img.src = "/imagenes/default.png";
   };
@@ -142,43 +138,58 @@ function renderizarProducto(producto, contenedor) {
 
   const cardContent = document.createElement("div");
   cardContent.className = "card-content";
-  cardContent.innerHTML = `
-  <h6 class="product-title">
-    ${nombre}
-  </h6>
-  <p class="product-description">
-    ${descripcion}
-  </p>
-  <div class="product-price-stock">
-    <span class="product-price">$${parseFloat(precio).toFixed(2)}</span>
-    <span class="product-stock">Stock: ${stock}</span>
-  </div>
-`;
 
-  const cardAction = document.createElement("div");
+  const titulo = document.createElement("h6");
+  titulo.className = "product-title";
+
+  const linkTitulo = document.createElement("a");
+  linkTitulo.href = `/detalleProducto.html?id=${id}`;
+  linkTitulo.textContent = nombre;
+  linkTitulo.className = "amber-text text-darken-2";
+  linkTitulo.setAttribute("aria-label", `Ir a detalle de ${nombre}`);
+
+  titulo.appendChild(linkTitulo);
+
+  const desc = document.createElement("p");
+  desc.className = "product-description";
+  desc.textContent = descripcion;
+
+  const info = document.createElement("div");
+  info.className = "product-price-stock";
+
+  const precioEl = document.createElement("span");
+  precioEl.className = "product-price";
+  precioEl.textContent = `$${parseFloat(precio).toFixed(2)}`;
+
+  const stockEl = document.createElement("span");
+  stockEl.className = "product-stock";
+  stockEl.textContent = `Stock: ${stock}`;
+
+  info.append(precioEl, stockEl);
+  cardContent.append(titulo, desc, info);
+
+  const cardAction = document.createElement("footer");
   cardAction.className = "card-action center-align";
+
   const btn = document.createElement("button");
   btn.className =
-    "btn amber darken-2 waves-effect waves-light btn-agregar z-depth-1";
-  btn.style.borderRadius = "20px";
+    "btn btn-agregar amber darken-2 waves-effect waves-light z-depth-1";
   btn.setAttribute("aria-label", `Agregar ${nombre} al carrito`);
   btn.innerHTML = `<i class="fas fa-cart-plus left"></i> Agregar`;
   btn.dataset.id = id;
   btn.dataset.nombre = nombre;
   btn.dataset.precio = precio;
   btn.dataset.imagen = imagen;
-  cardAction.appendChild(btn);
 
-  card.appendChild(cardImage);
-  card.appendChild(cardContent);
-  card.appendChild(cardAction);
+  cardAction.appendChild(btn);
+  card.append(linkImagen, cardContent, cardAction);
   tarjeta.appendChild(card);
   contenedor.appendChild(tarjeta);
 }
 
-/* ════════════════════════════════════════════
- * ➕ Eventos para botones "Agregar al carrito"
- * ════════════════════════════════════════════ */
+/* ══════════════════════════════════════
+ * ➕ Agregar al carrito
+ * ══════════════════════════════════════ */
 function asignarEventosAgregar() {
   document.querySelectorAll(".btn-agregar").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -189,25 +200,24 @@ function asignarEventosAgregar() {
   });
 }
 
-/* ════════════════════════════════════════════
- * 🛒 Agregar producto al carrito (localStorage)
- * ════════════════════════════════════════════ */
 function agregarAlCarrito(id, nombre, precio, imagen_url) {
   let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
   const existente = carrito.find((p) => p.id === id);
+
   if (existente) {
     existente.cantidad++;
   } else {
     carrito.push({ id, nombre, precio, cantidad: 1, imagen_url });
   }
+
   localStorage.setItem("carrito", JSON.stringify(carrito));
   actualizarContadorCarrito();
   mostrarToast(`🛒 ${nombre} agregado al carrito`);
 }
 
-/* ════════════════════════════════════════════
- * 🔄 Actualizar contador visual del carrito
- * ════════════════════════════════════════════ */
+/* ══════════════════════════════════════
+ * 🔄 Actualiza visualmente el contador
+ * ══════════════════════════════════════ */
 function actualizarContadorCarrito() {
   const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
   const total = carrito.reduce((acc, p) => acc + (p.cantidad || 0), 0);
@@ -216,9 +226,9 @@ function actualizarContadorCarrito() {
     .forEach((el) => (el.textContent = total));
 }
 
-/* ════════════════════════════════════════════
+/* ══════════════════════════════════════
  * 🔔 Mostrar notificación tipo toast
- * ════════════════════════════════════════════ */
+ * ══════════════════════════════════════ */
 function mostrarToast(mensaje) {
   M.toast({
     html: `<i class="fas fa-check-circle left"></i> ${mensaje}`,

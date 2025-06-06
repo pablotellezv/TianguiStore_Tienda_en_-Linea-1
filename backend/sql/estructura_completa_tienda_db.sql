@@ -57,9 +57,14 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 
 
+
 -- ════════════════════════════════════════════════════════════════════
 -- 📦 📜 MÓDULO: AUDITORIA_ERRORES (Versión Extendida)
+-- 📦 📜 MÓDULO: AUDITORIA_ERRORES (Versión Extendida)
 -- ════════════════════════════════════════════════════════════════════
+-- Registro de errores y excepciones en el sistema.
+-- Incluye trazabilidad completa con dirección IP, agente del usuario,
+-- módulo origen, detalles SQL, y entrada original en formato JSON.
 -- Registro de errores y excepciones en el sistema.
 -- Incluye trazabilidad completa con dirección IP, agente del usuario,
 -- módulo origen, detalles SQL, y entrada original en formato JSON.
@@ -122,8 +127,9 @@ CREATE TABLE IF NOT EXISTS pedidos (
   INDEX idx_cupon (cupon)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
--- Tabla de detalle de pedidos
+-- ════════════════════════════════════════════════════════════════════
+-- 📦 🧾 TABLA: DETALLE_PEDIDO (Versión extendida y validada)
+-- ════════════════════════════════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS detalle_pedido (
   detalle_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -134,6 +140,7 @@ CREATE TABLE IF NOT EXISTS detalle_pedido (
   precio_unitario DECIMAL(10,2) NOT NULL COMMENT 'Precio base del producto en el momento de la compra',
   descuento_aplicado DECIMAL(10,2) DEFAULT 0.00 COMMENT 'Monto de descuento aplicado a este producto',
   iva_porcentaje DECIMAL(5,2) DEFAULT 0.00 COMMENT 'Porcentaje de IVA aplicado (ej. 16)',
+
   iva_monto DECIMAL(10,2) GENERATED ALWAYS AS (
     (cantidad * (precio_unitario - descuento_aplicado)) * (iva_porcentaje / 100)
   ) STORED,
@@ -143,15 +150,27 @@ CREATE TABLE IF NOT EXISTS detalle_pedido (
   ) STORED,
 
   total DECIMAL(10,2) GENERATED ALWAYS AS (
-    (cantidad * (precio_unitario - descuento_aplicado)) + iva_monto
+    subtotal + iva_monto
   ) STORED,
+
+  calificacion TINYINT UNSIGNED DEFAULT NULL
+    CHECK (calificacion BETWEEN 1 AND 5)
+    COMMENT 'Calificación del producto (opcional, 1 a 5 estrellas)',
+
+  comentario TEXT COMMENT 'Comentario opcional del cliente sobre este producto',
+  fecha_calificacion DATETIME DEFAULT NULL COMMENT 'Fecha en que se calificó este producto',
+
+  fecha_detalle TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de registro del detalle',
 
   FOREIGN KEY (pedido_id) REFERENCES pedidos(pedido_id) ON DELETE CASCADE,
   FOREIGN KEY (producto_id) REFERENCES productos(producto_id) ON DELETE CASCADE,
 
   INDEX idx_pedido (pedido_id),
-  INDEX idx_producto (producto_id)
+  INDEX idx_producto (producto_id),
+  INDEX idx_calificacion (calificacion),
+  INDEX idx_fecha (fecha_detalle)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- Tabla de carrito
 CREATE TABLE IF NOT EXISTS carrito (
@@ -237,7 +256,6 @@ SELECT 'OK - estados_pedido' AS modulo, COUNT(*) AS registros FROM estados_pedid
 -- Define roles, perfiles extendidos de usuarios, sistema de verificación,
 -- asociación a sucursales, postulaciones y soporte para fidelización.
 -- =====================================================================
-
 -- 🧑‍⚖️ Tabla: roles
 CREATE TABLE IF NOT EXISTS roles (
   rol_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -258,10 +276,14 @@ CREATE TABLE IF NOT EXISTS sucursales (
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 👤 Tabla: usuarios
+-- ════════════════════════════════════════════════════════════════════
+-- 👤 TABLA: USUARIOS (Versión extendida con nivel_id)
+-- ════════════════════════════════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS usuarios (
   usuario_id INT AUTO_INCREMENT PRIMARY KEY,
-  rol_id INT NOT NULL DEFAULT 3,
+
+  rol_id INT NOT NULL DEFAULT 2,
+  nivel_id INT DEFAULT 1 COMMENT 'Nivel de fidelidad del usuario (1=base)',
   sucursal_id INT DEFAULT NULL COMMENT 'Sucursal asignada si es personal interno',
 
   correo_electronico VARCHAR(100) NOT NULL UNIQUE,
@@ -292,7 +314,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
   portafolio_url VARCHAR(255),
 
   activo BOOLEAN DEFAULT TRUE,
-  borrado_logico BOOLEAN DEFAULT FALSE,  -- 👈 NUEVO CAMPO PARA ELIMINACIÓN LÓGICA
+  borrado_logico BOOLEAN DEFAULT FALSE COMMENT 'Eliminación lógica',
   verificado BOOLEAN DEFAULT FALSE,
 
   origen_reclutamiento ENUM('externo', 'interno', 'campaña', 'referido', 'fidelidad') DEFAULT 'externo',
@@ -306,8 +328,15 @@ CREATE TABLE IF NOT EXISTS usuarios (
   fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
   FOREIGN KEY (rol_id) REFERENCES roles(rol_id) ON UPDATE CASCADE ON DELETE RESTRICT,
+  FOREIGN KEY (nivel_id) REFERENCES niveles_fidelidad(nivel_id) ON UPDATE CASCADE ON DELETE SET NULL,
   FOREIGN KEY (sucursal_id) REFERENCES sucursales(sucursal_id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+
+
+
+
 
 -- 📧 Tabla: verificaciones de usuario
 CREATE TABLE IF NOT EXISTS verificaciones_usuario (
@@ -409,6 +438,7 @@ CREATE TABLE IF NOT EXISTS marcas (
   marca_id INT AUTO_INCREMENT PRIMARY KEY,
   nombre_marca VARCHAR(100) NOT NULL UNIQUE COMMENT 'Nombre comercial visible de la marca',
   slug_marca VARCHAR(100) UNIQUE COMMENT 'Identificador único para URL amigable (sin espacios)',
+  slug_marca VARCHAR(100) UNIQUE COMMENT 'Identificador único para URL amigable (sin espacios)',
   descripcion TEXT COMMENT 'Historia o descripción de la marca',
   logo_url VARCHAR(255) COMMENT 'URL del logotipo oficial',
   micrositio_url VARCHAR(255) COMMENT 'Enlace externo a un sitio dedicado (opcional)',
@@ -434,6 +464,7 @@ CREATE TABLE IF NOT EXISTS marcas (
 CREATE TABLE IF NOT EXISTS categorias (
   categoria_id INT AUTO_INCREMENT PRIMARY KEY,
   nombre_categoria VARCHAR(100) NOT NULL UNIQUE,
+  slug_categoria VARCHAR(100) UNIQUE COMMENT 'Identificador único amigable para URLs',
   slug_categoria VARCHAR(100) UNIQUE COMMENT 'Identificador único amigable para URLs',
   descripcion TEXT COMMENT 'Resumen o propósito de la categoría',
   icono_url VARCHAR(255) COMMENT 'Icono visual de la categoría (opcional)',
@@ -461,6 +492,7 @@ CREATE TABLE IF NOT EXISTS subcategorias (
   categoria_id INT NOT NULL,
 
   nombre_subcategoria VARCHAR(100) NOT NULL,
+  slug_subcategoria VARCHAR(100) COMMENT 'Slug único por subcategoría',
   slug_subcategoria VARCHAR(100) COMMENT 'Slug único por subcategoría',
   descripcion TEXT,
   icono_url VARCHAR(255),
@@ -571,11 +603,11 @@ CREATE TABLE IF NOT EXISTS valoraciones (
 -- ════════════════════════════════════════════════════════════════════
 -- 📦 📦 PRODUCTOS (CATÁLOGO PRINCIPAL, CON SOPORTE PARA BORRADO LÓGICO)
 -- ════════════════════════════════════════════════════════════════════
-DROP TABLE IF EXISTS productos;
 CREATE TABLE IF NOT EXISTS productos (
   producto_id INT AUTO_INCREMENT PRIMARY KEY,
 
   nombre VARCHAR(150) NOT NULL,
+  slug_producto VARCHAR(150) UNIQUE,
   slug_producto VARCHAR(150) UNIQUE,
   descripcion TEXT NOT NULL,
   especificaciones TEXT,
@@ -823,7 +855,109 @@ CREATE TABLE IF NOT EXISTS niveles_fidelidad (
   creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Adaptación de la tabla usuarios para incluir niveles de fidelidad
+INSERT INTO niveles_fidelidad (nivel_id, nombre_nivel, descripcion, puntos_necesarios, beneficios)
+VALUES 
+-- Niveles para clientes normales y fidelización
+(1, 'Básico', 'Nivel inicial sin beneficios especiales.', 0, JSON_OBJECT()),
 
+(2, 'Explorador', 'Recién registrado, recibe recomendaciones personalizadas.', 20, 
+ JSON_OBJECT('recomendaciones_ai', true)),
+
+(3, 'Bronce', 'Acceso a promociones básicas y prioridad media en soporte.', 100, 
+ JSON_OBJECT('descuento', '5%', 'prioridad_soporte', 'media')),
+
+(4, 'Mercante', 'Bonificaciones por compartir el sitio.', 180, 
+ JSON_OBJECT('bono_referidos', true, 'descuento', '7%')),
+
+(5, 'Plata', 'Envíos gratuitos y mayor descuento en productos seleccionados.', 250, 
+ JSON_OBJECT('descuento', '10%', 'envio_gratis', true)),
+
+(6, 'Aliado', 'Ofertas relámpago y acceso anticipado.', 350, 
+ JSON_OBJECT('descuento', '12%', 'early_access', true)),
+
+(7, 'Oro', 'Descuentos premium, soporte prioritario y regalos mensuales.', 500, 
+ JSON_OBJECT('descuento', '15%', 'envio_gratis', true, 'regalo_mensual', true)),
+
+(8, 'Embajador', 'Acceso exclusivo a sorteos y eventos.', 750, 
+ JSON_OBJECT('descuento', '15%', 'sorteos_exclusivos', true, 'regalo_mensual', true)),
+
+(9, 'Platino', 'Soporte VIP, regalos y descuentos máximos.', 1000, 
+ JSON_OBJECT('descuento', '20%', 'envio_gratis', true, 'soporte_vip', true, 'regalo_mensual', true)),
+
+(10, 'Diamante', 'Nivel élite reservado para miembros de alto impacto.', 1500, 
+ JSON_OBJECT('descuento', '25%', 'soporte_vip', true, 'eventos_privados', true)),
+
+-- Niveles internos de gestión y desarrollo
+(11, 'Staff', 'Acceso interno a operaciones y herramientas de soporte.', 0, 
+ JSON_OBJECT('acceso_interno', true, 'descuento_empleado', '100%')),
+
+(12, 'Soporte Técnico', 'Rol operativo con funciones técnicas de ayuda.', 0, 
+ JSON_OBJECT('panel_soporte', true, 'prioridad_tickets', 'alta')),
+
+(13, 'Moderador', 'Supervisa actividad y comunidad.', 0, 
+ JSON_OBJECT('acceso_moderacion', true)),
+
+(14, 'Desarrollador', 'Acceso a herramientas de desarrollo y pruebas.', 0, 
+ JSON_OBJECT('acceso_api', true, 'logs_tecnicos', true)),
+
+(15, 'Administrador', 'Control total del sistema y funciones avanzadas.', 0, 
+ JSON_OBJECT('acceso_sistema', true, 'privilegios_totales', true));
+-- Adaptación de la tabla usuarios para incluir niveles de fidelidad
+INSERT INTO niveles_fidelidad (nivel_id, nombre_nivel, descripcion, puntos_necesarios, beneficios)
+VALUES 
+-- Niveles para clientes normales y fidelización
+(1, 'Básico', 'Nivel inicial sin beneficios especiales.', 0, JSON_OBJECT()),
+
+(2, 'Explorador', 'Recién registrado, recibe recomendaciones personalizadas.', 20, 
+ JSON_OBJECT('recomendaciones_ai', true)),
+
+(3, 'Bronce', 'Acceso a promociones básicas y prioridad media en soporte.', 100, 
+ JSON_OBJECT('descuento', '5%', 'prioridad_soporte', 'media')),
+
+(4, 'Mercante', 'Bonificaciones por compartir el sitio.', 180, 
+ JSON_OBJECT('bono_referidos', true, 'descuento', '7%')),
+
+(5, 'Plata', 'Envíos gratuitos y mayor descuento en productos seleccionados.', 250, 
+ JSON_OBJECT('descuento', '10%', 'envio_gratis', true)),
+
+(6, 'Aliado', 'Ofertas relámpago y acceso anticipado.', 350, 
+ JSON_OBJECT('descuento', '12%', 'early_access', true)),
+
+(7, 'Oro', 'Descuentos premium, soporte prioritario y regalos mensuales.', 500, 
+ JSON_OBJECT('descuento', '15%', 'envio_gratis', true, 'regalo_mensual', true)),
+
+(8, 'Embajador', 'Acceso exclusivo a sorteos y eventos.', 750, 
+ JSON_OBJECT('descuento', '15%', 'sorteos_exclusivos', true, 'regalo_mensual', true)),
+
+(9, 'Platino', 'Soporte VIP, regalos y descuentos máximos.', 1000, 
+ JSON_OBJECT('descuento', '20%', 'envio_gratis', true, 'soporte_vip', true, 'regalo_mensual', true)),
+
+(10, 'Diamante', 'Nivel élite reservado para miembros de alto impacto.', 1500, 
+ JSON_OBJECT('descuento', '25%', 'soporte_vip', true, 'eventos_privados', true)),
+
+-- Niveles internos de gestión y desarrollo
+(11, 'Staff', 'Acceso interno a operaciones y herramientas de soporte.', 0, 
+ JSON_OBJECT('acceso_interno', true, 'descuento_empleado', '100%')),
+
+(12, 'Soporte Técnico', 'Rol operativo con funciones técnicas de ayuda.', 0, 
+ JSON_OBJECT('panel_soporte', true, 'prioridad_tickets', 'alta')),
+
+(13, 'Moderador', 'Supervisa actividad y comunidad.', 0, 
+ JSON_OBJECT('acceso_moderacion', true)),
+
+(14, 'Desarrollador', 'Acceso a herramientas de desarrollo y pruebas.', 0, 
+ JSON_OBJECT('acceso_api', true, 'logs_tecnicos', true)),
+
+(15, 'Administrador', 'Control total del sistema y funciones avanzadas.', 0, 
+ JSON_OBJECT('acceso_sistema', true, 'privilegios_totales', true));
+
+ALTER TABLE usuarios
+ADD COLUMN nivel_id INT DEFAULT 1 AFTER rol_id,
+ADD CONSTRAINT fk_usuario_nivel
+  FOREIGN KEY (nivel_id) REFERENCES niveles_fidelidad(nivel_id)
+  ON UPDATE CASCADE
+  ON DELETE SET NULL;
 
 
 -- ════════════════════════════════════════════════════════════════════
@@ -1034,9 +1168,8 @@ CREATE TABLE IF NOT EXISTS ranking_promotores (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
-
 -- ════════════════════════════════════════════════════════════════════
--- 📦 🎁 TABLA: PROMOCIONES
+-- 📦 🎁 TABLA: PROMOCIONES (Versión completa y validada)
 -- ════════════════════════════════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS promociones (
   promocion_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -1047,30 +1180,62 @@ CREATE TABLE IF NOT EXISTS promociones (
 
   tipo_promocion ENUM('porcentaje', 'cantidad_fija', 'envio_gratis', 'regalo', 'especial') NOT NULL DEFAULT 'porcentaje',
   valor DECIMAL(10,2) DEFAULT 0.00 COMMENT 'Valor del descuento: porcentaje o cantidad fija',
+  tipo_valor ENUM('porcentaje', 'fijo') DEFAULT 'porcentaje' COMMENT 'Tipo de valor aplicado (solo para compatibilidad lógica)',
 
   aplica_a ENUM('producto', 'categoria', 'marca', 'carrito', 'usuario', 'todos') DEFAULT 'carrito',
   restriccion_json JSON COMMENT 'Reglas condicionales como mínimo de compra, categorías, clientes nuevos, etc.',
 
-  fecha_inicio DATETIME DEFAULT CURRENT_TIMESTAMP,
-  fecha_fin DATETIME DEFAULT NULL,
+  cliente_segmento VARCHAR(100) DEFAULT NULL COMMENT 'Segmento de cliente (ej. nuevos, leales, premium)',
+  prioridad INT DEFAULT 1 COMMENT 'Prioridad de aplicación en conflictos múltiples',
 
+  exclusiva BOOLEAN DEFAULT FALSE COMMENT 'Si esta promoción es exclusiva y no acumulable',
   activa BOOLEAN DEFAULT TRUE,
   destacada BOOLEAN DEFAULT FALSE,
+
+  fecha_inicio DATETIME DEFAULT CURRENT_TIMESTAMP,
+  fecha_fin DATETIME DEFAULT NULL,
 
   borrado_logico BOOLEAN DEFAULT FALSE,
   fecha_borrado TIMESTAMP NULL DEFAULT NULL,
 
+  visible BOOLEAN DEFAULT TRUE COMMENT 'Visibilidad de la promoción en el frontend',
+
   creada_por INT DEFAULT NULL,
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
+  producto_id INT DEFAULT NULL,
+  categoria_id INT DEFAULT NULL,
+  marca_id INT DEFAULT NULL,
+
   FOREIGN KEY (creada_por) REFERENCES usuarios(usuario_id) ON DELETE SET NULL,
+  FOREIGN KEY (producto_id) REFERENCES productos(producto_id) ON DELETE SET NULL,
+  FOREIGN KEY (categoria_id) REFERENCES categorias(categoria_id) ON DELETE SET NULL,
+  FOREIGN KEY (marca_id) REFERENCES marcas(marca_id) ON DELETE SET NULL,
 
   INDEX idx_codigo (nombre),
   INDEX idx_fecha (fecha_inicio, fecha_fin),
-  INDEX idx_estado (activa, borrado_logico)
+  INDEX idx_estado (activa, borrado_logico),
+  INDEX idx_segmento (cliente_segmento),
+  INDEX idx_aplicacion (aplica_a, producto_id, categoria_id, marca_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+/*
+-- 🛠️ Agregar columna 'prioridad' a promociones
+ALTER TABLE promociones
+  ADD COLUMN prioridad INT DEFAULT 1 COMMENT 'Prioridad de aplicación';
 
+-- 🛠️ Agregar columna 'calificacion' a detalle_pedido
+ALTER TABLE detalle_pedido
+  ADD COLUMN calificacion TINYINT UNSIGNED NULL
+  CHECK (calificacion BETWEEN 1 AND 5)
+  COMMENT 'Calificación del producto por el cliente (1 a 5, opcional)';
+
+-- 🛠️ Agregar columna 'estado' a pedidos
+ALTER TABLE pedidos
+  ADD COLUMN estado ENUM('pendiente', 'procesando', 'completado', 'entregado', 'cancelado') 
+  NOT NULL DEFAULT 'pendiente'
+  COMMENT 'Estado actual del pedido: seguimiento del flujo de compra';
+*/
 
 
 
@@ -1622,7 +1787,6 @@ END;
 -- 📦 🔄 MANTENIMIENTO AUTOMÁTICO: EXPIRAR PUNTOS
 -- ════════════════════════════════════════════════════════════════════
 
-
 -- Evita eliminación física de usuarios
 CREATE TRIGGER trg_proteger_borrado_usuarios
 BEFORE DELETE ON usuarios
@@ -2042,7 +2206,15 @@ DO
 
 -- ════════════════════════════════════════════════════════════════════
 -- 📦 🛒 PROCEDIMIENTO ALMACENADO: CREAR PEDIDO COMPLETO
+-- 📦 🛒 PROCEDIMIENTO ALMACENADO: CREAR PEDIDO COMPLETO
 -- ════════════════════════════════════════════════════════════════════
+-- Este procedimiento almacena un pedido completo, incluyendo la validación de usuario,
+-- la verificación de stock y la inserción de detalles de pedido.
+-- Se recomienda usar transacciones para asegurar la integridad de los datos.
+-- El procedimiento recibe un JSON con los productos y sus cantidades.
+-- Se valida la existencia del usuario, el total del pedido y la disponibilidad de stock.
+-- Si todo es correcto, se inserta el pedido y los detalles en la base de datos.
+-- En caso de error, se registra en la tabla de auditoría y se lanza una excepción.
 -- Este procedimiento almacena un pedido completo, incluyendo la validación de usuario,
 -- la verificación de stock y la inserción de detalles de pedido.
 -- Se recomienda usar transacciones para asegurar la integridad de los datos.
@@ -2059,6 +2231,9 @@ DELIMITER //
 CREATE PROCEDURE sp_crear_pedido_completo(
   IN p_usuario_id INT,
   IN p_total DECIMAL(10,2),
+  IN p_metodo_pago ENUM('efectivo','tarjeta','transferencia','codi','paypal'),
+  IN p_cupon VARCHAR(30),
+  IN p_direccion_entrega TEXT,
   IN p_metodo_pago ENUM('efectivo','tarjeta','transferencia','codi','paypal'),
   IN p_cupon VARCHAR(30),
   IN p_direccion_entrega TEXT,
@@ -2095,6 +2270,8 @@ BEGIN
     INSERT INTO auditoria_errores (
       modulo, procedimiento, usuario_id, datos_entrada,
       `sqlstate`, `mysql_errno`, `mensaje`
+      modulo, procedimiento, usuario_id, datos_entrada,
+      `sqlstate`, `mysql_errno`, `mensaje`
     ) VALUES (
       'pedidos',
       'sp_crear_pedido_completo',
@@ -2103,6 +2280,7 @@ BEGIN
         'total', p_total,
         'metodo_pago', p_metodo_pago,
         'cupon', p_cupon,
+        'direccion_entrega', p_direccion_entrega,
         'direccion_entrega', p_direccion_entrega,
         'notas', p_notas,
         'productos', p_productos_json
@@ -2113,6 +2291,7 @@ BEGIN
     );
     SET v_log_id = LAST_INSERT_ID();
     SET msg_error_usuario = CONCAT('❌ No fue posible registrar tu pedido. Código de seguimiento: #ERR', LPAD(v_log_id, 6, '0'));
+    SET msg_error_detalle = CONCAT('[MySQL:', v_errno, '] ', v_errmsg, ' (log_id=', v_log_id, ')');
     SET msg_error_detalle = CONCAT('[MySQL:', v_errno, '] ', v_errmsg, ' (log_id=', v_log_id, ')');
     SET msg_final = CONCAT(msg_error_usuario, '|||', msg_error_detalle);
     SET signal_msg = LEFT(msg_final, 128);
@@ -2126,6 +2305,7 @@ BEGIN
   IF v_usuario_existe = 0 THEN
     SET msg_error_usuario = 'Tu cuenta no está activa o no es válida.';
     SET msg_error_detalle = CONCAT('Usuario ID ', p_usuario_id, ' no encontrado o inactivo.');
+    SET msg_error_detalle = CONCAT('Usuario ID ', p_usuario_id, ' no encontrado o inactivo.');
     SET msg_final = CONCAT(msg_error_usuario, '|||', msg_error_detalle);
     SET signal_msg = LEFT(msg_final, 128);
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = signal_msg;
@@ -2134,6 +2314,7 @@ BEGIN
   IF p_total IS NULL OR p_total <= 0 THEN
     SET msg_error_usuario = 'El total del pedido debe ser mayor a cero.';
     SET msg_error_detalle = 'Valor total inválido o nulo.';
+    SET msg_error_detalle = 'Valor total inválido o nulo.';
     SET msg_final = CONCAT(msg_error_usuario, '|||', msg_error_detalle);
     SET signal_msg = LEFT(msg_final, 128);
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = signal_msg;
@@ -2141,6 +2322,7 @@ BEGIN
 
   SET v_total_items = JSON_LENGTH(p_productos_json);
   IF v_total_items IS NULL OR v_total_items = 0 THEN
+    SET msg_error_usuario = 'El pedido no contiene productos válidos.';
     SET msg_error_usuario = 'El pedido no contiene productos válidos.';
     SET msg_error_detalle = 'JSON vacío o malformado.';
     SET msg_final = CONCAT(msg_error_usuario, '|||', msg_error_detalle);
@@ -2153,8 +2335,10 @@ BEGIN
   INSERT INTO pedidos (
     usuario_id, estado_id, total, metodo_pago,
     cupon, direccion_entrega, notas, borrado_logico, fecha_pedido
+    cupon, direccion_entrega, notas, borrado_logico, fecha_pedido
   ) VALUES (
     p_usuario_id, 1, p_total, p_metodo_pago,
+    p_cupon, p_direccion_entrega, p_notas, 0, NOW()
     p_cupon, p_direccion_entrega, p_notas, 0, NOW()
   );
 
@@ -2164,11 +2348,14 @@ BEGIN
     SET v_producto_id = CAST(JSON_UNQUOTE(JSON_EXTRACT(p_productos_json, CONCAT('$[', v_index, '].producto_id'))) AS UNSIGNED);
     SET v_cantidad = CAST(JSON_UNQUOTE(JSON_EXTRACT(p_productos_json, CONCAT('$[', v_index, '].cantidad'))) AS UNSIGNED);
     SET v_precio = CAST(JSON_UNQUOTE(JSON_EXTRACT(p_productos_json, CONCAT('$[', v_index, '].precio_unitario'))) AS DECIMAL(10,2));
+    SET v_cantidad = CAST(JSON_UNQUOTE(JSON_EXTRACT(p_productos_json, CONCAT('$[', v_index, '].cantidad'))) AS UNSIGNED);
+    SET v_precio = CAST(JSON_UNQUOTE(JSON_EXTRACT(p_productos_json, CONCAT('$[', v_index, '].precio_unitario'))) AS DECIMAL(10,2));
 
     SELECT stock INTO v_stock FROM productos WHERE producto_id = v_producto_id;
 
     IF v_stock IS NULL THEN
       SET msg_error_usuario = 'Un producto ya no está disponible.';
+      SET msg_error_detalle = CONCAT('Producto ID ', v_producto_id, ' no existe.');
       SET msg_error_detalle = CONCAT('Producto ID ', v_producto_id, ' no existe.');
       SET msg_final = CONCAT(msg_error_usuario, '|||', msg_error_detalle);
       SET signal_msg = LEFT(msg_final, 128);
@@ -2176,6 +2363,8 @@ BEGIN
     END IF;
 
     IF v_stock < v_cantidad THEN
+      SET msg_error_usuario = 'Stock insuficiente.';
+      SET msg_error_detalle = CONCAT('Producto ID ', v_producto_id, '. Requerido: ', v_cantidad, ', Disponible: ', v_stock);
       SET msg_error_usuario = 'Stock insuficiente.';
       SET msg_error_detalle = CONCAT('Producto ID ', v_producto_id, '. Requerido: ', v_cantidad, ', Disponible: ', v_stock);
       SET msg_final = CONCAT(msg_error_usuario, '|||', msg_error_detalle);
@@ -2186,7 +2375,12 @@ BEGIN
     INSERT INTO detalle_pedido (
       pedido_id, producto_id, cantidad, precio_unitario,
       descuento_aplicado, iva_porcentaje
+      pedido_id, producto_id, cantidad, precio_unitario,
+      descuento_aplicado, iva_porcentaje
     ) VALUES (
+      v_pedido_id, v_producto_id, v_cantidad, v_precio,
+      0.00, -- descuento por producto
+      16.00 -- IVA aplicable
       v_pedido_id, v_producto_id, v_cantidad, v_precio,
       0.00, -- descuento por producto
       16.00 -- IVA aplicable
@@ -2201,6 +2395,7 @@ BEGIN
   SELECT v_pedido_id AS pedido_id;
 END;
 //
+
 DELIMITER ;
 
   -- 🏆 SP: Crear pedido completo
@@ -2860,17 +3055,6 @@ CREATE TABLE movimientos_contables (
   FOREIGN KEY (referencia_factura) REFERENCES facturas(factura_id)
 ) ENGINE=InnoDB;
 
--- Configuración fiscal del sistema (una sola fila)
-CREATE TABLE configuracion_fiscal (
-  id INT PRIMARY KEY,
-  rfc_emisor VARCHAR(13) NOT NULL,
-  razon_social VARCHAR(255) NOT NULL,
-  regimen_fiscal VARCHAR(100),
-  certificado_digital_url VARCHAR(255),
-  clave_privada_url VARCHAR(255),
-  clave_csd VARCHAR(255),
-  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
 
 -- Peticiones de factura realizadas por clientes
 CREATE TABLE solicitudes_factura (
@@ -3528,10 +3712,8 @@ CREATE TRIGGER trg_usuario_login
 AFTER UPDATE ON usuarios
 FOR EACH ROW
 BEGIN
-  IF NEW.ultima_conexion IS NOT NULL AND OLD.ultima_conexion IS NULL THEN
     INSERT INTO actividad_usuario (usuario_id, tipo_actividad, descripcion, modulo)
     VALUES (NEW.usuario_id, 'inicio_sesion', 'Inicio de sesión del usuario', 'autenticacion');
-  END IF;
 END;
 //
 

@@ -196,17 +196,21 @@ async function verificarUsuario(req, res) {
     const payload = {
       usuario_id: usuario.usuario_id,
       correo: usuario.correo_electronico,
-      nombre: usuario.nombre,
+      nombre:
+        `${usuario.nombre} ${usuario.apellido_paterno || ""} ${usuario.apellido_materno || ""}`.trim(),
       rol: usuario.rol || "cliente",
+      nivel: usuario.nivel || "Básico",
+      fotoPerfil: usuario.foto_perfil_url || "/imagenes/default_profile.png",
       permisos,
     };
-
+    usuarioModel.actualizarAccesoUsuario(usuario.usuario_id);
     return res.status(200).json({
       message: "Inicio de sesión exitoso.",
       accessToken: generarAccessToken(payload),
       refreshToken: generarRefreshToken({ usuario_id: usuario.usuario_id }),
       usuario: payload,
     });
+    
   } catch (error) {
     console.error("❌ Error en verificarUsuario:", error);
     return res.status(500).json({ message: "Error al iniciar sesión." });

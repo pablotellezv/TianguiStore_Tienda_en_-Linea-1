@@ -1,86 +1,97 @@
-<!-- 📁 index.html - Página de inicio de TianguiStore -->
-<!DOCTYPE html>
+<!-- 📁 index.html – Inicio de TianguiStore -->
+<!doctype html>
 <html lang="es-MX">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Descubre productos únicos en un solo lugar. TianguiStore, el mercado digital con alma local." />
-  <meta name="theme-color" content="#121212" />
-  <meta name="robots" content="index, follow" />
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Descubre productos únicos en un solo lugar. TianguiStore, el mercado digital con alma local." />
+    <meta name="theme-color" content="#121212" />
+    <meta name="robots" content="index, follow" />
 
-  <title>Inicio | TianguiStore</title>
+    <title>Inicio | TianguiStore</title>
 
-  <!-- 🌐 Favicon animado -->
-  <link rel="icon" type="image/webp" href="/favicon-512.webp" sizes="512x512" />
-  <link rel="icon" type="image/png" href="/favicon-192.png" sizes="192x192" />
-  <link rel="manifest" href="/manifest.json" />
+    <!-- 🌐 Favicon + PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/webp" href="/favicon-512.webp" sizes="512x512" />
+    <link rel="icon" type="image/png" href="/favicon-192.png" sizes="192x192" />
 
-  <!-- 🎨 Estilos externos -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-  <link rel="stylesheet" href="estilo/main.css" />
-</head>
+    <!-- 🎨 Estilos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link rel="stylesheet" href="estilo/main.css" />
+  </head>
 
-<body class="grey darken-4 white-text">
-  <!-- 🔝 NAVBAR dinámico -->
-  <header style="position: relative; z-index: 1000;">
-    <div id="navbar-container" role="navigation" aria-label="Menú principal"></div>
-  </header>
+  <body class="grey darken-4 white-text">
+    <!-- 🔝 NAVBAR dinámico -->
+    <header style="position: relative; z-index: 1000">
+      <div id="navbar-container" role="navigation" aria-label="Menú principal"></div>
+    </header>
 
-  <!-- 🌟 CONTENIDO PRINCIPAL -->
-  <main class="container" role="main">
-    <!-- 🎉 ENCABEZADO DE BIENVENIDA -->
-    <section class="section center-align" aria-labelledby="titulo-bienvenida">
-      <div class="card-panel z-depth-1 grey darken-3 hoverable animate__animated animate__fadeInDown" style="border-radius: 16px; position: relative; z-index: 1;">
-        <h1 id="titulo-bienvenida" class="white-text" style="font-size: 3rem;">
-          <i class="fas fa-store amber-text text-accent-3"></i>
-          <strong>TianguiStore</strong>
-        </h1>
-        <p class="flow-text grey-text text-lighten-2">
-          Descubre productos únicos en un solo lugar.
-        </p>
-      </div>
-    </section>
+    <!-- 🌟 CONTENIDO PRINCIPAL -->
+    <main class="container" role="main">
+      <!-- 🎉 ENCABEZADO DE BIENVENIDA -->
+      <section class="section center-align" aria-labelledby="titulo-bienvenida">
+        <div class="intro-banner animate__animated animate__fadeInDown" role="region" aria-label="Bienvenida">
+          <h1 id="titulo-bienvenida" class="intro-title">
+            <i class="fas fa-store"></i> TianguiStore
+          </h1>
+          <p class="flow-text grey-text text-lighten-2">
+            En TianguiStore, cada producto cuenta una historia. Explora artículos únicos, originales y con alma —
+            desde lo artesanal hasta lo tecnológico. Conecta con el talento local y transforma tu forma de comprar.
+            <br />
+            <strong>Más que un marketplace: un puente entre lo auténtico y lo extraordinario.</strong>
+          </p>
+        </div>
+      </section>
 
-    <!-- 📦 PRODUCTOS DESTACADOS -->
-    <section class="section" aria-labelledby="titulo-productos">
-      <header class="center-align">
-        <h2 id="titulo-productos" class="white-text animate__animated animate__fadeInUp">
-          <i class="fas fa-box-open amber-text text-accent-2"></i>
-          Nuestros Productos
-        </h2>
-        <p class="grey-text text-lighten-2">Selecciona tus favoritos y agrégalos al carrito</p>
-      </header>
+      <!-- 📦 SECCIÓN DE PRODUCTOS DESTACADOS -->
+      <section class="section" aria-labelledby="titulo-productos">
+        <header class="center-align">
+          <h2 id="titulo-productos" class="white-text animate__animated animate__fadeInUp">
+            <i class="fas fa-box-open amber-text text-accent-2"></i> Nuestros Productos
+          </h2>
+          <p class="grey-text text-lighten-2">Selecciona tus favoritos y agrégalos al carrito</p>
+        </header>
 
-      <!-- 🧱 GRID DE PRODUCTOS -->
-      <div class="row" id="productos-container" aria-live="polite">
-        <!-- Tarjetas de productos cargadas por productos.js -->
-      </div>
+        <!-- 🧱 GRID DE PRODUCTOS -->
+        <div class="row" id="productos-container" aria-live="polite" aria-busy="false">
+          <!-- Tarjetas cargadas dinámicamente por productos.js -->
+        </div>
 
-      <!-- 🔢 PAGINACIÓN -->
-      <div class="center-align">
-        <ul class="pagination" id="paginacion-productos" aria-label="Paginación de productos">
-          <!-- Botones generados por JS -->
-        </ul>
-      </div>
-    </section>
-  </main>
+        <!-- 🔁 MENSAJE DE CARGA O VACÍO -->
+        <div id="mensaje-productos" class="center-align grey-text text-lighten-1" style="display: none;">
+          <i class="material-icons large">search_off</i>
+          <p>No hay productos disponibles en este momento.</p>
+        </div>
 
-  <!-- 🔔 TOASTS -->
-  <div id="toast-container" class="fixed-action-btn" aria-hidden="true"></div>
+        <!-- 🔢 PAGINACIÓN -->
+        <div class="center-align">
+          <ul class="pagination" id="paginacion-productos" aria-label="Paginación de productos">
+            <!-- Botones generados por JS -->
+          </ul>
+        </div>
+      </section>
+    </main>
 
-  <!-- 📥 FOOTER dinámico -->
-  <footer class="page-footer grey darken-3" role="contentinfo">
-    <div id="footer-container"></div>
-  </footer>
+    <!-- 🔔 TOASTS -->
+    <div id="toast-container" class="fixed-action-btn" aria-hidden="true"></div>
+    <!-- 🔔 TOASTS -->
+    <div id="toast-container" class="fixed-action-btn" aria-hidden="true"></div>
 
-  <!-- 📜 SCRIPTS DEL SISTEMA -->
-  <script src="scripts/loadComponent.js" defer></script>
-  <script src="scripts/productos.js" defer></script>
-  <script src="scripts/carrito.js" defer></script>
+    <!-- 📥 FOOTER dinámico -->
+    <footer class="page-footer grey darken-3" role="contentinfo">
+      <div id="footer-container"></div>
+    </footer>
+    <!-- 📥 FOOTER dinámico -->
+    <footer class="page-footer grey darken-3" role="contentinfo">
+      <div id="footer-container"></div>
+    </footer>
 
-  <!-- Materialize JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js" defer></script>
-</body>
+    <!-- 📜 SCRIPTS -->
+    <script src="scripts/loadComponent.js" defer></script>
+    <script src="scripts/productos.js" defer></script>
+    <script src="scripts/carrito.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js" defer></script>
+  </body>
 </html>

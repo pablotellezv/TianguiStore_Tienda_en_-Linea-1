@@ -21,9 +21,10 @@
 body {
   background-color: #081c1b;
   background-image: url("../imagenes/patron_dark.png");
-  background-size: 160px;
-  background-attachment: fixed;
   background-repeat: repeat;
+  background-size: 320px auto;
+  background-position: center top;
+  background-attachment: fixed;
   color: #e0e0e0;
   font-family: "Roboto", sans-serif;
   margin: 0;
@@ -108,62 +109,6 @@ nav {
    Aplica fondo translúcido, accesibilidad visual y efecto glassmorphism.
 ============================================================================ */
   /* 🔻 Encabezados desplegables (collapsibles) */
-  /* ============================================================================
-   🧊 TARJETAS DE PRODUCTO - Estilo Glassmorphism Mexica Oscuro
-   Diseño responsivo, accesible y refinado para TianguiStore
-============================================================================ */
-  /* ============================================================================
-   🧾 TianguiStore - Formulario Glassmorphism Ceremonial
-   Campos de entrada elegantes, accesibles y armonizados con el diseño oscuro.
-============================================================================ */
-  /* 🎨 Campos de entrada base */
-  /* ✅ Validaciones visuales */
-  /* 🧠 Autofill */
-  /* 🔐 Ícono para alternar visibilidad de contraseña */
-  /* 🧾 Select personalizado (Materialize) */
-  /* ============================================================================
-   🔒 TOGGLE-PASSWORD - Ícono para mostrar u ocultar contraseña
-   Se ubica dentro del campo de input y ofrece feedback visual e interacción suave
-============================================================================ */
-  /* ============================================================================
-   ✅ VALIDACIONES - Estados visuales para campos válidos e inválidos
-   Mejora el feedback al usuario con colores contrastantes y transiciones suaves
-============================================================================ */
-  /* ✔️ Campo válido (éxito) */
-  /* ❌ Campo inválido (error) */
-  /* ============================================================================
-   🧾 HELPER-TEXT - Mensajes de ayuda o validación debajo de inputs
-   Incluye colores semánticos, íconos y alineación moderna con feedback visual claro
-============================================================================ */
-  /* ============================================================================
-   🔘 BOTONES - Estilo principal para botones grandes (submit) y de acción
-   Estética elegante, acentuada y con interactividad suave. Coherente con el estilo Mexica.
-============================================================================ */
-  /* ============================================================================
-   🏷️ ETIQUETAS DE PRODUCTO (BADGES)
-   Distintivos flotantes para destacar estado del producto: nuevo, popular, bajo stock, etc.
-   Estilo visual con glassmorphism, color de fondo semántico y legibilidad optimizada.
-============================================================================ */
-  /* 🎯 Badges específicos por tipo de estado */
-  /* ══════════════════════════════════════
-   👥 MENÚ DE USUARIO + IDENTIDAD DE ROL
-═══════════════════════════════════════ */
-  /* === Contenedor principal === */
-  /* ══════════════════════════════════════
-   🎨 PALETA DE COLORES POR ROL (Accesible)
-═══════════════════════════════════════ */
-  /* ============================================================================
-   🎞️ ANIMACIONES - TianguiStore
-   Animaciones modernas y suaves para glassmorphism oscuro profesional.
-============================================================================ */
-  /* === ⚡ Aparición básica === */
-  /* === ⬇️ Entrada desde arriba (menús, alertas, modales) === */
-  /* === ⬆️ Entrada desde abajo (botones flotantes, tarjetas) === */
-  /* === 🔍 Escala suave (entradas visuales como tarjetas) === */
-  /* === 🔁 Fade escalonado para listas (cards en galería o loops) === */
-  /* === 🔄 Rotación continua (spinners) === */
-  /* === 💡 Parpadeo pulsante (tooltips, badges dinámicos) === */
-  /* === ✨ Fade in + blur (efecto vidrio animado) === */
 }
 nav .nav-wrapper {
   display: flex;
@@ -193,6 +138,13 @@ nav .nav-wrapper .brand-logo span {
   letter-spacing: -0.3px;
   margin-top: 1px;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+}
+nav .nav-wrapper .logo-wrapper {
+  display: flex;
+  align-items: center;
+  margin-right: 3rem;
+  white-space: nowrap;
+  min-width: 190px;
 }
 nav nav ul.hide-on-med-and-down li a {
   display: flex;
@@ -298,141 +250,156 @@ nav .collapsible-header i {
   margin-right: 0.8rem;
   font-size: 1.1rem;
 }
-nav .product-card,
-nav .glass-card {
+/* ============================================================================
+   🧊 TARJETAS DE PRODUCTO - Glassmorphism Mexica Oscuro Flotante
+   Estilo refinado, sin bordes visibles, con fondo decorativo y efecto de elevación.
+============================================================================ */
+.card.product-card {
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  background: linear-gradient(135deg, rgba(14, 34, 33, 0.92), rgba(7, 16, 15, 0.95)), url("../imagenes/patron_producto.png") repeat;
-  background-size: 160px;
+  background: linear-gradient(145deg, rgba(14, 34, 33, 0.72), rgba(8, 28, 27, 0.84)), url("../imagenes/patron_producto.png") repeat !important;
+  background-size: 180px;
+  background-position: center;
+  background-blend-mode: overlay;
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-radius: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+  border: none;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.3);
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  animation: fadeInCard 0.45s ease-in-out both;
-  /* 📷 Imagen del producto */
-  /* 📄 Contenido textual */
-  /* 🧮 Botón de acción */
-  /* ✨ Animación de entrada */
-  /* 📱 Responsivo */
+  color: #e0e0e0;
+  transition: transform 0.35s ease-out, box-shadow 0.35s ease-out;
+  animation: fadeInCard 0.5s ease-out both;
 }
-nav .product-card:hover,
-nav .glass-card:hover {
-  transform: scale(1.015);
-  box-shadow: 0 12px 30px rgba(255, 193, 7, 0.25);
+.card.product-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
 }
-nav .product-card .card-image,
-nav .glass-card .card-image {
+.card.product-card .card-image {
   position: relative;
   overflow: hidden;
+  padding-top: 42px;
 }
-nav .product-card .card-image img,
-nav .glass-card .card-image img {
+.card.product-card .card-image img {
   width: 100%;
   height: 180px;
   object-fit: cover;
-  border-bottom: 1px solid rgba(0, 172, 193, 0.2);
-  filter: brightness(0.94);
-  transition: transform 0.35s ease, filter 0.35s ease;
+  border-bottom: 1px solid rgba(0, 172, 193, 0.15);
+  filter: brightness(0.93);
+  transition: transform 0.4s ease, filter 0.4s ease;
 }
-nav .product-card .card-image:hover img,
-nav .glass-card .card-image:hover img {
+.card.product-card .card-image:hover img {
   transform: scale(1.05);
-  filter: brightness(1);
+  filter: brightness(1.04);
 }
-nav .product-card .card-content,
-nav .glass-card .card-content {
+.card.product-card .card-content {
   padding: 1.2rem 1.4rem;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  color: #e0e0e0;
   flex-grow: 1;
+  gap: 0.5rem;
 }
-nav .product-card .product-title,
-nav .glass-card .product-title {
+.card.product-card .card-content .product-title {
   font-size: 1.2rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #d4a03f;
   letter-spacing: 0.4px;
-  text-transform: capitalize;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
-nav .product-card .product-description,
-nav .glass-card .product-description {
-  font-size: 0.9rem;
+.card.product-card .card-content .product-description {
+  font-size: 0.95rem;
   color: #b0b0b0;
   line-height: 1.45;
-  max-height: 4.5rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
-nav .product-card .product-price-stock,
-nav .glass-card .product-price-stock {
+.card.product-card .card-content .product-price-stock {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 0.6rem;
+  margin-top: 0.7rem;
   font-size: 0.95rem;
 }
-nav .product-card .product-price-stock .product-price,
-nav .glass-card .product-price-stock .product-price {
+.card.product-card .card-content .product-price-stock .product-price {
   font-weight: bold;
   color: #00acc1;
 }
-nav .product-card .product-price-stock .product-stock,
-nav .glass-card .product-price-stock .product-stock {
+.card.product-card .card-content .product-price-stock .product-stock {
   font-style: italic;
-  color: #b0b0b0;
+  color: rgba(176, 176, 176, 0.7);
 }
-nav .product-card .card-action,
-nav .glass-card .card-action {
-  background-color: rgba(255, 255, 255, 0.08);
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 0.8rem;
+.card.product-card .card-action {
+  background: none;
+  padding: 0.9rem 1.2rem;
   text-align: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
-nav .product-card .card-action .btn-agregar,
-nav .glass-card .card-action .btn-agregar {
+.card.product-card .card-action .btn-agregar {
   background-color: #d4a03f;
-  color: #fff;
-  border-radius: 2rem;
+  color: #081c1b;
   font-weight: 600;
-  letter-spacing: 0.5px;
-  padding: 0.5rem 1.3rem;
+  padding: 0.55rem 1.5rem;
+  border-radius: 2rem;
   font-size: 0.95rem;
-  transition: all 0.25s ease;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
 }
-nav .product-card .card-action .btn-agregar i,
-nav .glass-card .card-action .btn-agregar i {
-  margin-right: 6px;
+.card.product-card .card-action .btn-agregar i {
+  margin-right: 0.5rem;
 }
-nav .product-card .card-action .btn-agregar:hover,
-nav .glass-card .card-action .btn-agregar:hover {
-  background-color: #af7f27;
+.card.product-card .card-action .btn-agregar:hover {
+  background-color: #b78529;
   transform: scale(1.03);
-  box-shadow: 0 6px 16px rgba(212, 160, 63, 0.2);
+  box-shadow: 0 6px 16px rgba(212, 160, 63, 0.25);
 }
-nav .product-card .card-action .btn-agregar:focus,
-nav .glass-card .card-action .btn-agregar:focus {
+.card.product-card .card-action .btn-agregar:focus {
   outline: 2px dashed rgba(0, 172, 193, 0.6);
   outline-offset: 3px;
 }
-nav .product-card .card-action .btn-agregar:disabled,
-nav .glass-card .card-action .btn-agregar:disabled {
+.card.product-card .card-action .btn-agregar:disabled {
   background-color: rgba(212, 160, 63, 0.4);
   color: rgba(255, 255, 255, 0.6);
   cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+.card.product-card .badge-etiqueta {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: rgba(0, 172, 193, 0.85);
+  color: #081c1b;
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(6px);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  z-index: 3;
+  text-transform: uppercase;
+}
+.card.product-card .badge-etiqueta i {
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+.card.product-card .badges-contenedor {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  z-index: 4;
 }
 @keyframes fadeInCard {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -440,180 +407,421 @@ nav .glass-card .card-action .btn-agregar:disabled {
   }
 }
 @media screen and (max-width: 600px) {
-  nav .product-card .card-content,
-  nav .glass-card .card-content {
+  .card.product-card .card-content {
     padding: 1rem;
   }
-  nav .product-card .product-title,
-  nav .glass-card .product-title {
+  .card.product-card .product-title {
     font-size: 1.05rem;
   }
-  nav .product-card .product-description,
-  nav .glass-card .product-description {
-    font-size: 0.88rem;
-  }
-  nav .product-card .product-price-stock,
-  nav .glass-card .product-price-stock {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.3rem;
-  }
-  nav .product-card .btn-agregar,
-  nav .glass-card .btn-agregar {
+  .card.product-card .product-description {
     font-size: 0.9rem;
   }
+  .card.product-card .product-price-stock {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+  .card.product-card .btn-agregar {
+    font-size: 0.88rem;
+  }
 }
-nav .input-field {
-  position: relative;
-  margin-bottom: 2rem;
-}
-nav .input-field .prefix {
-  color: #d4a03f !important;
-  opacity: 0.95;
-  font-size: 1.2rem;
-  margin-right: 0.6rem;
-  transition: color 0.3s ease;
-}
-nav .input-field label {
-  color: #d4a03f;
-  font-size: 0.95rem;
-  font-weight: 500;
-  margin-left: 0.1rem;
-  user-select: none;
-  transition: color 0.3s ease;
-}
-nav .input-field input:focus + label,
-nav .input-field textarea:focus + label {
-  color: #00acc1;
-}
-nav .input-field input[type="date"]::-webkit-calendar-picker-indicator,
-nav .input-field input[type="time"]::-webkit-calendar-picker-indicator {
-  filter: invert(100%);
-}
-nav input[type],
-nav textarea,
-nav .select-wrapper input.select-dropdown {
-  width: 100%;
-  padding: 0.7rem 0.5rem;
-  font-size: 1rem;
-  font-weight: 400;
+/* ============================================================================
+   🎉 TianguiStore - Encabezado de Bienvenida
+   Estilo visual refinado y animado para el banner inicial de presentación.
+   Inspirado en el diseño Glassmorphism Mexica, con sombra flotante, íconos,
+   y mensajes claros. Compatible con temas oscuros y responsivo.
+============================================================================ */
+.intro-banner {
+  background: rgba(14, 34, 33, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 1.25rem;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  margin-bottom: 3.5rem;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
   color: #e0e0e0;
-  background: rgba(14, 34, 33, 0.3);
-  border: none;
-  border-bottom: 1.5px solid rgba(212, 160, 63, 0.35);
-  border-radius: 0.75rem;
-  letter-spacing: 0.2px;
-  transition: border-bottom 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+  animation: fadeInDown 0.6s ease-in-out both;
 }
-nav input[type]::placeholder,
-nav textarea::placeholder,
-nav .select-wrapper input.select-dropdown::placeholder {
-  color: rgba(176, 176, 176, 0.4);
+.intro-banner .intro-title {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.6rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
+  margin-bottom: 1rem;
+}
+.intro-banner .intro-title i {
+  font-size: 2.5rem;
+  color: #d4a03f;
+  margin-right: 0.8rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+.intro-banner p {
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: #b0b0b0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  max-width: 700px;
+  margin: 0 auto;
+}
+/* 📱 Responsivo para pantallas pequeñas */
+@media screen and (max-width: 600px) {
+  .intro-banner {
+    padding: 2rem 1.5rem;
+  }
+  .intro-banner .intro-title {
+    font-size: 2rem;
+  }
+  .intro-banner .intro-title i {
+    font-size: 2rem;
+    margin-right: 0.6rem;
+  }
+  .intro-banner p {
+    font-size: 1.05rem;
+  }
+}
+/* ============================================================================ 
+   🛒 CONTADOR DE CARRITO - Estilo global
+   Estilo visual para los badges de cantidad en navbar y menú móvil
+============================================================================ */
+#contador-carrito,
+#contador-carrito-mobile {
+  font-weight: 600;
+  font-size: 0.75rem;
+  min-width: 18px;
+  padding: 2px 6px;
+  text-align: center;
+  border-radius: 12px;
+  display: inline-block;
+  background-color: #00acc1;
+  color: #121212;
+  box-shadow: 0 2px 6px rgba(0, 172, 193, 0.35);
+  transition: all 0.3s ease-in-out;
+  will-change: transform, opacity;
+}
+#contador-carrito.animate__animated,
+#contador-carrito-mobile.animate__animated {
+  animation-duration: 0.6s;
+  animation-fill-mode: both;
+}
+#contador-carrito:empty,
+#contador-carrito-mobile:empty {
+  display: none;
+}
+/* ============================================================================
+   🎴 Formulario con fondo ceremonial mejorado y contenido delimitado
+============================================================================ */
+.formulario-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem;
+  background-color: rgba(14, 34, 33, 0.9);
+  background-image: url("/imagenes/formulario_patron.png");
+  background-size: 200px auto;
+  background-repeat: repeat;
+  background-position: center;
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #e0e0e0;
+  animation: fadeIn 0.6s ease-in-out;
+  overflow: hidden;
+  position: relative;
+}
+.formulario-wrapper h2.intro-title,
+.formulario-wrapper h4.intro-title,
+.formulario-wrapper h4.center-align {
+  font-size: 2.2rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #e0e0e0;
+}
+.formulario-wrapper h2.intro-title i,
+.formulario-wrapper h4.intro-title i,
+.formulario-wrapper h4.center-align i {
+  color: #d4a03f;
+  margin-right: 0.5rem;
+}
+/* ============================================================================
+   🖊️ Campos de entrada y selects
+============================================================================ */
+.input-field {
+  margin-bottom: 1.8rem;
+}
+.input-field label {
+  color: #d4a03f;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+.input-field input[type],
+.input-field textarea,
+.input-field .select-wrapper input.select-dropdown {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  font-size: 1rem;
+  background-color: rgba(14, 34, 33, 0.25);
+  border: none;
+  border-bottom: 2px solid rgba(176, 176, 176, 0.35);
+  border-radius: 0.75rem;
+  color: #e0e0e0;
+  transition: all 0.3s ease;
+}
+.input-field input[type]::placeholder,
+.input-field textarea::placeholder,
+.input-field .select-wrapper input.select-dropdown::placeholder {
+  color: rgba(176, 176, 176, 0.45);
   font-style: italic;
 }
-nav input[type]:focus,
-nav textarea:focus,
-nav .select-wrapper input.select-dropdown:focus {
-  background: rgba(0, 172, 193, 0.1);
-  border-bottom: 2px solid #d4a03f;
-  box-shadow: 0 1px 0 0 #d4a03f;
+.input-field input[type]:focus,
+.input-field textarea:focus,
+.input-field .select-wrapper input.select-dropdown:focus {
+  background-color: rgba(0, 172, 193, 0.08);
+  border-bottom: 2px solid #00acc1;
   outline: none;
 }
-nav input[type]:hover:not(:disabled):not(:focus),
-nav textarea:hover:not(:disabled):not(:focus),
-nav .select-wrapper input.select-dropdown:hover:not(:disabled):not(:focus) {
-  border-bottom: 1.5px solid rgba(0, 172, 193, 0.5);
+.input-field input[type]:disabled,
+.input-field textarea:disabled,
+.input-field .select-wrapper input.select-dropdown:disabled {
+  background-color: rgba(14, 34, 33, 0.1);
+  border-bottom: 1px dashed rgba(176, 176, 176, 0.3);
+  color: rgba(176, 176, 176, 0.6);
 }
-nav input[type]:disabled,
-nav textarea:disabled,
-nav .select-wrapper input.select-dropdown:disabled {
-  background-color: rgba(14, 34, 33, 0.12);
-  color: rgba(176, 176, 176, 0.5);
-  cursor: not-allowed;
-  border-bottom: 1px dashed rgba(176, 176, 176, 0.25);
-}
-nav input.valid,
-nav textarea.valid {
-  border-bottom: 2px solid #6ec071 !important;
-  box-shadow: 0 1px 0 0 #6ec071 !important;
-}
-nav input.invalid,
-nav textarea.invalid {
-  border-bottom: 2px solid #f6675d !important;
-  box-shadow: 0 1px 0 0 #f6675d !important;
-}
-nav input:-webkit-autofill,
-nav textarea:-webkit-autofill,
-nav select:-webkit-autofill {
-  transition: background-color 5000s ease-in-out 0s;
-  -webkit-text-fill-color: #e0e0e0 !important;
-  box-shadow: 0 0 0 1000px rgba(14, 34, 33, 0.18) inset !important;
-  border-bottom: 1px solid rgba(0, 172, 193, 0.4) !important;
-}
-nav .toggle-password {
-  position: absolute;
-  top: 50%;
-  right: 0.75rem;
-  transform: translateY(-50%);
-  z-index: 2;
-  cursor: pointer;
-  color: #b0b0b0;
-  font-size: 1.2rem;
-  opacity: 0.7;
-  user-select: none;
-  transition: color 0.3s ease, transform 0.2s ease;
-}
-nav .toggle-password:hover {
+.input-field input:focus + label,
+.input-field textarea:focus + label {
   color: #00acc1;
-  opacity: 1;
 }
-nav .toggle-password:active {
-  transform: translateY(-50%) scale(0.95);
+/* ✅ Validación visual */
+input.valid,
+textarea.valid {
+  border-bottom: 2px solid #4caf50 !important;
 }
-nav .select-dropdown {
-  background: rgba(8, 28, 27, 0.85) !important;
-  backdrop-filter: blur(16px);
+input.invalid,
+textarea.invalid {
+  border-bottom: 2px solid #f44336 !important;
+}
+/* 🔽 Dropdown personalizado */
+.select-dropdown {
+  background-color: rgba(14, 34, 33, 0.85) !important;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 0.75rem;
-  color: #e0e0e0 !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  padding: 0.5rem 0.75rem;
+  color: #e0e0e0 !important;
   font-size: 1rem;
-  padding: 0.25rem 0;
-  z-index: 1000;
-  overflow: hidden;
 }
-nav .select-dropdown.dropdown-content {
-  max-height: 300px;
+.select-dropdown.dropdown-content {
+  max-height: 280px;
   overflow-y: auto;
+  background-color: rgba(14, 34, 33, 0.95);
   scrollbar-width: thin;
   scrollbar-color: #00acc1 transparent;
 }
-nav .select-dropdown.dropdown-content li > span {
+.select-dropdown.dropdown-content li > span {
   display: block;
   padding: 0.75rem 1rem;
   font-weight: 500;
   color: #e0e0e0;
-  transition: background 0.15s, color 0.15s;
   border-radius: 0.75rem;
+  transition: background 0.15s;
 }
-nav .select-dropdown.dropdown-content li:hover > span,
-nav .select-dropdown.dropdown-content li.selected > span {
-  background-color: rgba(0, 172, 193, 0.2) !important;
-  color: white !important;
+.select-dropdown.dropdown-content li:hover > span {
+  background-color: rgba(0, 172, 193, 0.25);
+  color: white;
 }
-nav .select-dropdown.dropdown-content li {
-  -webkit-tap-highlight-color: transparent;
+/* 👁 Toggle visibilidad de contraseña */
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  color: rgba(176, 176, 176, 0.6);
+  cursor: pointer;
+  transition: color 0.2s ease;
 }
-nav .select-wrapper input.select-dropdown:focus {
-  border-bottom: 2px solid #d4a03f !important;
-  box-shadow: 0 1px 0 0 #d4a03f !important;
-  background-color: transparent !important;
-  color: #e0e0e0 !important;
+.toggle-password:hover {
+  color: #00acc1;
 }
-nav .select-wrapper input.select-dropdown:focus + label {
-  color: #d4a03f !important;
+/* 📱 Responsive */
+@media screen and (max-width: 600px) {
+  .formulario-wrapper {
+    padding: 2rem 1rem;
+    background-size: 240px auto;
+  }
+  .formulario-wrapper h2.intro-title,
+  .formulario-wrapper h4.intro-title,
+  .formulario-wrapper h4.center-align {
+    font-size: 1.9rem;
+  }
 }
-nav .toggle-password {
+/* ============================================================================
+   👁 Toggle visibilidad de contraseña
+============================================================================ */
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  color: rgba(176, 176, 176, 0.6);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.toggle-password:hover {
+  color: #00acc1;
+}
+/* ============================================================================
+   📱 Responsive
+============================================================================ */
+@media screen and (max-width: 600px) {
+  .formulario-wrapper {
+    padding: 2rem 1rem;
+    background-size: 200px auto;
+  }
+  .formulario-wrapper h2.intro-title {
+    font-size: 1.9rem;
+  }
+}
+.glass-card {
+  background: linear-gradient(rgba(14, 34, 33, 0.92), rgba(14, 34, 33, 0.92)), url("/imagenes/formulario_patron.png");
+  background-repeat: repeat;
+  background-position: center center;
+  background-size: 200px auto;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  padding: 2.5rem;
+  overflow: hidden;
+  color: #e0e0e0;
+}
+/* ============================================================================
+   🔒 TianguiStore - Login Card Estilo Mexica Glassmorphism
+   Estilo refinado para la tarjeta de inicio de sesión. Mejora contraste,
+   accesibilidad, legibilidad y armonía con el diseño oscuro.
+============================================================================ */
+.login-card {
+  background: rgba(14, 34, 33, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 1.25rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55);
+  padding: 2rem 2.5rem;
+  color: #e0e0e0;
+}
+.login-card .card-content {
+  padding: 0;
+}
+.login-card h5 {
+  font-size: 1.8rem;
+  color: #d4a03f;
+  font-weight: 700;
+  margin-bottom: 1.2rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+.login-card p {
+  font-size: 1rem;
+  color: rgba(224, 224, 224, 0.85);
+  line-height: 1.5;
+  text-align: center;
+  margin-bottom: 2rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.login-card .input-field input,
+.login-card .input-field textarea {
+  background-color: rgba(14, 34, 33, 0.35);
+  color: #e0e0e0;
+  border-radius: 0.75rem;
+  border-bottom: 2px solid rgba(212, 160, 63, 0.35);
+  padding: 0.7rem;
+}
+.login-card .input-field label {
+  color: #d4a03f;
+  font-weight: 500;
+}
+.login-card .toggle-password {
+  color: rgba(224, 224, 224, 0.8);
+}
+.login-card .toggle-password:hover {
+  color: #00acc1;
+}
+.login-card .btn-large {
+  background-color: #d4a03f;
+  color: #081c1b;
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.4px;
+  border-radius: 2rem;
+  padding: 0.8rem 1.2rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+}
+.login-card .btn-large:hover {
+  background-color: #b78529;
+  transform: scale(1.02);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+}
+.login-card .helper-text {
+  color: rgba(176, 176, 176, 0.85) !important;
+}
+.login-card a {
+  color: #00d9f4;
+  font-weight: 500;
+}
+.login-card a:hover {
+  color: #00acc1;
+}
+.login-card .card-panel {
+  border-radius: 0.75rem;
+  padding: 1rem;
+  font-size: 0.95rem;
+}
+.login-card #mensajeError {
+  background-color: rgba(244, 67, 54, 0.85);
+  color: white;
+}
+.login-card #mensajeExito {
+  background-color: rgba(76, 175, 80, 0.85);
+  color: white;
+}
+@media screen and (max-width: 600px) {
+  .login-card {
+    padding: 1.8rem 1.3rem;
+  }
+  .login-card h5 {
+    font-size: 1.5rem;
+  }
+  .login-card p {
+    font-size: 0.95rem;
+  }
+  .login-card .btn-large {
+    font-size: 0.95rem;
+  }
+}
+.login-wrapper {
+  margin-top: 4vh;
+  margin-bottom: 6vh;
+}
+@media screen and (max-width: 600px) {
+  .login-wrapper {
+    margin-top: 2.5vh;
+    margin-bottom: 4vh;
+  }
+}
+/* ============================================================================
+   🔒 TOGGLE-PASSWORD - Ícono para mostrar u ocultar contraseña
+   Se ubica dentro del campo de input y ofrece feedback visual e interacción suave
+============================================================================ */
+.toggle-password {
   position: absolute;
   top: 50%;
   right: 0.75rem;
@@ -626,44 +834,54 @@ nav .toggle-password {
   -webkit-user-select: none;
   transition: color 0.25s ease, opacity 0.3s ease;
 }
-nav .toggle-password:hover {
+.toggle-password:hover {
   color: #00acc1;
   opacity: 1;
 }
-nav .toggle-password:focus {
+.toggle-password:focus {
   outline: 2px dashed rgba(0, 172, 193, 0.6);
   outline-offset: 4px;
 }
-nav .toggle-password:active {
+.toggle-password:active {
   transform: translateY(-50%) scale(0.95);
 }
-nav .input-field input.valid,
-nav .input-field textarea.valid,
-nav .input-field select.valid {
+/* ============================================================================
+   ✅ VALIDACIONES - Estados visuales para campos válidos e inválidos
+   Mejora el feedback al usuario con colores contrastantes y transiciones suaves
+============================================================================ */
+/* ✔️ Campo válido (éxito) */
+.input-field input.valid,
+.input-field textarea.valid,
+.input-field select.valid {
   border-bottom: 2px solid #6ec071;
   box-shadow: 0 1px 0 0 #6ec071;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
-nav .input-field input.valid:focus,
-nav .input-field textarea.valid:focus,
-nav .input-field select.valid:focus {
+.input-field input.valid:focus,
+.input-field textarea.valid:focus,
+.input-field select.valid:focus {
   border-bottom: 2px solid #5cb860;
   box-shadow: 0 1px 0 0 #5cb860;
 }
-nav .input-field input.invalid,
-nav .input-field textarea.invalid,
-nav .input-field select.invalid {
+/* ❌ Campo inválido (error) */
+.input-field input.invalid,
+.input-field textarea.invalid,
+.input-field select.invalid {
   border-bottom: 2px solid #f77066;
   box-shadow: 0 1px 0 0 #f77066;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
-nav .input-field input.invalid:focus,
-nav .input-field textarea.invalid:focus,
-nav .input-field select.invalid:focus {
+.input-field input.invalid:focus,
+.input-field textarea.invalid:focus,
+.input-field select.invalid:focus {
   border-bottom: 2px solid #f44336;
   box-shadow: 0 1px 0 0 #f44336;
 }
-nav .helper-text {
+/* ============================================================================
+   🧾 HELPER-TEXT - Mensajes de ayuda o validación debajo de inputs
+   Incluye colores semánticos, íconos y alineación moderna con feedback visual claro
+============================================================================ */
+.helper-text {
   font-size: 0.9rem;
   line-height: 1.4;
   margin-top: 0.5rem;
@@ -679,9 +897,9 @@ nav .helper-text {
   /* 🧩 Ícono embebido dentro del mensaje */
   /* 📱 Responsividad en dispositivos pequeños */
 }
-nav .helper-text.red-text,
-nav .helper-text.green-text,
-nav .helper-text.amber-text {
+.helper-text.red-text,
+.helper-text.green-text,
+.helper-text.amber-text {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -689,16 +907,16 @@ nav .helper-text.amber-text {
   font-weight: 500;
   letter-spacing: 0.2px;
 }
-nav .helper-text.red-text {
+.helper-text.red-text {
   color: #f55a4e !important;
 }
-nav .helper-text.green-text {
+.helper-text.green-text {
   color: #5cb860 !important;
 }
-nav .helper-text.amber-text {
+.helper-text.amber-text {
   color: #e68900 !important;
 }
-nav .helper-text .material-icons {
+.helper-text .material-icons {
   font-size: 1.1rem;
   line-height: 1;
   position: relative;
@@ -706,15 +924,19 @@ nav .helper-text .material-icons {
   opacity: 0.85;
 }
 @media screen and (max-width: 480px) {
-  nav .helper-text {
+  .helper-text {
     font-size: 0.85rem;
   }
-  nav .helper-text .material-icons {
+  .helper-text .material-icons {
     font-size: 1rem;
   }
 }
-nav button[type="submit"].btn-large,
-nav .btn.btn-agregar {
+/* ============================================================================
+   🔘 BOTONES - Estilo principal para botones grandes (submit) y de acción
+   Estética elegante, acentuada y con interactividad suave. Coherente con el estilo Mexica.
+============================================================================ */
+button[type="submit"].btn-large,
+.btn.btn-agregar {
   background-color: #d4a03f;
   color: #081c1b;
   font-weight: 600;
@@ -729,43 +951,44 @@ nav .btn.btn-agregar {
   align-items: center;
   gap: 0.5rem;
 }
-nav button[type="submit"].btn-large:hover,
-nav .btn.btn-agregar:hover {
+button[type="submit"].btn-large:hover,
+.btn.btn-agregar:hover {
   background-color: #b78529;
   transform: scale(1.035);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
 }
-nav button[type="submit"].btn-large:focus,
-nav .btn.btn-agregar:focus {
+button[type="submit"].btn-large:focus,
+.btn.btn-agregar:focus {
   outline: 2px dashed rgba(0, 172, 193, 0.6);
   outline-offset: 4px;
 }
-nav button[type="submit"].btn-large:active,
-nav .btn.btn-agregar:active {
+button[type="submit"].btn-large:active,
+.btn.btn-agregar:active {
   transform: scale(0.98);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
-nav button[type="submit"].btn-large:disabled,
-nav .btn.btn-agregar:disabled {
+button[type="submit"].btn-large:disabled,
+.btn.btn-agregar:disabled {
   background-color: rgba(212, 160, 63, 0.4);
   color: rgba(8, 28, 27, 0.6);
   cursor: not-allowed;
   box-shadow: none;
   transform: none;
 }
-nav button[type="submit"].btn-large i.material-icons,
-nav .btn.btn-agregar i.material-icons,
-nav button[type="submit"].btn-large svg,
-nav .btn.btn-agregar svg {
+button[type="submit"].btn-large i.material-icons,
+.btn.btn-agregar i.material-icons,
+button[type="submit"].btn-large svg,
+.btn.btn-agregar svg {
   font-size: 1.1rem;
   opacity: 0.9;
   vertical-align: middle;
 }
-nav .badge-etiqueta {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 3;
+/* ============================================================================
+   🏷️ ETIQUETAS DE PRODUCTO (BADGES)
+   Distintivos flotantes para destacar estado del producto: nuevo, popular, bajo stock, etc.
+   Estilo visual con glassmorphism, color de fondo semántico y legibilidad optimizada.
+============================================================================ */
+.badge-etiqueta {
   padding: 4px 10px;
   font-size: 0.75rem;
   font-weight: bold;
@@ -773,7 +996,6 @@ nav .badge-etiqueta {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-radius: 1.25rem;
-  background-color: rgba(0, 0, 0, 0);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
@@ -784,113 +1006,367 @@ nav .badge-etiqueta {
   animation: fadeIn 0.5s ease-in-out;
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
-nav .badge-etiqueta:hover {
+.badge-etiqueta:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
-nav .badge-etiqueta i,
-nav .badge-etiqueta svg {
+.badge-etiqueta i,
+.badge-etiqueta svg {
   font-size: 0.9rem;
   opacity: 0.85;
 }
-nav .badge-destacado {
-  background-color: #00acc1;
+/* 🎯 Badges específicos por tipo de estado */
+.badge-destacado {
+  background-color: #00bcd4;
+  color: #081c1b;
+  box-shadow: 0 0 8px rgba(0, 188, 212, 0.5);
 }
-nav .badge-nuevo {
+.badge-nuevo {
   background-color: #2e7d32;
+  color: #fff;
+  box-shadow: 0 0 8px rgba(46, 125, 50, 0.4);
 }
-nav .badge-bajo-stock {
+.badge-bajo-stock {
   background-color: #f4511e;
+  color: #fff;
+  box-shadow: 0 0 8px rgba(244, 81, 30, 0.4);
 }
-nav .badge-popular {
+.badge-popular {
   background-color: #ffc107;
   color: #121212;
+  box-shadow: 0 0 8px rgba(255, 193, 7, 0.4);
 }
-nav #menu-usuario .dropdown-trigger {
+/* ══════════════════════════════════════
+ 👤 MENÚ DE USUARIO + IDENTIDAD DE ROL
+═══════════════════════════════════════ */
+#menu-usuario .dropdown-trigger {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.4rem 0.6rem;
+  gap: 0.75rem;
+  padding: 0.45rem 0.8rem;
   border-radius: 0.75rem;
-  background-color: rgba(14, 34, 33, 0.85);
+  background-color: rgba(14, 34, 33, 0.8);
   backdrop-filter: blur(6px);
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, box-shadow 0.3s ease;
 }
-nav #menu-usuario .dropdown-trigger:hover {
+#menu-usuario .dropdown-trigger:hover {
   background-color: rgba(14, 34, 33, 0.95);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
-nav #menu-usuario .dropdown-trigger img {
-  width: 36px;
-  height: 36px;
+#menu-usuario .dropdown-trigger img {
+  width: 38px;
+  height: 38px;
   object-fit: cover;
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.06);
+  transition: transform 0.3s ease;
 }
-nav #menu-usuario .dropdown-trigger div {
+#menu-usuario .dropdown-trigger img:hover {
+  transform: scale(1.05);
+}
+#menu-usuario .dropdown-trigger div {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   line-height: 1.2;
 }
-nav #menu-usuario .dropdown-trigger div span:first-child {
+#menu-usuario .dropdown-trigger div span:first-child {
   font-size: 0.95rem;
   font-weight: 600;
   color: #e0e0e0;
 }
-nav #menu-usuario .dropdown-trigger div .badge {
-  font-size: 0.72rem;
-  font-weight: 500;
-  padding: 2px 6px;
+#menu-usuario .dropdown-trigger div .badge-rol {
   margin-top: 2px;
-  border-radius: 6px;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  text-transform: none;
+  gap: 4px;
+  padding: 2px 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 6px;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-transform: capitalize;
+  letter-spacing: 0.3px;
+  height: auto;
+  background-color: rgba(14, 34, 33, 0.92);
+  color: #e0e0e0;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
-nav #menu-usuario .dropdown-trigger div .badge i {
-  font-size: 0.75rem;
+#menu-usuario .dropdown-trigger div .badge-rol i {
+  font-size: 0.72rem;
+  margin: 0;
+  transform: translateY(1px);
 }
-nav #menu-usuario .dropdown-trigger i.fas.fa-caret-down {
-  margin-top: 4px;
-  font-size: 0.9rem;
-  opacity: 0.8;
+#menu-usuario .dropdown-trigger i.fas.fa-caret-down {
   margin-left: auto;
+  font-size: 0.85rem;
+  opacity: 0.75;
 }
-nav .admin {
+/* ══════════════════════════════════════
+   📁 MENÚ PRINCIPAL (desktop)
+═══════════════════════════════════════ */
+.nav-principal {
+  display: flex;
+  gap: 2rem;
+  margin: 0 auto;
+  align-items: center;
+}
+.nav-principal li {
+  margin: 0;
+}
+.nav-principal li a.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.88rem;
+  line-height: 1.2;
+  color: #e0e0e0;
+  transition: color 0.3s;
+}
+.nav-principal li a.nav-item i {
+  font-size: 1.3rem;
+  margin-bottom: 4px;
+  transition: transform 0.3s ease;
+}
+.nav-principal li a.nav-item span {
+  display: block;
+  font-size: 0.85rem;
+  letter-spacing: 0.3px;
+  margin-top: 2px;
+}
+.nav-principal li a.nav-item:hover {
+  color: #d4a03f;
+}
+.nav-principal li a.nav-item:hover i {
+  transform: scale(1.1);
+}
+.hide {
+  display: none !important;
+}
+.menu-auth-opcion a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  font-size: 0.88rem;
+  background-color: rgba(14, 34, 33, 0.6);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.menu-auth-opcion a:hover {
+  background-color: rgba(14, 34, 33, 0.8);
+  transform: translateY(-1px);
+}
+.menu-auth-opcion a .icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+}
+.menu-auth-opcion a .icon-wrapper i {
+  font-size: 1rem;
+  color: #00acc1;
+}
+.menu-auth-opcion a span {
+  color: #e0e0e0;
+  line-height: 1;
+}
+.icon-login,
+.icon-registro {
+  font-size: 1.05rem;
+  color: #00acc1;
+  transition: transform 0.25s ease, color 0.25s ease;
+}
+.icon-login:hover,
+.icon-registro:hover {
+  transform: scale(1.15);
+  color: #0fe5ff;
+}
+.texto-auth {
+  font-weight: 500;
+  font-size: 0.88rem;
+  color: #e0e0e0;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.3px;
+  transition: color 0.3s ease;
+}
+.btn-auth {
+  padding: 0.5rem 1.1rem;
+  border-radius: 0.75rem;
+  background-color: rgba(14, 34, 33, 0.7);
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+.btn-auth:hover {
+  background-color: rgba(14, 34, 33, 0.9);
+  transform: translateY(-1px);
+}
+.btn-auth:focus {
+  outline: 2px dashed rgba(0, 172, 193, 0.6);
+  outline-offset: 3px;
+}
+@media (max-width: 600px) {
+  .menu-auth-opcion span {
+    display: none;
+  }
+}
+/* ══════════════════════════════════════
+ 🎨 PALETA DE COLORES POR ROL (alta accesibilidad)
+═══════════════════════════════════════ */
+.badge-rol.admin {
   background-color: rgba(212, 160, 63, 0.9) !important;
   color: #000 !important;
 }
-nav .admin i {
+.badge-rol.admin i {
   color: #000 !important;
 }
-nav .soporte {
+.badge-rol.soporte {
   background-color: rgba(66, 165, 245, 0.85) !important;
-  color: #fff !important;
+  color: #ffffff !important;
 }
-nav .soporte i {
-  color: #fff !important;
+.badge-rol.soporte i {
+  color: #ffffff !important;
 }
-nav .vendedor {
-  background-color: #007f8e !important;
-  color: #fff !important;
+.badge-rol.vendedor {
+  background-color: #008a9a !important;
+  color: #ffffff !important;
 }
-nav .vendedor i {
-  color: #fff !important;
+.badge-rol.vendedor i {
+  color: #ffffff !important;
 }
-nav .cliente {
-  background-color: rgba(176, 190, 197, 0.8) !important;
-  color: #121212 !important;
+.badge-rol.cliente {
+  background-color: rgba(207, 216, 220, 0.85) !important;
+  color: #212121 !important;
 }
-nav .cliente i {
-  color: #121212 !important;
+.badge-rol.cliente i {
+  color: #212121 !important;
 }
-nav .sin-rol {
-  background-color: rgba(97, 97, 97, 0.85) !important;
-  color: #fff !important;
+.badge-rol.desarrollador {
+  background-color: rgba(171, 71, 188, 0.85) !important;
+  color: #ffffff !important;
 }
-nav .sin-rol i {
-  color: #fff !important;
+.badge-rol.desarrollador i {
+  color: #ffffff !important;
 }
+.badge-rol.sin-rol {
+  background-color: rgba(117, 117, 117, 0.85) !important;
+  color: #ffffff !important;
+}
+.badge-rol.sin-rol i {
+  color: #ffffff !important;
+}
+/* ============================================================================
+   🧾 ADMIN PEDIDOS - Estilo específico para la vista de pedidos (admin)
+============================================================================ */
+/* Estilo del modal glass (detalle de pedido) */
+.modal-glass {
+  background-color: rgba(0, 0, 0, 0.6);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-radius: 1.25rem;
+  padding: 20px;
+  color: #e0e0e0;
+}
+@supports not (backdrop-filter: blur(12px)) {
+  .modal-glass {
+    background-color: rgba(0, 0, 0, 0.85);
+  }
+}
+.modal-content h5,
+.modal-content p,
+.modal-content h6 {
+  color: #e0e0e0;
+}
+.modal-content ul.collection {
+  background-color: transparent;
+  border: none;
+}
+.modal-content .collection-item {
+  background-color: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: #e0e0e0;
+}
+/* Ícono de botón de filtro */
+.btn-filtrar-icon i {
+  vertical-align: middle;
+  margin-right: 5px;
+}
+.modal .modal-footer {
+  background-color: transparent !important;
+  border-top: none;
+  box-shadow: none;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+.modal .modal-footer .btn-flat {
+  color: #d4a03f;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+.modal .modal-footer .btn-flat:hover {
+  color: #ddb569;
+}
+.datepicker-modal {
+  background-color: rgba(14, 34, 33, 0.92) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  color: #e0e0e0;
+  overflow: hidden;
+}
+.datepicker-date-display {
+  background-color: rgba(14, 34, 33, 0.85) !important;
+  color: #d4a03f !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.datepicker-controls,
+.datepicker-calendar-container {
+  background-color: rgba(14, 34, 33, 0.92) !important;
+  color: #e0e0e0;
+}
+.datepicker-controls .datepicker-table td,
+.datepicker-calendar-container .datepicker-table td,
+.datepicker-controls .datepicker-table th,
+.datepicker-calendar-container .datepicker-table th {
+  color: #e0e0e0 !important;
+}
+.datepicker-controls .datepicker-table td:hover,
+.datepicker-calendar-container .datepicker-table td:hover,
+.datepicker-controls .datepicker-table th:hover,
+.datepicker-calendar-container .datepicker-table th:hover {
+  background-color: rgba(0, 172, 193, 0.15);
+}
+.datepicker-controls .datepicker-table td.is-selected,
+.datepicker-calendar-container .datepicker-table td.is-selected,
+.datepicker-controls .datepicker-table th.is-selected,
+.datepicker-calendar-container .datepicker-table th.is-selected {
+  background-color: #00acc1;
+  color: #081c1b !important;
+}
+.datepicker-controls .datepicker-day-button,
+.datepicker-calendar-container .datepicker-day-button {
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+.datepicker-controls button {
+  color: #d4a03f !important;
+}
+.datepicker-controls button:hover {
+  background-color: rgba(212, 160, 63, 0.1);
+}
+/* ============================================================================
+   🎞️ ANIMACIONES - TianguiStore
+   Animaciones modernas y suaves para glassmorphism oscuro profesional.
+============================================================================ */
+/* === ⚡ Aparición básica === */
 @keyframes fadeIn {
   0% {
     opacity: 0;
@@ -899,6 +1375,7 @@ nav .sin-rol i {
     opacity: 1;
   }
 }
+/* === ⬇️ Entrada desde arriba (menús, alertas, modales) === */
 @keyframes fadeInDown {
   0% {
     opacity: 0;
@@ -909,6 +1386,7 @@ nav .sin-rol i {
     transform: translateY(0);
   }
 }
+/* === ⬆️ Entrada desde abajo (botones flotantes, tarjetas) === */
 @keyframes fadeInUp {
   0% {
     opacity: 0;
@@ -919,6 +1397,7 @@ nav .sin-rol i {
     transform: translateY(0);
   }
 }
+/* === 🔍 Escala suave (entradas visuales como tarjetas) === */
 @keyframes scaleIn {
   0% {
     transform: scale(0.95);
@@ -929,6 +1408,7 @@ nav .sin-rol i {
     opacity: 1;
   }
 }
+/* === 🔁 Fade escalonado para listas (cards en galería o loops) === */
 @keyframes fadeStaggered {
   0% {
     opacity: 0;
@@ -939,6 +1419,7 @@ nav .sin-rol i {
     transform: translateY(0);
   }
 }
+/* === 🔄 Rotación continua (spinners) === */
 @keyframes spin {
   0% {
     transform: rotate(0deg);
@@ -947,6 +1428,7 @@ nav .sin-rol i {
     transform: rotate(360deg);
   }
 }
+/* === 💡 Parpadeo pulsante (tooltips, badges dinámicos) === */
 @keyframes pulse {
   0%,
   100% {
@@ -956,6 +1438,7 @@ nav .sin-rol i {
     opacity: 0.4;
   }
 }
+/* === ✨ Fade in + blur (efecto vidrio animado) === */
 @keyframes fadeBlurIn {
   0% {
     opacity: 0;

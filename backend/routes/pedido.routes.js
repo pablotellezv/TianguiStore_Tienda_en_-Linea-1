@@ -1,4 +1,4 @@
-// 📁 routes/pedidos.js
+// 📁 routes/pedido.routes.js
 const express = require("express");
 const router = express.Router();
 
@@ -9,19 +9,20 @@ const {
   crearPedido,
   cancelarPedido,
   crearPedidoDesdeCarrito,
-  obtenerProductosDelPedido
+  obtenerProductosDelPedido,
+  listarTodosLosPedidos,
+  obtenerDetalleCompleto
 } = require("../controllers/pedidoController");
 
 // 🔐 Middlewares de seguridad
 const {
   verificarAutenticacion,
-  verificarPermiso
+  verificarPermiso,
 } = require("../middlewares/authMiddleware");
 
 // 🧪 Validación de datos
 const validarResultados = require("../middlewares/validacion/validarResultados");
 const pedidoSchema = require("../middlewares/validacion/pedidoSchema");
-
 
 // ════════════════════════════════════════════════════════════════
 // 📦 CONSULTAS DE PEDIDOS
@@ -36,19 +37,21 @@ router.get(
 );
 
 // 🧑‍💼 Obtener los pedidos del usuario autenticado
-router.get(
-  "/mis",
-  verificarAutenticacion,
-  obtenerMisPedidos
-);
+router.get("/mis", verificarAutenticacion, obtenerMisPedidos);
 
 // 🔍 Obtener productos de un pedido específico
-router.get(
-  "/:id/productos",
-  verificarAutenticacion,
-  obtenerProductosDelPedido
-);
+router.get("/:id/productos", verificarAutenticacion, obtenerProductosDelPedido);
 
+// 📋 Obtener detalle completo de un pedido (cliente, fecha, total, productos…)
+router.get("/:id/detalle", verificarAutenticacion, obtenerDetalleCompleto);
+
+// 🗂️ Obtener todos los pedidos con filtros y paginación (solo admin)
+router.get(
+  "/admin/listado",
+  verificarAutenticacion,
+  verificarPermiso("pedidos", "leer"),
+  listarTodosLosPedidos
+);
 
 // ════════════════════════════════════════════════════════════════
 // 🛒 CREACIÓN DE PEDIDOS
@@ -73,7 +76,6 @@ router.post(
   validarResultados,
   crearPedidoDesdeCarrito
 );
-
 
 // ════════════════════════════════════════════════════════════════
 // ❌ GESTIÓN Y CANCELACIÓN

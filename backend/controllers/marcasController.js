@@ -12,7 +12,7 @@
  *   - Seguridad: autenticación y control por roles (admin/vendedor)
  */
 
-const marcaModel = require("../models/marca.model");
+const marcaModel = require("../models/marketing.model");
 
 /**
  * 📋 GET /marcas

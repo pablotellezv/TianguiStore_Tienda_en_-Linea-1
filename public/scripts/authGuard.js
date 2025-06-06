@@ -1,16 +1,14 @@
+// 📁 scripts/authGuard.js
 (() => {
   let timeoutRenovacion = null;
 
   /**
    * 🔐 Verifica si un token JWT ha expirado.
-   * @param {string} token - Token JWT.
-   * @returns {boolean} - true si está expirado o mal formado.
    */
   function tokenExpirado(token) {
     try {
       const payload = JSON.parse(atob(token.split(".")[1]));
-      const ahora = Math.floor(Date.now() / 1000);
-      return !payload.exp || payload.exp < ahora;
+      return !payload.exp || payload.exp < Math.floor(Date.now() / 1000);
     } catch (e) {
       console.error("❌ Token inválido o corrupto:", e);
       return true;
@@ -18,8 +16,7 @@
   }
 
   /**
-   * 🔄 Solicita un nuevo token al backend antes de que expire.
-   * Realiza una petición POST a "/auth/renovar" con el token actual y guarda el nuevo token en el localStorage.
+   * 🔄 Solicita un nuevo token antes de que expire.
    */
   async function renovarToken() {
     const token = localStorage.getItem("token");
@@ -29,24 +26,24 @@
       const res = await fetch("/auth/renovar", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json"
         }
       });
 
       if (!res.ok) {
-        console.warn("🔐 Token no renovable. Finalizando sesión...");
+        console.warn("🔐 Token no renovable.");
         cerrarSesionSilenciosa();
         return;
       }
 
-      const data = await res.json();
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("usuario", JSON.stringify(data.usuario));
+      const { token: nuevoToken, usuario } = await res.json();
+      localStorage.setItem("token", nuevoToken);
+      localStorage.setItem("usuario", JSON.stringify(usuario));
 
-      console.log("✅ Token renovado correctamente.");
       clearTimeout(timeoutRenovacion);
       programarRenovacionToken();
+      console.log("✅ Token renovado automáticamente.");
     } catch (error) {
       console.error("❌ Error al renovar token:", error);
       cerrarSesionSilenciosa();
@@ -54,8 +51,7 @@
   }
 
   /**
-   * ⏳ Programa renovación automática del token 1 minuto antes de su expiración.
-   * Calcula el tiempo restante antes de que el token expire y programa la renovación.
+   * ⏳ Programa la renovación automática del token antes de expirar.
    */
   function programarRenovacionToken() {
     const token = localStorage.getItem("token");
@@ -65,66 +61,56 @@
       const payload = JSON.parse(atob(token.split(".")[1]));
       const ahora = Math.floor(Date.now() / 1000);
       const segundosRestantes = payload.exp - ahora;
-      const tiempoAntesDeRenovar = (segundosRestantes - 60) * 1000;
+      const tiempoAntes = (segundosRestantes - 60) * 1000;
 
-      if (tiempoAntesDeRenovar <= 0) {
-        console.log("⚠️ Token próximo a expirar. Renovando ya...");
-        renovarToken();
-        return;
-      }
+      if (tiempoAntes <= 0) return renovarToken();
 
-      console.log(`⏱️ Renovación programada en ${(tiempoAntesDeRenovar / 1000 / 60).toFixed(1)} minutos`);
-      timeoutRenovacion = setTimeout(renovarToken, tiempoAntesDeRenovar);
+      timeoutRenovacion = setTimeout(renovarToken, tiempoAntes);
+      console.log(`⏱️ Renovación programada en ${(tiempoAntes / 60000).toFixed(1)} min`);
     } catch (e) {
-      console.error("❌ Error al leer token para programación:", e);
+      console.error("❌ Error al leer token:", e);
       cerrarSesionSilenciosa();
     }
   }
 
   /**
-   * 🚫 Elimina sesión local y redirige al login.
-   * Elimina el token y usuario de localStorage y redirige a la página de login.
+   * 🚪 Elimina token, usuario y redirige al inicio.
    */
   function cerrarSesionSilenciosa() {
     localStorage.removeItem("token");
     localStorage.removeItem("usuario");
-    window.location.href = "/login.html";
+    window.location.href = "/index.html";
   }
 
   /**
-   * ✅ Verifica que haya sesión válida con estructura y permisos mínimos.
-   * @returns {boolean} - true si la sesión es válida, false si no lo es.
+   * ✅ Valida estructura mínima de sesión y permisos base.
    */
   function sesionValida() {
     const token = localStorage.getItem("token");
     const usuario = JSON.parse(localStorage.getItem("usuario") || "{}");
 
-    // Verificar que el usuario tiene la estructura correcta
     const estructuraValida =
       usuario.usuario_id &&
       typeof usuario.rol === "string" &&
       typeof usuario.permisos === "object";
 
-    // Verificar que el usuario tiene permisos adecuados (por ejemplo, leer productos o usuarios)
     const tienePermisos =
-      usuario.permisos?.productos?.leer ||
-      usuario.permisos?.usuarios?.leer;
+      usuario.permisos?.productos?.leer || usuario.permisos?.usuarios?.leer || usuario.permisos?.pedidos?.leer;
 
     return token && !tokenExpirado(token) && estructuraValida && tienePermisos;
   }
 
   /**
-   * 🎯 Punto de entrada: validación inicial de sesión.
-   * Al cargar la página, se valida que la sesión sea válida, de lo contrario se cierra la sesión automáticamente.
+   * 🚀 Inicializador automático de protección de sesión.
    */
   document.addEventListener("DOMContentLoaded", () => {
     if (!sesionValida()) {
-      console.warn("🚫 Sesión no válida o permisos insuficientes.");
+      console.warn("🚫 Sesión no válida. Redirigiendo...");
       cerrarSesionSilenciosa();
       return;
     }
 
-    // Si la sesión es válida, programar la renovación del token.
+    document.body.classList.add("sesion-verificada");
     programarRenovacionToken();
   });
 })();

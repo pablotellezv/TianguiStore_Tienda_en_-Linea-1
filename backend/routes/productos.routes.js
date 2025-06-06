@@ -1,104 +1,104 @@
 /**
- * 📁 RUTA: routes/productos.routes.js
- * 📦 Descripción: Rutas del catálogo de productos en TianguiStore.
- * 
- * 🔐 Reglas de acceso:
- *   - Lectura general: pública
- *   - Creación/actualización/eliminación: requiere autenticación + roles específicos
- * 
- * 💾 Soporte para carga de archivos (form-data) vía multer.
+ * 📁 RUTA: productos.routes.js
+ * 📦 Gestión de productos: públicas y protegidas con validación robusta
+ * Compatibilidad: Todas las rutas existentes se mantienen tal como están.
  */
 
 const express = require("express");
 const router = express.Router();
-
-// 🧠 Controladores
-const {
-  obtenerProductos,
-  obtenerProductoPorId,
-  agregarProducto,
-  agregarProductoConArchivos,
-  actualizarProducto,
-  eliminarProducto
-} = require("../controllers/productosController");
+const productosController = require("../controllers/productosController");
 
 // 🛡️ Middlewares
 const { verificarAutenticacion, permitirRoles } = require("../middlewares/authMiddleware");
 const validarResultados = require("../middlewares/validacion/validarResultados");
-const { productosSchema } = require("../middlewares/validacion/productosSchema");
-const { productosUpdateSchema } = require("../middlewares/validacion/productosUpdateSchema");
 const upload = require("../middlewares/uploadMiddleware");
 
+// ✅ Esquemas de validación
+const { productosSchema } = require("../middlewares/validacion/productosSchema");
+const { productosUpdateSchema } = require("../middlewares/validacion/productosUpdateSchema");
+
 // ─────────────────────────────────────────────
-// 📂 RUTAS PÚBLICAS — Lectura sin autenticación
+// 🌐 RUTAS PÚBLICAS
 // ─────────────────────────────────────────────
 
 /**
- * 📦 GET /api/productos
- * Obtiene todos los productos disponibles (catálogo general).
+ * @route   GET /productos
+ * @desc    Obtener listado de productos visibles (paginado desde frontend)
+ * @access  Público
  */
-router.get("/", obtenerProductos);
+router.get("/", productosController.obtenerProductos);
 
 /**
- * 🔍 GET /api/productos/:id
- * Obtiene un producto específico por ID (uso en detalles, validaciones, etc.).
+ * @route   GET /productos/:id
+ * @desc    Obtener producto básico por ID (uso general)
+ * @access  Público
  */
-router.get("/:id", obtenerProductoPorId);
+router.get("/:id", productosController.obtenerProductoPorId);
+
+/**
+ * @route   GET /productos/detalle/:id
+ * @desc    Obtener detalle enriquecido de producto (para vista detalleProducto)
+ * @access  Público
+ */
+router.get("/detalle/:id", productosController.obtenerDetalleProducto);
 
 // ─────────────────────────────────────────────
-// 🔐 RUTAS PROTEGIDAS — Requieren autenticación y rol
+// 🔐 RUTAS PROTEGIDAS (Requiere autenticación y rol)
 // ─────────────────────────────────────────────
 
 /**
- * ➕ POST /api/productos
- * Crea un nuevo producto (sin imágenes ni archivos adjuntos).
+ * @route   POST /productos
+ * @desc    Crear nuevo producto desde JSON (sin archivos)
+ * @access  Admin | Soporte
  */
 router.post(
   "/",
   verificarAutenticacion,
-  permitirRoles("admin", "vendedor"),
+  permitirRoles("admin", "soporte"),
   productosSchema,
   validarResultados,
-  agregarProducto
+  productosController.agregarProducto
 );
 
 /**
- * 🖼️ POST /api/productos/archivos
- * Crea un nuevo producto con imágenes y/o modelo 3D (form-data).
+ * @route   POST /productos/archivos
+ * @desc    Crear producto con imágenes y/o modelo 3D
+ * @access  Admin | Soporte
  */
 router.post(
   "/archivos",
   verificarAutenticacion,
-  permitirRoles("admin", "vendedor"),
-  upload.fields([
-    { name: "imagenes", maxCount: 10 },
-    { name: "modelo3d", maxCount: 1 }
-  ]),
-  agregarProductoConArchivos
+  permitirRoles("admin", "soporte"),
+  upload,
+  productosSchema,
+  validarResultados,
+  productosController.agregarProductoConArchivos
 );
 
 /**
- * ✏️ PUT /api/productos/:id
- * Actualiza la información de un producto específico.
+ * @route   PUT /productos/:id
+ * @desc    Actualizar producto por ID
+ * @access  Admin | Soporte
  */
 router.put(
   "/:id",
   verificarAutenticacion,
-  permitirRoles("admin", "vendedor"),
+  permitirRoles("admin", "soporte"),
   productosUpdateSchema,
   validarResultados,
-  actualizarProducto
+  productosController.actualizarProducto
 );
 
 /**
- * 🗑️ DELETE /api/productos/:id
- * Elimina lógicamente un producto (solo admins).
+ * @route   DELETE /productos/:id
+ * @desc    Eliminar producto por ID
+ * @access  Admin
  */
 router.delete(
   "/:id",
   verificarAutenticacion,
   permitirRoles("admin"),
-  eliminarProducto
+  productosController.eliminarProducto
 );
 
 module.exports = router;

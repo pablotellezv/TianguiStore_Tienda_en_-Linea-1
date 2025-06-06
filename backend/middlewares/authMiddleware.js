@@ -24,7 +24,12 @@ function verificarAutenticacion(req, res, next) {
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    req.usuario = payload;
+
+    req.usuario = {
+      ...payload,
+      rol: payload.rol?.toLowerCase() || "cliente"
+    };
+
     next();
   } catch (err) {
     if (err instanceof jwt.TokenExpiredError) {
@@ -37,6 +42,7 @@ function verificarAutenticacion(req, res, next) {
     return res.status(500).json({ mensaje: "Error interno al verificar autenticación." });
   }
 }
+
 
 /**
  * 🛂 Verifica permisos tipo objeto: permisos.recurso.accion === true

@@ -17,70 +17,70 @@
 </head>
 
 <body class="dark-theme">
-
   <!-- 🔝 Navbar modular -->
   <div id="navbar-container"></div>
 
   <!-- 🧠 Contenedor principal -->
-  <main class="container" style="margin-top: 6vh;">
-    <div class="card glass-card z-depth-5 animate__animated animate__fadeIn" style="max-width: 420px; margin: 0 auto;">
-      <div class="card-content white-text">
-        <h5 class="center-align amber-text text-accent-3" style="margin-bottom: 1.8rem;">
-          <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
-        </h5>
+  <main class="formulario-wrapper animate__animated animate__fadeIn" style="max-width: 480px; margin: 0 auto;">
+    <h2 class="intro-title center-align">
+      <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+    </h2>
 
-        <form id="loginForm" novalidate>
-          <!-- 📧 Correo -->
-          <div class="input-field">
-            <i class="fas fa-envelope prefix"></i>
-            <input type="email" id="email" class="validate white-text" required autocomplete="email" />
-            <label for="email">Correo Electrónico</label>
-            <span class="helper-text" data-error="Correo inválido"></span>
-          </div>
+    <p class="center-align" style="margin-bottom: 2rem;">
+      Accede a tu cuenta para descubrir productos únicos, gestionar tus compras y apoyar al comercio digital con alma local.<br />
+      En <strong>TianguiStore</strong>, cada compra impulsa a emprendedores reales. ¡Bienvenido de vuelta!
+    </p>
 
-          <!-- 🔒 Contraseña -->
-          <div class="input-field" style="position: relative;">
-            <i class="fas fa-lock prefix"></i>
-            <input type="password" id="password" class="validate white-text" required autocomplete="current-password" />
-            <label for="password">Contraseña</label>
-            <span class="helper-text" data-error="Mínimo 8 caracteres, una mayúscula y un número"></span>
-            <a id="togglePassword" title="Mostrar/Ocultar contraseña" style="position: absolute; right: 10px; top: 18px; color: #ccc;">
-              <i class="fas fa-eye-slash"></i>
-            </a>
-          </div>
-
-          <!-- 🔁 Recordarme -->
-          <p class="left-align">
-            <label>
-              <input type="checkbox" id="remember" class="filled-in amber-text" />
-              <span class="white-text">Recordarme</span>
-            </label>
-          </p>
-
-          <!-- 🟧 Botón de ingreso -->
-          <div class="center-align" style="margin-top: 2rem;">
-            <button type="submit" class="btn-large amber darken-3 waves-effect waves-light" style="width: 100%;">
-              <i class="fas fa-sign-in-alt left"></i> Entrar
-            </button>
-          </div>
-
-          <!-- 🔗 Acciones -->
-          <div class="section center-align" style="margin-top: 2rem;">
-            <a href="recuperar.html" class="grey-text text-lighten-2">
-              <i class="fas fa-question-circle left"></i> ¿Olvidaste tu contraseña?
-            </a>
-            <br /><br />
-            <a href="registro.html" class="btn-flat amber-text text-lighten-1">
-              <i class="fas fa-user-plus left"></i> Crear cuenta
-            </a>
-          </div>
-
-          <!-- ✅ / ❌ Mensajes -->
-          <div id="mensajeError" class="card-panel red darken-2 white-text" style="display: none;"></div>
-          <div id="mensajeExito" class="card-panel green darken-2 white-text" style="display: none;"></div>
-        </form>
+    <form id="loginForm" novalidate>
+      <!-- 📧 Correo -->
+      <div class="input-field">
+        <i class="fas fa-envelope prefix white-text"></i>
+        <input type="email" id="email" class="validate" required autocomplete="email" />
+        <label for="email">Correo Electrónico</label>
+        <span class="helper-text" data-error="Correo inválido"></span>
       </div>
-    </div>
+
+      <!-- 🔒 Contraseña -->
+      <div class="input-field">
+        <i class="fas fa-lock prefix white-text"></i>
+        <input type="password" id="password" class="validate" required autocomplete="current-password" />
+        <label for="password">Contraseña</label>
+        <a id="togglePassword" class="toggle-password" title="Mostrar/Ocultar contraseña">
+          <i class="fas fa-eye-slash"></i>
+        </a>
+        <span class="helper-text" data-error="Mínimo 8 caracteres, una mayúscula y un número"></span>
+      </div>
+
+      <!-- 🔁 Recordarme -->
+      <p class="left-align" style="margin-bottom: 2rem;">
+        <label>
+          <input type="checkbox" id="remember" class="filled-in" />
+          <span>Recordarme</span>
+        </label>
+      </p>
+
+      <!-- 🟧 Botón de ingreso -->
+      <div class="center-align">
+        <button type="submit" class="btn-large btn-auth tooltipped" data-tooltip="Entrar a tu cuenta" style="width: 100%;">
+          <i class="fas fa-sign-in-alt left"></i> Entrar
+        </button>
+      </div>
+
+      <!-- 🔗 Acciones -->
+      <div class="section center-align" style="margin-top: 2.5rem;">
+        <a href="recuperar.html" class="grey-text text-lighten-2">
+          <i class="fas fa-question-circle left"></i> ¿Olvidaste tu contraseña?
+        </a>
+        <br /><br />
+        <a href="registro.html" class="btn-flat amber-text text-lighten-1">
+          <i class="fas fa-user-plus left"></i> Crear cuenta
+        </a>
+      </div>
+
+      <!-- ✅ / ❌ Mensajes -->
+      <div id="mensajeError" class="card-panel red darken-2 white-text" style="display: none;"></div>
+      <div id="mensajeExito" class="card-panel green darken-2 white-text" style="display: none;"></div>
+    </form>
   </main>
 
   <!-- 🔻 Footer modular -->
